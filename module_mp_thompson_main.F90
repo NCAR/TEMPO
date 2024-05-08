@@ -3,13 +3,13 @@
 module module_mp_thompson_main
 
     use module_mp_thompson_params
+    use module_mp_thompson_utils, only : gammln
 
 #if defined(CCPP)
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #elif defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
-    use mpas_atmphys_functions, only: gammp, wgamma, rslf, rsif
-!    use mp_radar
+    use mpas_atmphys_functions, only: gammp, rslf, rsif
 #endif
 
 contains
@@ -2884,31 +2884,6 @@ contains
     END SUBROUTINE GSER
 !  (C) Copr. 1986-92 Numerical Recipes Software 2.02
 !+---+-----------------------------------------------------------------+
-    REAL FUNCTION GAMMLN(XX)
-!     --- RETURNS THE VALUE LN(GAMMA(XX)) FOR XX > 0.
-        IMPLICIT NONE
-        REAL, INTENT(IN):: XX
-        DOUBLE PRECISION, PARAMETER:: STP = 2.5066282746310005D0
-        DOUBLE PRECISION, DIMENSION(6), PARAMETER:: &
-            COF = (/76.18009172947146D0, -86.50532032941677D0, &
-            24.01409824083091D0, -1.231739572450155D0, &
-            .1208650973866179D-2, -.5395239384953D-5/)
-        DOUBLE PRECISION:: SER,TMP,X,Y
-        INTEGER:: J
-
-        X=XX
-        Y=X
-        TMP=X+5.5D0
-        TMP=(X+0.5D0)*LOG(TMP)-TMP
-        SER=1.000000000190015D0
-        DO 11 J=1,6
-            Y=Y+1.D0
-            SER=SER+COF(J)/Y
-11      CONTINUE
-        GAMMLN=TMP+LOG(STP*SER/X)
-    END FUNCTION GAMMLN
-!  (C) Copr. 1986-92 Numerical Recipes Software 2.02
-!+---+-----------------------------------------------------------------+
     REAL FUNCTION GAMMP(A,X)
 !     --- COMPUTES THE INCOMPLETE GAMMA FUNCTION P(A,X)
 !     --- SEE ABRAMOWITZ AND STEGUN 6.5.1
@@ -2929,15 +2904,6 @@ contains
         ENDIF
     END FUNCTION GAMMP
 !  (C) Copr. 1986-92 Numerical Recipes Software 2.02
-!+---+-----------------------------------------------------------------+
-    REAL FUNCTION WGAMMA(y)
-
-        IMPLICIT NONE
-        REAL, INTENT(IN):: y
-
-        WGAMMA = EXP(GAMMLN(y))
-
-    END FUNCTION WGAMMA
 !+---+-----------------------------------------------------------------+
 ! THIS FUNCTION CALCULATES THE LIQUID SATURATION VAPOR MIXING RATIO AS
 ! A FUNCTION OF TEMPERATURE AND PRESSURE

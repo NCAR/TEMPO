@@ -1,19 +1,236 @@
 ! Utilities for Thompson-Eidhammer Microphysics
 !=================================================================================================================
-
 module module_mp_thompson_utils
+
+    use module_mp_thompson_params
 
 #if defined(CCPP)
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #elif defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
-    use mpas_atmphys_functions, only: gammp
+!    use mpas_atmphys_functions, only: gammp
 #endif
 
-    use module_mp_thompson_params
-    use mp_radar
-    
+!    use mp_radar
+
+    implicit none
+
 contains
+!=================================================================================================================
+! Calculates gamma(xx), the gamma function.
+! Input:
+!   xx
+! Output:
+!   wgamma = gamma(xx)
+
+    real function wgamma(xx)
+
+        real(wp), intent(in) :: xx
+        
+        wgamma = exp(gammln(xx))
+
+    end function wgamma
+
+!=================================================================================================================
+! Calculates log(gamma(xx)) using a fast iterative calculation.
+! Input:
+!   xx
+! Output:
+!   gammln = log(gamma(xx))
+
+    real function gammln(xx)
+
+        real(wp), intent(in) :: xx
+        real(dp), parameter :: stp = 2.5066282746310005d0
+        real(dp), dimension(6), parameter :: &
+            cof = (/76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, &
+            .1208650973866179e-2, -.5395239384953e-5/)
+        real(dp) :: ser, tmp, x, y
+        integer :: j
+
+        x = xx
+        y = x
+        tmp = x + 5.5_dp
+        tmp = (x+0.5_dp) * log(tmp) - tmp
+        ser = 1.000000000190015
+        do j = 1, 6
+            y = y + 1.0_dp
+            ser = ser + cof(j) / y
+        enddo
+        gammln = tmp + log(stp*ser/x)
+
+    end function gammln
+
+!=================================================================================================================
+! Calculates log-spaced bins for hydrometer sizes to simplify calculations later
+! Input:
+!   numbins, lowbin, highbin
+! Output:
+!   bins, deltabins
+
+    subroutine create_bins(numbins, lowbin, highbin, bins, deltabins)
+
+        integer, intent(in) :: numbins
+        real(dp), intent(in) :: lowbin, highbin
+
+        integer :: n
+        real(dp), dimension(numbins+1) :: xDx
+        real(dp), dimension(:), intent(out) :: bins
+        real(dp), dimension(:), intent(out), optional :: deltabins
+
+        xDx(1) = lowbin
+        xDx(numbins+1) = highbin
+
+        do  n = 2, numbins
+            xDx(n) = exp(real(n-1, kind=dp)/real(numbins, kind=dp) * log(xDx(numbins+1)/xDx(1)) + log(xDx(1)))
+        enddo   
+
+        do n = 1, numbins
+            bins(n) = sqrt(xDx(n)*xDx(n+1))
+        enddo
+
+        if (present(deltabins)) then
+            do n = 1, numbins
+                deltabins(n) = xDx(n+1) - xDx(n)
+            enddo
+        endif
+
+    end subroutine create_bins
+
+!=================================================================================================================
+! Variable collision efficiency for rain collecting cloud water using method of Beard and Grover, 1974
+! if a/A less than 0.25; otherwise uses polynomials to get close match of Pruppacher & Klett Fig 14-9.
+! Output:
+!    t_Efrw
+   
+    subroutine table_Efrw
+    
+    ! Local variables
+        real(dp) :: vtr, stokes, reynolds, Ef_rw
+        real(dp) :: p, yc0, F, G, H, z, K0, X
+        integer :: i, j
+    
+        do j = 1, nbc
+            do i = 1, nbr
+                Ef_rw = 0.0
+                p = Dc(j) / Dr(i)
+                if (Dr(i) < 50.e-6 .or. Dc(j) < 3.e-6) then
+                    t_Efrw(i,j) = 0.0
+                elseif (p > 0.25) then
+                    X = Dc(j) * 1.D6
+                    if (Dr(i) < 75.e-6) then
+                        Ef_rw = 0.026794*X - 0.20604
+                    elseif (Dr(i) < 125.e-6) then
+                        Ef_rw = -0.00066842*X*X + 0.061542*X - 0.37089
+                    elseif (Dr(i) < 175.e-6) then
+                        Ef_rw = 4.091e-06*X*X*X*X - 0.00030908*X*X*X + 0.0066237*X*X - 0.0013687*X - 0.073022
+                    elseif (Dr(i) < 250.e-6) then
+                        Ef_rw = 9.6719e-5*X*X*X - 0.0068901*X*X + 0.17305*X - 0.65988
+                    elseif (Dr(i) < 350.e-6) then
+                        Ef_rw = 9.0488e-5*X*X*X - 0.006585*X*X + 0.16606*X - 0.56125
+                    else
+                        Ef_rw = 0.00010721*X*X*X - 0.0072962*X*X + 0.1704*X - 0.46929
+                    endif
+                else
+                    vtr = -0.1021 + 4.932e3*Dr(i) - 0.9551e6*Dr(i)*Dr(i) + 0.07934e9*Dr(i)*Dr(i)*Dr(i) &
+                        - 0.002362e12*Dr(i)*Dr(i)*Dr(i)*Dr(i)
+                    stokes = Dc(j) * Dc(j) * vtr * rho_w2 / (9.*1.718e-5*Dr(i))
+                    reynolds = 9. * stokes / (p*p*rho_w2)
+    
+                    F = log(reynolds)
+                    G = -0.1007_dp - 0.358_dp*F + 0.0261_dp*F*F
+                    K0 = exp(G)
+                    z = log(stokes / (K0+1.e-15_dp))
+                    H = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
+                    yc0 = 2.0_dp / PI * atan(H)
+                    Ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
+    
+                endif
+                t_Efrw(i,j) = max(0.0, min(real(Ef_rw, kind=wp), 0.95))
+            enddo
+        enddo
+    
+    end subroutine table_Efrw
+
+!=================================================================================================================
+! Variable collision efficiency for snow collecting cloud water using method of Wang and Ji, 2000 except
+! equate melted snow diameter to their "effective collision cross-section."
+! Output:
+!    t_Efsw
+
+    subroutine table_Efsw
+    
+    ! Local variables
+        real(dp) :: Ds_m, vts, vtc, stokes, reynolds, Ef_sw
+        real(dp) :: p, yc0, F, G, H, z, K0
+        integer :: i, j
+    
+        do j = 1, nbc
+            vtc = 1.19e4_dp * (1.0e4_dp*Dc(j)*Dc(j)*0.25_dp)
+            do i = 1, nbs
+                vts = av_s*Ds(i)**bv_s * exp(-fv_s*Ds(i)) - vtc
+                Ds_m = (am_s*Ds(i)**bm_s / am_r)**obmr
+                p = Dc(j) / Ds_m
+                if (p > 0.25 .or. Ds(i) < D0s .or. Dc(j) < 6.e-6 .or. vts < 1.e-3) then
+                    t_Efsw(i,j) = 0.0
+                else
+                    stokes = Dc(j) * Dc(j) * vts * rho_w2 / (9.*1.718e-5*Ds_m)
+                    reynolds = 9. * stokes / (p*p*rho_w2)
+    
+                    F = log(reynolds)
+                    G = -0.1007_dp - 0.358_dp*F + 0.0261_dp*F*F
+                    K0 = exp(G)
+                    z = log(stokes / (K0+1.e-15_dp))
+                    H = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
+                    yc0 = 2.0_dp / PI * atan(H)
+                    Ef_sw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
+    
+                    t_Efsw(i,j) = max(0.0, min(real(Ef_sw, kind=wp), 0.95))
+                endif
+            enddo
+        enddo
+    
+    end subroutine table_Efsw
+
+!=================================================================================================================
+! Droplet evaporation
+! Output:
+!   tpc_wev, tnc_wev
+
+    subroutine table_dropEvap
+    
+    ! Local variables
+        integer :: i, j, k, n
+        real(dp), dimension(nbc) :: N_c, massc
+        real(dp) :: summ, summ2, lamc, N0_c
+        integer :: nu_c
+    
+        do n = 1, nbc
+            massc(n) = am_r*Dc(n)**bm_r
+        enddo
+    
+        do k = 1, nbc
+            nu_c = min(nu_c_max, nint(nu_c_scale/t_Nc(k)) + nu_c_min)
+            do j = 1, ntb_c
+                lamc = (t_Nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
+                N0_c = t_Nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
+                do i = 1, nbc
+                    N_c(i) = N0_c* Dc(i)**nu_c*exp(-lamc*Dc(i))*dtc(i)
+                    summ = 0.
+                    summ2 = 0.
+                    do n = 1, i
+                        summ = summ + massc(n)*N_c(n)
+                        summ2 = summ2 + N_c(n)
+                    enddo
+                    tpc_wev(i,j,k) = summ
+                    tnc_wev(i,j,k) = summ2
+                enddo
+            enddo
+        enddo
+
+    end subroutine table_dropEvap
+
+!=================================================================================================================
 
 !+---+-----------------------------------------------------------------+
 ! !ctrlL
@@ -323,6 +540,7 @@ subroutine freezeH2O
         massc(n) = am_r*Dc(n)**bm_r
     enddo
 
+    !TODO: Fix
     !..Freeze water (smallest drops become cloud ice, otherwise graupel).
     do m = 1, ntb_IN
        T_adjust = MAX(-3.0, MIN(3.0 - ALOG10(Nt_IN(m)), 3.0))
@@ -438,214 +656,8 @@ subroutine qi_aut_qs
     enddo
 
 end subroutine qi_aut_qs
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..Variable collision efficiency for rain collecting cloud water using
-!.. method of Beard and Grover, 1974 if a/A less than 0.25; otherwise
-!.. uses polynomials to get close match of Pruppacher & Klett Fig 14-9.
-!+---+-----------------------------------------------------------------+
 
-subroutine table_Efrw
 
-    implicit none
-
-!..Local variables
-    DOUBLE PRECISION:: vtr, stokes, reynolds, Ef_rw
-    DOUBLE PRECISION:: p, yc0, F, G, H, z, K0, X
-    INTEGER:: i, j
-
-    do j = 1, nbc
-        do i = 1, nbr
-            Ef_rw = 0.0
-            p = Dc(j)/Dr(i)
-            if (Dr(i).lt.50.E-6 .or. Dc(j).lt.3.E-6) then
-                t_Efrw(i,j) = 0.0
-            elseif (p.gt.0.25) then
-                X = Dc(j)*1.D6
-                if (Dr(i) .lt. 75.e-6) then
-                    Ef_rw = 0.026794*X - 0.20604
-                elseif (Dr(i) .lt. 125.e-6) then
-                    Ef_rw = -0.00066842*X*X + 0.061542*X - 0.37089
-                elseif (Dr(i) .lt. 175.e-6) then
-                    Ef_rw = 4.091e-06*X*X*X*X - 0.00030908*X*X*X               &
-                        + 0.0066237*X*X - 0.0013687*X - 0.073022
-                elseif (Dr(i) .lt. 250.e-6) then
-                    Ef_rw = 9.6719e-5*X*X*X - 0.0068901*X*X + 0.17305*X        &
-                        - 0.65988
-                elseif (Dr(i) .lt. 350.e-6) then
-                    Ef_rw = 9.0488e-5*X*X*X - 0.006585*X*X + 0.16606*X         &
-                        - 0.56125
-                else
-                    Ef_rw = 0.00010721*X*X*X - 0.0072962*X*X + 0.1704*X        &
-                        - 0.46929
-                endif
-            else
-                vtr = -0.1021 + 4.932E3*Dr(i) - 0.9551E6*Dr(i)*Dr(i) &
-                    + 0.07934E9*Dr(i)*Dr(i)*Dr(i) &
-                    - 0.002362E12*Dr(i)*Dr(i)*Dr(i)*Dr(i)
-                stokes = Dc(j)*Dc(j)*vtr*rho_w2/(9.*1.718E-5*Dr(i))
-                reynolds = 9.*stokes/(p*p*rho_w2)
-
-                F = DLOG(reynolds)
-                G = -0.1007D0 - 0.358D0*F + 0.0261D0*F*F
-                K0 = DEXP(G)
-                z = DLOG(stokes/(K0+1.D-15))
-                H = 0.1465D0 + 1.302D0*z - 0.607D0*z*z + 0.293D0*z*z*z
-                yc0 = 2.0D0/PI * ATAN(H)
-                Ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
-
-            endif
-
-            t_Efrw(i,j) = MAX(0.0, MIN(SNGL(Ef_rw), 0.95))
-
-        enddo
-    enddo
-
-end subroutine table_Efrw
-!ctrlL
-!+---+-----------------------------------------------------------------+
-!..Variable collision efficiency for snow collecting cloud water using
-!.. method of Wang and Ji, 2000 except equate melted snow diameter to
-!.. their "effective collision cross-section."
-!+---+-----------------------------------------------------------------+
-
-subroutine table_Efsw
-
-    implicit none
-
-!..Local variables
-    DOUBLE PRECISION:: Ds_m, vts, vtc, stokes, reynolds, Ef_sw
-    DOUBLE PRECISION:: p, yc0, F, G, H, z, K0
-    INTEGER:: i, j
-
-    do j = 1, nbc
-        vtc = 1.19D4 * (1.0D4*Dc(j)*Dc(j)*0.25D0)
-        do i = 1, nbs
-            vts = av_s*Ds(i)**bv_s * DEXP(-fv_s*Ds(i)) - vtc
-            Ds_m = (am_s*Ds(i)**bm_s / am_r)**obmr
-            p = Dc(j)/Ds_m
-            if (p.gt.0.25 .or. Ds(i).lt.D0s .or. Dc(j).lt.6.E-6 &
-                .or. vts.lt.1.E-3) then
-                t_Efsw(i,j) = 0.0
-            else
-                stokes = Dc(j)*Dc(j)*vts*rho_w2/(9.*1.718E-5*Ds_m)
-                reynolds = 9.*stokes/(p*p*rho_w2)
-
-                F = DLOG(reynolds)
-                G = -0.1007D0 - 0.358D0*F + 0.0261D0*F*F
-                K0 = DEXP(G)
-                z = DLOG(stokes/(K0+1.D-15))
-                H = 0.1465D0 + 1.302D0*z - 0.607D0*z*z + 0.293D0*z*z*z
-                yc0 = 2.0D0/PI * ATAN(H)
-                Ef_sw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
-
-                t_Efsw(i,j) = MAX(0.0, MIN(SNGL(Ef_sw), 0.95))
-            endif
-
-        enddo
-    enddo
-
-end subroutine table_Efsw
-!ctrlL
-
-!+---+-----------------------------------------------------------------+
-!..Integrate rain size distribution from zero to D-star to compute the
-!.. number of drops smaller than D-star that evaporate in a single
-!.. timestep.  Drops larger than D-star dont evaporate entirely so do
-!.. not affect number concentration.
-!+---+-----------------------------------------------------------------+
-
-subroutine table_dropEvap
-
-    implicit none
-
-!..Local variables
-    INTEGER:: i, j, k, n
-    DOUBLE PRECISION, DIMENSION(nbc):: N_c, massc
-    DOUBLE PRECISION:: summ, summ2, lamc, N0_c
-    INTEGER:: nu_c
-!      DOUBLE PRECISION:: Nt_r, N0, lam_exp, lam
-!      REAL:: xlimit_intg
-
-    do n = 1, nbc
-        massc(n) = am_r*Dc(n)**bm_r
-    enddo
-
-    do k = 1, nbc
-        nu_c = MIN(15, NINT(1000.E6/t_Nc(k)) + 2)
-        do j = 1, ntb_c
-            lamc = (t_Nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
-            N0_c = t_Nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
-            do i = 1, nbc
-!-GT           tnc_wev(i,j,k) = GAMMP(nu_c+1., SNGL(Dc(i)*lamc))*t_Nc(k)
-                N_c(i) = N0_c* Dc(i)**nu_c*EXP(-lamc*Dc(i))*dtc(i)
-!     if(j.eq.18 .and. k.eq.50) print*, ' N_c = ', N_c(i)
-                summ = 0.
-                summ2 = 0.
-                do n = 1, i
-                    summ = summ + massc(n)*N_c(n)
-                    summ2 = summ2 + N_c(n)
-                enddo
-!      if(j.eq.18 .and. k.eq.50) print*, '  DEBUG-TABLE: ', r_c(j), t_Nc(k), summ2, summ
-                tpc_wev(i,j,k) = summ
-                tnc_wev(i,j,k) = summ2
-            enddo
-        enddo
-    enddo
-
-!
-!..To do the same thing for rain.
-!
-!     do k = 1, ntb_r
-!     do j = 1, ntb_r1
-!        lam_exp = (N0r_exp(j)*am_r*crg(1)/r_r(k))**ore1
-!        lam = lam_exp * (crg(3)*org2*org1)**obmr
-!        N0 = N0r_exp(j)/(crg(2)*lam_exp) * lam**cre(2)
-!        Nt_r = N0 * crg(2) / lam**cre(2)
-!        do i = 1, nbr
-!           xlimit_intg = lam*Dr(i)
-!           tnr_rev(i,j,k) = GAMMP(mu_r+1.0, xlimit_intg) * Nt_r
-!        enddo
-!     enddo
-!     enddo
-
-! TO APPLY TABLE ABOVE
-!..Rain lookup table indexes.
-!         Dr_star = DSQRT(-2.D0*DT * t1_evap/(2.*PI) &
-!                 * 0.78*4.*diffu(k)*xsat*rvs/rho_w)
-!         idx_d = NINT(1.0 + FLOAT(nbr) * DLOG(Dr_star/D0r)             &
-!               / DLOG(Dr(nbr)/D0r))
-!         idx_d = MAX(1, MIN(idx_d, nbr))
-!
-!         nir = NINT(ALOG10(rr(k)))
-!         do nn = nir-1, nir+1
-!            n = nn
-!            if ( (rr(k)/10.**nn).ge.1.0 .and. &
-!                 (rr(k)/10.**nn).lt.10.0) goto 154
-!         enddo
-!154      continue
-!         idx_r = INT(rr(k)/10.**n) + 10*(n-nir2) - (n-nir2)
-!         idx_r = MAX(1, MIN(idx_r, ntb_r))
-!
-!         lamr = (am_r*crg(3)*org2*nr(k)/rr(k))**obmr
-!         lam_exp = lamr * (crg(3)*org2*org1)**bm_r
-!         N0_exp = org1*rr(k)/am_r * lam_exp**cre(1)
-!         nir = NINT(DLOG10(N0_exp))
-!         do nn = nir-1, nir+1
-!            n = nn
-!            if ( (N0_exp/10.**nn).ge.1.0 .and. &
-!                 (N0_exp/10.**nn).lt.10.0) goto 155
-!         enddo
-!155      continue
-!         idx_r1 = INT(N0_exp/10.**n) + 10*(n-nir3) - (n-nir3)
-!         idx_r1 = MAX(1, MIN(idx_r1, ntb_r1))
-!
-!         pnr_rev(k) = MIN(nr(k)*odts, SNGL(tnr_rev(idx_d,idx_r1,idx_r) &   ! RAIN2M
-!                    * odts))
-
-end subroutine table_dropEvap
-!
-!ctrlL
 #if !defined (mpas)
 !+---+-----------------------------------------------------------------+
 !..Fill the table of CCN activation data created from parcel model run
