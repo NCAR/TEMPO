@@ -1,0 +1,32 @@
+name: CI test to build and run the unit tests for TEMPO microphysics on ubuntu v22.04.
+
+on: [pull_request,workflow_dispatch,push]
+
+jobs:
+  unit_tests:
+
+    # The type of runner that the job will run on
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        fortran-compiler: [gfortran-10, gfortran-11, gfortran-12]
+
+    # Environmental variables
+    env:
+      driver_ROOT: /home/runner/work/GSL_cloud_physics/GSL_cloud_physics
+
+    # Workflow steps
+    steps:
+
+    - name: Checkout code (into ${driver_ROOT})
+      uses: actions/checkout@v3
+
+    - name: Build unit tests
+      run: |
+        cd ${driver_ROOT}/unit_tests
+        make driver
+
+    - name: Run unit tests
+      run: |
+        cd ${driver_ROOT}/unit_tests
+        ./driver
