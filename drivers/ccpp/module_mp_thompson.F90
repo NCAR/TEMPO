@@ -1,12 +1,13 @@
-! 3D Thompson-Eidhammer Microphysics Driver for MPAS
+! 3D TEMPO Driver for CCPP
 !=================================================================================================================
 module module_mp_thompson
 
+    use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
     use module_mp_thompson_params
-    use module_mp_thompson_utils, only : wgamma, create_bins, table_Efrw, table_Efsw, table_dropEvap,
-    table_ccnAct, qi_aut_qs, qr_acr_qg_par, qr_acr_qs_par, freezeH2O_par
+    use module_mp_thompson_utils, only : wgamma, create_bins, table_Efrw, table_Efsw, table_dropEvap, &
+        table_ccnAct, qi_aut_qs, qr_acr_qg_par, qr_acr_qs_par, freezeH2O_par, calc_refl10cm, calc_effectRad
     use module_mp_thompson_main, only : mp_thompson_main
-    use mp_radar, only : radar_init
+    use mp_radar
 
     implicit none
 
@@ -20,8 +21,6 @@ contains
         merra2_aerosol_aware_in,   &
         mpicomm, mpirank, mpiroot, &
         threads, errmsg, errflg)
-
-        IMPLICIT NONE
 
         LOGICAL, INTENT(IN) :: is_aerosol_aware_in
         LOGICAL, INTENT(IN) :: merra2_aerosol_aware_in
@@ -37,16 +36,16 @@ contains
         LOGICAL, PARAMETER :: precomputed_tables = .FALSE.
 
         ! Set module variable is_aerosol_aware/merra2_aerosol_aware
-        is_aerosol_aware = is_aerosol_aware_in
+        configs%aerosol_aware = is_aerosol_aware_in
         merra2_aerosol_aware = merra2_aerosol_aware_in
-        if (is_aerosol_aware .and. merra2_aerosol_aware) then
+        if (configs%aerosol_aware .and. merra2_aerosol_aware) then
             errmsg = 'Logic error in thompson_init: only one of the two options can be true, ' // &
                 'not both: is_aerosol_aware or merra2_aerosol_aware'
             errflg = 1
             return
         end if
         if (mpirank==mpiroot) then
-            if (is_aerosol_aware) then
+            if (configs%aerosol_aware) then
                 write (*,'(a)') 'Using aerosol-aware version of Thompson microphysics'
             else if(merra2_aerosol_aware) then
                 write (*,'(a)') 'Using merra2 aerosol-aware version of Thompson microphysics'
@@ -59,6 +58,7 @@ contains
 
         av_g(idx_bg1) = av_g_old
         bv_g(idx_bg1) = bv_g_old
+        dimNRHG = NRHG1
 
         !> - Allocate space for lookup tables (J. Michalakes 2009Jun08).
 
@@ -67,10 +67,10 @@ contains
             micro_init = .TRUE.
         endif
 
-        if (.NOT. ALLOCATED(tmr_racg)) ALLOCATE(tmr_racg(ntb_g1,ntb_g,1,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tcr_gacr)) ALLOCATE(tcr_gacr(ntb_g1,ntb_g,1,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_racg)) ALLOCATE(tnr_racg(ntb_g1,ntb_g,1,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_gacr)) ALLOCATE(tnr_gacr(ntb_g1,ntb_g,1,ntb_r1,ntb_r))
+        if (.NOT. ALLOCATED(tmr_racg)) ALLOCATE(tmr_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        if (.NOT. ALLOCATED(tcr_gacr)) ALLOCATE(tcr_gacr(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        if (.NOT. ALLOCATED(tnr_racg)) ALLOCATE(tnr_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        if (.NOT. ALLOCATED(tnr_gacr)) ALLOCATE(tnr_gacr(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
 
         if (.NOT. ALLOCATED(tcs_racs1)) ALLOCATE(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
         if (.NOT. ALLOCATED(tmr_racs1)) ALLOCATE(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
@@ -85,13 +85,13 @@ contains
         if (.NOT. ALLOCATED(tnr_sacr1)) ALLOCATE(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
         if (.NOT. ALLOCATED(tnr_sacr2)) ALLOCATE(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
 
-        if (.NOT. ALLOCATED(tpi_qcfz)) ALLOCATE(tpi_qcfz(ntb_c,nbc,45,ntb_IN))
-        if (.NOT. ALLOCATED(tni_qcfz)) ALLOCATE(tni_qcfz(ntb_c,nbc,45,ntb_IN))
+        if (.NOT. ALLOCATED(tpi_qcfz)) ALLOCATE(tpi_qcfz(ntb_c,nbc,ntb_t1,ntb_IN))
+        if (.NOT. ALLOCATED(tni_qcfz)) ALLOCATE(tni_qcfz(ntb_c,nbc,ntb_t1,ntb_IN))
 
-        if (.NOT. ALLOCATED(tpi_qrfz)) ALLOCATE(tpi_qrfz(ntb_r,ntb_r1,45,ntb_IN))
-        if (.NOT. ALLOCATED(tpg_qrfz)) ALLOCATE(tpg_qrfz(ntb_r,ntb_r1,45,ntb_IN))
-        if (.NOT. ALLOCATED(tni_qrfz)) ALLOCATE(tni_qrfz(ntb_r,ntb_r1,45,ntb_IN))
-        if (.NOT. ALLOCATED(tnr_qrfz)) ALLOCATE(tnr_qrfz(ntb_r,ntb_r1,45,ntb_IN))
+        if (.NOT. ALLOCATED(tpi_qrfz)) ALLOCATE(tpi_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        if (.NOT. ALLOCATED(tpg_qrfz)) ALLOCATE(tpg_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        if (.NOT. ALLOCATED(tni_qrfz)) ALLOCATE(tni_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        if (.NOT. ALLOCATED(tnr_qrfz)) ALLOCATE(tnr_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
 
         if (.NOT. ALLOCATED(tps_iaus)) ALLOCATE(tps_iaus(ntb_i,ntb_i1))
         if (.NOT. ALLOCATED(tni_iaus)) ALLOCATE(tni_iaus(ntb_i,ntb_i1))
@@ -134,11 +134,11 @@ contains
                 cce(3,n) = bm_r + n + 4.
                 cce(4,n) = n + bv_c + 1.
                 cce(5,n) = bm_r + n + bv_c + 1.
-                ccg(1,n) = WGAMMA(cce(1,n))
-                ccg(2,n) = WGAMMA(cce(2,n))
-                ccg(3,n) = WGAMMA(cce(3,n))
-                ccg(4,n) = WGAMMA(cce(4,n))
-                ccg(5,n) = WGAMMA(cce(5,n))
+                ccg(1,n) = GAMMA(cce(1,n))
+                ccg(2,n) = GAMMA(cce(2,n))
+                ccg(3,n) = GAMMA(cce(3,n))
+                ccg(4,n) = GAMMA(cce(4,n))
+                ccg(5,n) = GAMMA(cce(5,n))
                 ocg1(n) = 1./ccg(1,n)
                 ocg2(n) = 1./ccg(2,n)
             enddo
@@ -150,13 +150,13 @@ contains
             cie(5) = mu_i + 2.
             cie(6) = bm_i*0.5 + mu_i + bv_i + 1.
             cie(7) = bm_i*0.5 + mu_i + 1.
-            cig(1) = WGAMMA(cie(1))
-            cig(2) = WGAMMA(cie(2))
-            cig(3) = WGAMMA(cie(3))
-            cig(4) = WGAMMA(cie(4))
-            cig(5) = WGAMMA(cie(5))
-            cig(6) = WGAMMA(cie(6))
-            cig(7) = WGAMMA(cie(7))
+            cig(1) = GAMMA(cie(1))
+            cig(2) = GAMMA(cie(2))
+            cig(3) = GAMMA(cie(3))
+            cig(4) = GAMMA(cie(4))
+            cig(5) = GAMMA(cie(5))
+            cig(6) = GAMMA(cie(6))
+            cig(7) = GAMMA(cie(7))
             oig1 = 1./cig(1)
             oig2 = 1./cig(2)
             obmi = 1./bm_i
@@ -175,7 +175,7 @@ contains
             cre(12) = bm_r*0.5 + mu_r + 1.
             cre(13) = bm_r*2. + mu_r + bv_r + 1.
             do n = 1, 13
-                crg(n) = WGAMMA(cre(n))
+                crg(n) = GAMMA(cre(n))
             enddo
             obmr = 1./bm_r
             ore1 = 1./cre(1)
@@ -202,7 +202,7 @@ contains
             cse(17) = cse(16) + mu_s + 1.
             cse(18) = bv_s + mu_s + 3.
             do n = 1, 18
-                csg(n) = WGAMMA(cse(n))
+                csg(n) = GAMMA(cse(n))
             enddo
             oams = 1./am_s
             obms = 1./bm_s
@@ -227,7 +227,7 @@ contains
 
             do m = 1, NRHG
                 do n = 1, 12
-                    cgg(n,m) = wgamma(cge(n,m))
+                    cgg(n,m) = gamma(cge(n,m))
                 enddo
             enddo
 
@@ -236,29 +236,18 @@ contains
                 ocmg(m) = oamg(m)**obmg
             enddo
 
-            ! cge(1) = bm_g + 1.
-            ! cge(2) = mu_g + 1.
-            ! cge(3) = bm_g + mu_g + 1.
-            ! cge(4) = bm_g*2. + mu_g + 1.
-            ! cge(5) = bm_g*2. + mu_g + bv_g + 1.
-            ! cge(6) = bm_g + mu_g + bv_g + 1.
-            ! cge(7) = bm_g + mu_g + bv_g + 2.
-            ! cge(8) = bm_g + mu_g + bv_g + 3.
-            ! cge(9) = mu_g + bv_g + 3.
-            ! cge(10) = mu_g + 2.
-            ! cge(11) = 0.5*(bv_g + 5. + 2.*mu_g)
-            ! cge(12) = 0.5*(bv_g + 5.) + mu_g
-            ! do n = 1, 12
-            !    cgg(n) = WGAMMA(cge(n))
-            ! enddo
+            oamg = 1.0 / am_g
+            obmg = 1.0 / bm_g
 
-            oamg = 1./am_g
-            obmg = 1./bm_g
-            ocmg = oamg**obmg
-            oge1 = 1./cge(1)
-            ogg1 = 1./cgg(1)
-            ogg2 = 1./cgg(2)
-            ogg3 = 1./cgg(3)
+            do m = 1, NRHG
+                oamg(m) = 1.0 / am_g(m)
+                ocmg(m) = oamg(m)**obmg
+            enddo
+
+            oge1 = 1.0 / cge(1,1)
+            ogg1 = 1.0 / cgg(1,1)
+            ogg2 = 1.0 / cgg(2,1)
+            ogg3 = 1.0 / cgg(3,1)
 
             !+---+-----------------------------------------------------------------+
             !> - Simplify various rate equations
@@ -291,12 +280,12 @@ contains
             t2_qs_me = PI*4.*C_sqrd*olfus * 0.28*Sc3*SQRT(av_s)
 
             !>  - Compute sublimation/depositional growth of graupel
-            t1_qg_sd = 0.86 * cgg(10)
-            t2_qg_sd = 0.28*Sc3*SQRT(av_g) * cgg(11)
+            t1_qg_sd = 0.86 * cgg(10,1)
+!             t2_qg_sd = 0.28*Sc3*SQRT(av_g) * cgg(11)
 
             !>  - Compute melting of graupel
-            t1_qg_me = PI*4.*C_cube*olfus * 0.86 * cgg(10)
-            t2_qg_me = PI*4.*C_cube*olfus * 0.28*Sc3*SQRT(av_g) * cgg(11)
+            t1_qg_me = PI * 4. * C_cube * olfus * 0.86 * cgg(10,1)
+!             t2_qg_me = PI*4.*C_cube*olfus * 0.28*Sc3*SQRT(av_g) * cgg(11)
 
             !>  - Compute constants for helping find lookup table indexes
             nic2 = NINT(ALOG10(r_c(1)))
@@ -361,7 +350,7 @@ contains
 
                 do m = 1, ntb_r
                     do k = 1, ntb_r1
-                        do n = 1, 1
+                        do n = 1, dimNRHG
                             do j = 1, ntb_g
                                 do i = 1, ntb_g1
                                     tcg_racg(i,j,n,k,m) = 0.0d0
@@ -397,7 +386,7 @@ contains
                 enddo
 
                 do m = 1, ntb_IN
-                    do k = 1, 45
+                    do k = 1, ntb_t1
                         do j = 1, ntb_r1
                             do i = 1, ntb_r
                                 tpi_qrfz(i,j,k,m) = 0.0d0
@@ -469,7 +458,7 @@ contains
                 !! data were created from a parcel model by Feingold & Heymsfield with
                 !! further changes by Eidhammer and Kriedenweis
                 if (mpirank==mpiroot) write(*,*) '  calling table_ccnAct routine'
-                call table_ccnAct(errmsg,errflg)
+                call table_ccnAct(errmsg, errflg)
                 if (.not. errflg==0) return
 
                 !>  - Call table_efrw() and table_efsw() to creat collision efficiency table
@@ -730,7 +719,7 @@ contains
                 end if
             end if
 
-            if (is_aerosol_aware .and. (.not.present(nc)     .or. &
+            if (configs%aerosol_aware .and. (.not.present(nc)     .or. &
                 .not.present(nwfa)   .or. &
                 .not.present(nifa)   .or. &
                 .not.present(nwfa2d) .or. &
@@ -758,7 +747,7 @@ contains
                         ' for merra2 aerosol-aware version of Thompson microphysics'
                     stop
                 end if
-            else if (.not.is_aerosol_aware .and. .not.merra2_aerosol_aware .and. &
+            else if (.not.configs%aerosol_aware .and. .not.merra2_aerosol_aware .and. &
                 (present(nwfa) .or. present(nifa) .or. present(nwfa2d) .or. present(nifa2d))) then
                 write(*,*) 'WARNING, nc/nwfa/nifa/nwfa2d/nifa2d present but is_aerosol_aware/merra2_aerosol_aware are FALSE'
             end if
@@ -1037,28 +1026,33 @@ contains
                     endif
 
                     !> - Call mp_thompson()
-                    call mp_thompson_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
-                        nr1d, nc1d, ng1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d,  &
-                        pptrain, pptsnow, pptgraul, pptice, &
-#if ( WRF_CHEM == 1 )
-                        rainprod1d, evapprod1d, &
-#endif
-                        rand1, rand2, rand3, &
-                        ext_diag,                    &
-                        sedi_semi, decfl,                                &
-                        prw_vcdc1, prw_vcde1,                            &
-                        tpri_inu1, tpri_ide1_d, tpri_ide1_s, tprs_ide1,  &
-                        tprs_sde1_d, tprs_sde1_s,                        &
-                        tprg_gde1_d, tprg_gde1_s, tpri_iha1, tpri_wfz1,  &
-                        tpri_rfz1, tprg_rfz1, tprs_scw1, tprg_scw1,      &
-                        tprg_rcs1, tprs_rcs1, tprr_rci1,                 &
-                        tprg_rcg1, tprw_vcd1_c,                          &
-                        tprw_vcd1_e, tprr_sml1, tprr_gml1, tprr_rcg1,    &
-                        tprr_rcs1, tprv_rev1,                            &
-                        tten1, qvten1, qrten1, qsten1,                   &
-                        qgten1, qiten1, niten1, nrten1, ncten1, qcten1,  &
-                        pfil1, pfll1, lsml, &
-                        kts, kte, dt, i, j, configs)
+                    call mp_thompson_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
+                        ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
+                        w1d=w1d, dzq=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, &
+                        kts=kts, kte=kte, dt=dt, ii=i, jj=j, configs=configs)
+
+!                    call mp_thompson_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
+!                        nr1d, nc1d, ng1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d,  &
+!                        pptrain, pptsnow, pptgraul, pptice, &
+!#if ( WRF_CHEM == 1 )
+!                        rainprod1d, evapprod1d, &
+!#endif
+!                        rand1, rand2, rand3, &
+!                        ext_diag,                    &
+!                        sedi_semi, decfl,                                &
+!                        prw_vcdc1, prw_vcde1,                            &
+!                        tpri_inu1, tpri_ide1_d, tpri_ide1_s, tprs_ide1,  &
+!                        tprs_sde1_d, tprs_sde1_s,                        &
+!                        tprg_gde1_d, tprg_gde1_s, tpri_iha1, tpri_wfz1,  &
+!                        tpri_rfz1, tprg_rfz1, tprs_scw1, tprg_scw1,      &
+!                        tprg_rcs1, tprs_rcs1, tprr_rci1,                 &
+!                        tprg_rcg1, tprw_vcd1_c,                          &
+!                        tprw_vcd1_e, tprr_sml1, tprr_gml1, tprr_rcg1,    &
+!                        tprr_rcs1, tprv_rev1,                            &
+!                        tten1, qvten1, qrten1, qsten1,                   &
+!                        qgten1, qiten1, niten1, nrten1, ncten1, qcten1,  &
+!                        pfil1, pfll1, lsml, &
+!                        kts, kte, dt, i, j, configs)
 
                     pcp_ra(i,j) = pcp_ra(i,j) + pptrain
                     pcp_sn(i,j) = pcp_sn(i,j) + pptsnow
