@@ -326,8 +326,8 @@ module module_mp_thompson_params
     ! scheme.  In 2-moment cloud water, Nt_c represents a maximum of
     ! droplet concentration and nu_c is also variable depending on local
     ! droplet number concentration.
-    real(wp), parameter :: Nt_c_o = 100.e6
-    real(wp), parameter :: Nt_c_l = 300.e6
+    real(wp), parameter :: Nt_c_o = 50.e6
+    real(wp), parameter :: Nt_c_l = 100.e6
     real(wp), parameter :: Nt_c_max = 1999.e6
     real(wp) :: Nt_c, mu_c
     real(wp) ::  mu_c_o, mu_c_l

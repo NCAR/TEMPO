@@ -13,8 +13,6 @@ module module_mp_thompson
 
     implicit none
 
-    type(config_flags) configs
-
 contains
     !=================================================================================================================
     ! This subroutine handles initialzation of the microphysics scheme including building of lookup tables,
