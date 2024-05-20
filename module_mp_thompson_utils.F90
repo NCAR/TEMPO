@@ -6,11 +6,15 @@ module module_mp_thompson_utils
 
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
+    use mp_radar
 #else
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+    use module_mp_radar
 #endif
 
-    use mp_radar
+#if !defined(mpas) && defined(MPI)
+    use mpi_f08
+#endif
 
     implicit none
 
@@ -499,7 +503,6 @@ contains
 
                             dvs = 0.5d0*((vr(n2) - vs(n)) + DABS(vr(n2)-vs(n)))
                             dvr = 0.5d0*((vs(n) - vr(n2)) + DABS(vs(n)-vr(n2)))
-
                             if (massr .gt. 1.5*masss) then
                                 t1 = t1+ PI*.25*Ef_rs*(Ds(n)+Dr(n2))*(Ds(n)+Dr(n2)) &
                                     *dvs*masss * N_s(n)* N_r(n2)
@@ -754,14 +757,17 @@ contains
 
     !=================================================================================================================
     ! Rain collecting graupel (and inverse).  Explicit CE integration.
-    subroutine qr_acr_qg_par
+    subroutine qr_acr_qg_par(NRHGtable)
 
         implicit none
 
+        INTEGER, INTENT(IN) ::NRHGtable
+
         !..Local variables
-        INTEGER:: i, j, k, m, n, n2, n3
+        INTEGER:: i, j, k, m, n, n2, n3, idx_bg
         INTEGER:: km, km_s, km_e
-        DOUBLE PRECISION, DIMENSION(nbg):: vg, N_g
+        DOUBLE PRECISION, DIMENSION(nbg):: N_g
+        DOUBLE PRECISION, DIMENSION(nbg,NRHGtable):: vg
         DOUBLE PRECISION, DIMENSION(nbr):: vr, N_r
         DOUBLE PRECISION:: N0_r, N0_g, lam_exp, lamg, lamr
         DOUBLE PRECISION:: massg, massr, dvg, dvr, t1, t2, z1, z2, y1, y2
@@ -785,7 +791,7 @@ contains
             READ(63,err=1234) tcg_racg
             READ(63,err=1234) tmr_racg
             READ(63,err=1234) tcr_gacr
-            READ(63,err=1234) tmg_gacr
+!!            READ(63,err=1234) tmg_gacr
             READ(63,err=1234) tnr_racg
             READ(63,err=1234) tnr_gacr
             !sms$serial end
@@ -833,11 +839,12 @@ contains
             !    vg(n) = av_g*Dg(n)**bv_g
             !   enddo
 
-            do n3 = 1, 1
-                do n = 1, nbg
-                    idx_bg = idx_bg1
-                    vg(n,n3) = av_g(idx_bg)*Dg(n)**bv_g(idx_bg)
-                enddo
+            do n3 = 1, NRHGtable
+               do n = 1, nbg
+                  if (NRHGtable == NRHG) idx_bg = n3
+                  if (NRHGtable == NRHG1) idx_bg = idx_bg1
+                  vg(n,n3) = av_g(idx_bg)*Dg(n)**bv_g(idx_bg)
+               enddo
             enddo
 
             !..Note values returned from wrf_dm_decomp1d are zero-based, add 1 for
@@ -861,14 +868,15 @@ contains
                     N_r(n2) = N0_r*Dr(n2)**mu_r *DEXP(-lamr*Dr(n2))*dtr(n2)
                 enddo
 
-                do n3 = 1, 1
-                    idx_bg = idx_bg1
+                do n3 = 1, NRHGtable
+                   if (NRHGtable == NRHG) idx_bg = n3
+                   if (NRHGtable == NRHG1) idx_bg = idx_bg1
 
                     do j = 1, ntb_g
                         do i = 1, ntb_g1
-                            lam_exp = (N0g_exp(i)*am_g*cgg(1)/r_g(j))**oge1
-                            lamg = lam_exp * (cgg(3)*ogg2*ogg1)**obmg
-                            N0_g = N0g_exp(i)/(cgg(2)*lam_exp) * lamg**cge(2)
+                            lam_exp = (N0g_exp(i)*am_g(idx_bg)*cgg(1,1)/r_g(j))**oge1
+                            lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
+                            N0_g = N0g_exp(i)/(cgg(2,1)*lam_exp) * lamg**cge(2,1)
                             do n = 1, nbg
                                 N_g(n) = N0_g*Dg(n)**mu_g * DEXP(-lamg*Dg(n))*dtg(n)
                             enddo
@@ -882,10 +890,10 @@ contains
                             do n2 = 1, nbr
                                 massr = am_r * Dr(n2)**bm_r
                                 do n = 1, nbg
-                                    massg = am_g * Dg(n)**bm_g
+                                   massg = am_g(idx_bg) * Dg(n)**bm_g
 
-                                    dvg = 0.5d0*((vr(n2) - vg(n)) + DABS(vr(n2)-vg(n)))
-                                    dvr = 0.5d0*((vg(n) - vr(n2)) + DABS(vg(n)-vr(n2)))
+                                    dvg = 0.5d0*((vr(n2) - vg(n,n3)) + DABS(vr(n2)-vg(n,n3)))
+                                    dvr = 0.5d0*((vg(n,n3) - vr(n2)) + DABS(vg(n,n3)-vr(n2)))
 
                                     t1 = t1+ PI*.25*Ef_rg*(Dg(n)+Dr(n2))*(Dg(n)+Dr(n2)) &
                                         *dvg*massg * N_g(n)* N_r(n2)
@@ -903,12 +911,12 @@ contains
                                 enddo
 97                              continue
                             enddo
-                            tcg_racg(i,j,k,m) = t1
-                            tmr_racg(i,j,k,m) = DMIN1(z1, r_r(m)*1.0d0)
-                            tcr_gacr(i,j,k,m) = t2
-                            tmg_gacr(i,j,k,m) = DMIN1(z2, r_g(j)*1.0d0)
-                            tnr_racg(i,j,k,m) = y1
-                            tnr_gacr(i,j,k,m) = y2
+                            tcg_racg(i,j,n3,k,m) = t1
+                            tmr_racg(i,j,n3,k,m) = DMIN1(z1, r_r(m)*1.0d0)
+                            tcr_gacr(i,j,n3,k,m) = t2
+!!                            tmg_gacr(i,j,k,m) = DMIN1(z2, r_g(j)*1.0d0)
+                            tnr_racg(i,j,n3,k,m) = y1
+                            tnr_gacr(i,j,n3,k,m) = y2
                         enddo
                     enddo
                 enddo
@@ -1268,7 +1276,7 @@ contains
                 write(0,*) "ThompMP: computing freezeH2O"
             endif
 
-            orho_w = 1./rho_w
+            orho_w = 1./rho_w2
 
             do n2 = 1, nbr
                 massr(n2) = am_r*Dr(n2)**bm_r
@@ -1370,7 +1378,7 @@ contains
     !.. distribution, not the second part, which is the larger sizes.
 
     subroutine calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d,   &
-    &                re_qc1d, re_qi1d, re_qs1d, kts, kte, configs)
+    &                re_qc1d, re_qi1d, re_qs1d, kts, kte, lsml, configs)
 
         IMPLICIT NONE
 
@@ -1380,6 +1388,7 @@ contains
         &                    t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d
         REAL, DIMENSION(kts:kte), INTENT(INOUT):: re_qc1d, re_qi1d, re_qs1d
         type(config_flags), intent(in) :: configs
+        integer, intent(in), optional :: lsml
 
         !..Local variables
         INTEGER:: k
@@ -1400,7 +1409,16 @@ contains
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
             rc(k) = MAX(R1, qc1d(k)*rho(k))
             nc(k) = MAX(2., MIN(nc1d(k)*rho(k), Nt_c_max))
-            if (.NOT. configs%aerosol_aware) nc(k) = Nt_c
+            if (.NOT. (configs%aerosol_aware .or. merra2_aerosol_aware)) then
+               nc(k) = Nt_c
+               if (present(lsml)) then
+                  if( lsml == 1) then
+                     nc(k) = Nt_c_l
+                  else
+                     nc(k) = Nt_c_o
+                  endif
+               endif
+            endif
             if (rc(k).gt.R1 .and. nc(k).gt.R2) has_qc = .true.
             ri(k) = MAX(R1, qi1d(k)*rho(k))
             ni(k) = MAX(R2, ni1d(k)*rho(k))

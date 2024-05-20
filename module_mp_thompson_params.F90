@@ -24,6 +24,8 @@ module module_mp_thompson_params
         logical :: hail_aware
     end type config_flags
 
+    type(config_flags) configs
+
     ! Constants that can be defined by the model ===========================
     ! Needed by thompson_init()
     real(wp), parameter :: PI = 3.1415926536
@@ -466,7 +468,7 @@ module module_mp_thompson_params
     real(wp), parameter :: re_qs_max = 999.0e-6              ! 999 microns (1 mm)
 
     ! MPI communicator
-    integer :: mpi_communicator
+    type(MPI_Comm) :: mpi_communicator
 
     ! Write tables with master MPI task after computing them in thompson_init
     logical :: thompson_table_writer

@@ -4,14 +4,14 @@ module module_mp_thompson
 
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
     use module_mp_thompson_params
-    use module_mp_thompson_utils, only : wgamma, create_bins, table_Efrw, table_Efsw, table_dropEvap, &
+    use module_mp_thompson_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
         table_ccnAct, qi_aut_qs, qr_acr_qg_par, qr_acr_qs_par, freezeH2O_par, calc_refl10cm, calc_effectRad
     use module_mp_thompson_main, only : mp_thompson_main
-    use mp_radar
+    use module_mp_radar
 
     implicit none
 
-    type(config_flags) configs
+!!    type(config_flags) configs
 
 contains
     !=================================================================================================================
@@ -124,7 +124,7 @@ contains
             !> - Compute minimum ice diam from mass, min snow/graupel mass from diam
             D0i = (xm0i/am_i)**(1./bm_i)
             xm0s = am_s * D0s**bm_s
-            xm0g = am_g * D0g**bm_g
+            xm0g = am_g(NRHG) * D0g**bm_g
 
             !> - Compute constants various exponents and gamma() associated with cloud,
             !! rain, snow, and graupel
@@ -259,7 +259,7 @@ contains
             t2_qr_qi = PI*.25*am_r*av_r * crg(8)
 
             !>  - Compute graupel collecting cloud water
-            t1_qg_qc = PI*.25*av_g * cgg(9)
+!             t1_qg_qc = PI*.25*av_g * cgg(9)
 
             !>  - Compute snow collecting cloud water
             t1_qs_qc = PI*.25*av_s
@@ -488,7 +488,7 @@ contains
             xam_s = am_s
             xbm_s = bm_s
             xmu_s = mu_s
-            xam_g = am_g
+            xam_g = am_g(idx_bg1)
             xbm_g = bm_g
             xmu_g = mu_g
             call radar_init
@@ -505,7 +505,7 @@ contains
                     !>  - Call qr_acr_qg() to create rain collecting graupel & graupel collecting rain table
                     if (mpirank==mpiroot) write(*,*) '  creating rain collecting graupel table'
                     call cpu_time(stime)
-                    call qr_acr_qg_par
+                    call qr_acr_qg_par(dimNRHG)
                     call cpu_time(etime)
                     if (mpirank==mpiroot) print '("Computing rain collecting graupel table took ",f10.3," seconds.")', etime-stime
 
@@ -540,7 +540,7 @@ contains
     !!This is a wrapper routine designed to transfer values from 3D to 1D.
     !!\section gen_mpgtdriver Thompson mp_gt_driver General Algorithm
     !> @{
-    SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, ni, nr, nc,     &
+    SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,     &
         nwfa, nifa, nwfa2d, nifa2d,             &
         tt, th, pii,                            &
         p, w, dz, dt_in, dt_inner,              &
@@ -598,7 +598,7 @@ contains
         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(IN):: &
             pii
         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
-            nc, nwfa, nifa
+            nc, nwfa, nifa, ng, qb
         REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d
         INTEGER, DIMENSION(ims:ime, jms:jme), INTENT(IN):: lsm
         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
@@ -656,7 +656,7 @@ contains
         !..Local variables
         REAL, DIMENSION(kts:kte):: &
             qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d,     &
-            nr1d, nc1d, nwfa1d, nifa1d,                   &
+            nr1d, nc1d, nwfa1d, nifa1d, ng1d, qb1d,                  &
             t1d, p1d, w1d, dz1d, rho, dBZ, pfil1, pfll1
         !..Extended diagnostics, single column arrays
         REAL, DIMENSION(:), ALLOCATABLE::                              &
@@ -694,6 +694,10 @@ contains
         INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
         logical :: melti = .false.
         INTEGER :: ndt, it
+
+        real :: ygra1, zans1
+        real :: graupel_vol
+        double precision :: lamg, lam_exp, lamr, n0_min, n0_exp
 
         ! CCPP error handling
         character(len=*), optional, intent(  out) :: errmsg
@@ -1029,6 +1033,21 @@ contains
                     call mp_thompson_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
                         ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
                         w1d=w1d, dzq=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, &
+                        rand1=rand1, rand2=rand3, rand3=rand3, &
+                        ext_diag=ext_diag, sedi_semi=sedi_semi, decfl=decfl, &
+                        prw_vcdc1=prw_vcdc1, &
+                        prw_vcde1=prw_vcde1,                             &
+                        tpri_inu1=tpri_inu1, tpri_ide1_d=tpri_ide1_d, tpri_ide1_s=tpri_ide1_s, tprs_ide1=tprs_ide1,  &
+                        tprs_sde1_d=tprs_sde1_d, tprs_sde1_s=tprs_sde1_s,                        &
+                        tprg_gde1_d=tprg_gde1_d, tprg_gde1_s=tprg_gde1_s, tpri_iha1=tpri_iha1, tpri_wfz1=tpri_wfz1,  &
+                        tpri_rfz1=tpri_rfz1, tprg_rfz1=tprg_rfz1, tprs_scw1=tprs_scw1, tprg_scw1=tprg_scw1,      &
+                        tprg_rcs1=tprg_rcs1, tprs_rcs1=tprs_rcs1, tprr_rci1=tprr_rci1,                 &
+                        tprg_rcg1=tprg_rcg1, tprw_vcd1_c=tprw_vcd1_c,                          &
+                        tprw_vcd1_e=tprw_vcd1_e, tprr_sml1=tprr_sml1, tprr_gml1=tprr_gml1, tprr_rcg1=tprr_rcg1,    &
+                        tprr_rcs1=tprr_rcs1, tprv_rev1=tprv_rev1,                            &
+                        tten1=tten1, qvten1=qvten1, qrten1=qrten1, qsten1=qsten1,                   &
+                        qgten1=qgten1, qiten1=qiten1, niten1=niten1, nrten1=nrten1, ncten1=ncten1, qcten1=qcten1,  &
+                        pfil1=pfil1, pfll1=pfll1, lsml=lsml, &
                         kts=kts, kte=kte, dt=dt, ii=i, jj=j, configs=configs)
 
 !                    call mp_thompson_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
@@ -1281,7 +1300,7 @@ contains
                         (nsteps>1 .and. istep==nsteps) .or. &
                         (nsteps==1 .and. ndt==1)) THEN
 
-                        max_hail_diam_sfc(i,j) = hail_mass_99th_percentile(kts, kte, qg1d, t1d, p1d, qv1d)
+!!                        max_hail_diam_sfc(i,j) = hail_mass_99th_percentile(kts, kte, qg1d, t1d, p1d, qv1d)
 
                         !> - Call calc_refl10cm()
 
@@ -1296,14 +1315,14 @@ contains
                                 endif
                                 !
                                 if (present(vt_dbz_wt)) then
-                                    call calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d,   &
-                                        t1d, p1d, dBZ, rand1, kts, kte, i, j, &
-                                        melti, vt_dbz_wt(i,:,j),              &
-                                        first_time_step)
+                                    call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d,   &
+                                        ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, dBZ=dBZ, rand1=rand1, kts=kts, kte=kte, ii=i, jj=j, &
+                                        melti=melti, vt_dBZ=vt_dbz_wt(i,:,j),              &
+                                        first_time_step=first_time_step, configs=configs)
                                 else
-                                    call calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d,   &
-                                        t1d, p1d, dBZ, rand1, kts, kte, i, j, &
-                                        melti)
+                                    call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d,   &
+                                        ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, dBZ=dBZ, rand1=rand1, kts=kts, kte=kte, ii=i, jj=j, &
+                                        melti=melti, configs=configs)
                                 end if
                                 do k = kts, kte
                                     refl_10cm(i,k,j) = MAX(-35., dBZ(k))
@@ -1318,8 +1337,10 @@ contains
                                 re_qs1d(k) = re_qs_min
                             enddo
                             !> - Call calc_effectrad()
-                            call calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d,  &
-                                re_qc1d, re_qi1d, re_qs1d, lsml, kts, kte)
+                            call calc_effectRad (t1d=t1d, p1d=p1d, qv1d=qv1d, qc1d=qc1d, &
+                                 nc1d=nc1d, qi1d=qi1d, ni1d=ni1d, qs1d=qs1d,  &
+                                 re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, &
+                                 kts=kts, kte=kte, lsml=lsml, configs=configs)
                             do k = kts, kte
                                 re_cloud(i,k,j) = MAX(re_qc_min, MIN(re_qc1d(k), re_qc_max))
                                 re_ice(i,k,j)   = MAX(re_qi_min, MIN(re_qi1d(k), re_qi_max))
