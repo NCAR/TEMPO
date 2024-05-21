@@ -1,7 +1,9 @@
 module machine
+
   implicit none
-  integer, parameter :: kind_sngl_prec = 4,&
-                        kind_dbl_prec = 8
+  integer, parameter :: kind_sngl_prec = 4, &
+       kind_dbl_prec = 8
+
 ! Physics single precision flag
 #ifndef SINGLE_PREC
   integer, parameter :: kind_phys = kind_dbl_prec

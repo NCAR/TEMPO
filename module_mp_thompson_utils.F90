@@ -7,12 +7,16 @@ module module_mp_thompson_utils
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
     use mp_radar
+#elif defined(standalone)
+    use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+    use module_mp_radar
 #else
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
     use module_mp_radar
+#define ccpp_default 1
 #endif
 
-#if !defined(mpas) && defined(MPI)
+#if defined(ccpp_default) && defined(MPI)
     use mpi_f08
 #endif
 
@@ -692,7 +696,7 @@ contains
 
     end subroutine qi_aut_qs
 
-#if !defined (mpas)
+#if defined (ccpp_default)
     !=================================================================================================================
     !..Fill the table of CCN activation data created from parcel model run
     !.. by Trude Eidhammer with inputs of aerosol number concentration,

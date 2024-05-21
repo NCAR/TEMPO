@@ -1,15 +1,17 @@
 ! Parameters file for Thompson-Eidhammer Microphysics
 !=================================================================================================================
-
 module module_mp_thompson_params
 
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
+#elif defined(standalone)
+    use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #else
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+#define ccpp_default 1
 #endif
 
-#if !defined(mpas) && defined(MPI)
+#if defined(ccpp_default) && defined(MPI)
     use mpi_f08
 #endif
 
@@ -155,12 +157,12 @@ module module_mp_thompson_params
     integer, parameter :: ntb_t = 9
     integer, parameter :: ntb_g1 = 37
 
-#if defined(mpas)
-    integer, parameter :: ntb_s = 37
-    integer, parameter :: ntb_g = 37
-#else
+#if defined(ccpp_default)
     integer, parameter :: ntb_s = 28
     integer, parameter :: ntb_g = 28
+#else
+    integer, parameter :: ntb_s = 37
+    integer, parameter :: ntb_g = 37
 #endif
     integer, parameter :: ntb_r = 37
     integer, parameter :: ntb_r1 = 37
@@ -218,7 +220,21 @@ module module_mp_thompson_params
         1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
         1.e6/)
 
-#if defined(mpas)
+#if defined(ccpp_default)
+    ! Lookup tables for graupel content (kg/m**3).
+    real(wp), dimension(ntb_g), parameter :: &
+        r_g = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+        1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+        1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
+        1.e-2/)
+
+    ! Lookup tables for snow content (kg/m**3).
+    real(wp), dimension(ntb_s), parameter :: &
+        r_s = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
+        1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
+        1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
+        1.e-2/)
+#else
     ! Lookup tables for graupel content (kg/m**3).
     real(wp), dimension(ntb_g), parameter :: &
         r_g = (/1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
@@ -231,20 +247,6 @@ module module_mp_thompson_params
     real(wp), dimension(ntb_s), parameter :: &
         r_s = (/1.e-6,2.e-6,3.e-6,4.e-6,5.e-6,6.e-6,7.e-6,8.e-6,9.e-6, &
         1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-        1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-        1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
-        1.e-2/)
-#else
-    ! Lookup tables for graupel content (kg/m**3).
-    real(wp), dimension(ntb_g), parameter :: &
-        r_g = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
-        1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
-        1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
-        1.e-2/)
-
-    ! Lookup tables for snow content (kg/m**3).
-    real(wp), dimension(ntb_s), parameter :: &
-        r_s = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
         1.e-4,2.e-4,3.e-4,4.e-4,5.e-4,6.e-4,7.e-4,8.e-4,9.e-4, &
         1.e-3,2.e-3,3.e-3,4.e-3,5.e-3,6.e-3,7.e-3,8.e-3,9.e-3, &
         1.e-2/)
@@ -304,10 +306,10 @@ module module_mp_thompson_params
     real(wp) :: oams, obms, ocms
     real(wp), dimension(12,NRHG) :: cge, cgg
     real(wp), dimension(NRHG) :: oamg, ocmg
-#if defined(mpas)
-    real(wp), dimension(17) :: cse, csg
-#else
+#if defined(ccpp_default)
     real, dimension(18) :: cse, csg
+#else
+    real(wp), dimension(17) :: cse, csg
 #endif
     real(wp) :: oge1, ogg1, ogg2, ogg3, obmg
 
@@ -333,10 +335,10 @@ module module_mp_thompson_params
     real(wp) ::  mu_c_o, mu_c_l
 
     real(wp) :: min_qv = 1.e-10
-#if defined(mpas)
-    real(wp), parameter :: demott_nuc_ssati = 0.25
-#else
+#if defined(ccpp_default)
     real(wp), parameter :: demott_nuc_ssati = 0.15 ! 0.15 for CCPP
+#else
+    real(wp), parameter :: demott_nuc_ssati = 0.25
 #endif
     ! Declaration of constants for assumed CCN/IN aerosols when none in
     ! the input data.  Look inside the init routine for modifications
@@ -386,10 +388,10 @@ module module_mp_thompson_params
     real(wp), parameter :: a_coeff = 0.47244157
     real(wp), parameter :: b_coeff = 0.54698726
 
-#if defined(mpas)
-    real(wp), parameter :: av_i = 1493.9
-#else
+#if defined(ccpp_default)
     real(wp) :: av_i
+#else
+    real(wp), parameter :: av_i = 1493.9
 #endif
 
     ! Collection efficiencies.  Rain/snow/graupel collection of cloud
@@ -449,7 +451,7 @@ module module_mp_thompson_params
     real(wp), dimension(ntb_t), parameter :: &
         Tc = (/-0.01, -5., -10., -15., -20., -25., -30., -35., -40./)
 
-#if !defined(mpas)
+#if defined(ccpp_default)
     ! To permit possible creation of new lookup tables as variables expand/change,
     ! specify a name of external file(s) including version number for pre-computed
     ! Thompson tables.
@@ -468,7 +470,7 @@ module module_mp_thompson_params
     real(wp), parameter :: re_qs_max = 999.0e-6              ! 999 microns (1 mm)
 
     ! MPI communicator
-    type(MPI_Comm) :: mpi_communicator
+!    type(MPI_Comm) :: mpi_communicator
 
     ! Write tables with master MPI task after computing them in thompson_init
     logical :: thompson_table_writer

@@ -7,8 +7,11 @@ module module_mp_thompson_main
     
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
+#elif defined(standalone)
+    use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #else
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+#define ccpp_default 1
 #endif
 
     implicit none
@@ -26,7 +29,7 @@ contains
         rainprod, evapprod, &
 #endif
 
-#if !defined(mpas)
+#if defined(ccpp_default)
     ! Extended diagnostics, most arrays only
     ! allocated if ext_diag flag is .true.
         ext_diag, sedi_semi, &
@@ -47,7 +50,7 @@ contains
         kts, kte, dt, ii, jj, &
         configs)
 
-#if !defined(mpas) && defined (MPI)
+#if defined(ccpp_default) && defined (MPI)
         use mpi_f08
 #endif
         implicit none
@@ -66,7 +69,7 @@ contains
         real(wp), intent(in), optional :: rand1, rand2, rand3
         real(wp), dimension(kts:kte), intent(out), optional :: pfil1, pfll1
         integer, intent(in), optional :: decfl
-#if !defined(mpas)
+#if defined(ccpp_default)
         ! Extended diagnostics, most arrays only allocated if ext_diag is true
         logical, intent(in) :: ext_diag
         logical, intent(in) :: sedi_semi
@@ -200,7 +203,7 @@ contains
         decfl_ = 10
         if (present(decfl)) decfl_ = decfl
         
-#if !defined(mpas)
+#if defined(ccpp_default)
         ! Transition value of coefficient matching at crossover from cloud ice to snow
         av_i = av_s * D0s ** (bv_s - bv_i)
 #endif
@@ -331,7 +334,7 @@ contains
         enddo
 #endif
 
-#if !defined(mpas)
+#if defined(ccpp_default)
         !Diagnostics
         if (ext_diag) then
             do k = kts, kte
@@ -1867,8 +1870,8 @@ contains
                 if ((qg1d(k) + qgten(k)*dt) .gt. r1) then
                     rg(k) = (qg1d(k) + qgten(k)*dt)*rho(k)
                     ygra1 = log10(max(1.e-9, rg(k)))
-                    zans1 = 3.0 + 2./7.*(ygra1+8.)
-                    zans1 = max(2., min(zans1, 6.))
+                    zans1 = 3.4 + 2./7.*(ygra1+8.)
+                    ! zans1 = max(2., min(zans1, 6.))
                     n0_exp = 10.**(zans1)
                     lam_exp = (n0_exp*am_g(idx_bg(k))*cgg(1,1)/rg(k))**oge1
                     lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
@@ -2375,7 +2378,7 @@ contains
                             vtg = rhof(k)*afall*cgg(8,idx_bg(k))*ogg2 * ilamg(k)**bfall
                         endif
                         vtngk(k) = vtg
-#if !defined(mpas)
+#if defined(ccpp_default)
                         if (temp(k).gt. T_0) then
                             vtgk(k) = MAX(vtg, vtrk(k))
                         else
@@ -2423,7 +2426,7 @@ contains
                     nrten(k) = nrten(k) - sed_n(k)*odzq*onstep(1)*orho
                     rr(k) = max(r1, rr(k) - sed_r(k)*odzq*dt*onstep(1))
                     nr(k) = max(r2, nr(k) - sed_n(k)*odzq*dt*onstep(1))
-#if !defined(mpas)
+#if defined(ccpp_default)
                     pfll1(k) = pfll1(k) + sed_r(k)*DT*onstep(1)
 #endif
                     do k = ksed1(1), kts, -1
@@ -2437,7 +2440,7 @@ contains
                             *odzq*dt*onstep(1))
                         nr(k) = max(r2, nr(k) + (sed_n(k+1)-sed_n(k)) &
                             *odzq*DT*onstep(1))
-#if !defined(mpas)
+#if defined(ccpp_default)
                         pfll1(k) = pfll1(k) + sed_r(k)*DT*onstep(1)
 #endif
                     enddo
@@ -2522,7 +2525,7 @@ contains
                 niten(k) = niten(k) - sed_n(k)*odzq*onstep(2)*orho
                 ri(k) = max(r1, ri(k) - sed_i(k)*odzq*dt*onstep(2))
                 ni(k) = max(r2, ni(k) - sed_n(k)*odzq*dt*onstep(2))
-#if !defined(mpas)
+#if defined(ccpp_default)
                 pfil1(k) = pfil1(k) + sed_i(k)*DT*onstep(2)
 #endif
                 do k = ksed1(2), kts, -1
@@ -2536,7 +2539,7 @@ contains
                         *odzq*dt*onstep(2))
                     ni(k) = max(r2, ni(k) + (sed_n(k+1)-sed_n(k)) &
                         *odzq*DT*onstep(2))
-#if !defined(mpas)
+#if defined(ccpp_default)
                     pfil1(k) = pfil1(k) + sed_i(k)*DT*onstep(2)
 #endif
                 enddo
@@ -2560,7 +2563,7 @@ contains
                 orho = 1./rho(k)
                 qsten(k) = qsten(k) - sed_s(k)*odzq*onstep(3)*orho
                 rs(k) = max(r1, rs(k) - sed_s(k)*odzq*dt*onstep(3))
-#if !defined(mpas)
+#if defined(ccpp_default)
                 pfil1(k) = pfil1(k) + sed_s(k)*DT*onstep(3)
 #endif
                 do k = ksed1(3), kts, -1
@@ -2570,7 +2573,7 @@ contains
                         *odzq*onstep(3)*orho
                     rs(k) = max(r1, rs(k) + (sed_s(k+1)-sed_s(k)) &
                         *odzq*DT*onstep(3))
-#if !defined(mpas)
+#if defined(ccpp_default)
                     pfil1(k) = pfil1(k) + sed_s(k)*DT*onstep(3)
 #endif
                 enddo
@@ -2601,7 +2604,7 @@ contains
                     rg(k) = max(r1, rg(k) - sed_g(k)*odzq*dt*onstep(4))
                     ng(k) = max(r2, ng(k) - sed_n(k)*odzq*dt*onstep(4))
                     rb(k) = max(r1/rho(k)/rho_g(nrhg), rb(k) - sed_b(k)*odzq*dt*onstep(4))
-#if !defined(mpas)
+#if defined(ccpp_default)
                     pfil1(k) = pfil1(k) + sed_g(k)*DT*onstep(4)
 #endif
                     do k = ksed1(4), kts, -1
@@ -2619,7 +2622,7 @@ contains
                             *odzq*dt*onstep(4))
                         rb(k) = max(rg(k)/rho(k)/rho_g(nrhg), rb(k) + (sed_b(k+1)-sed_b(k))  &
                             *odzq*DT*onstep(4))
-#if !defined(mpas)
+#if defined(ccpp_default)
                         pfil1(k) = pfil1(k) + sed_g(k)*DT*onstep(4)
 #endif
                     enddo
@@ -2803,7 +2806,7 @@ contains
 
         enddo
 
-#if !defined(mpas)
+#if defined(ccpp_default)
         ! Diagnostics
         calculate_extended_diagnostics: if (ext_diag) then
             do k = kts, kte
