@@ -11,29 +11,25 @@ module module_mp_thompson
 
     implicit none
 
-!!    type(config_flags) configs
-
 contains
     !=================================================================================================================
     ! This subroutine handles initialzation of the microphysics scheme including building of lookup tables,
     ! allocating arrays for the microphysics scheme, and defining gamma function variables.
-    SUBROUTINE thompson_init(is_aerosol_aware_in,       &
-        merra2_aerosol_aware_in,   &
-        mpicomm, mpirank, mpiroot, &
-        threads, errmsg, errflg)
+    subroutine thompson_init(is_aerosol_aware_in, merra2_aerosol_aware_in, &
+        mpicomm, mpirank, mpiroot, threads, errmsg, errflg)
 
-        LOGICAL, INTENT(IN) :: is_aerosol_aware_in
-        LOGICAL, INTENT(IN) :: merra2_aerosol_aware_in
-        TYPE(MPI_Comm), INTENT(IN) :: mpicomm
-        INTEGER, INTENT(IN) :: mpirank, mpiroot
-        INTEGER, INTENT(IN) :: threads
-        CHARACTER(len=*), INTENT(INOUT) :: errmsg
-        INTEGER,          INTENT(INOUT) :: errflg
+        logical, intent(in) :: is_aerosol_aware_in
+        logical, intent(in) :: merra2_aerosol_aware_in
+        type(MPI_Comm), intent(in) :: mpicomm
+        integer, intent(in) :: mpirank, mpiroot
+        integer, intent(in) :: threads
+        character(len=*), intent(inout) :: errmsg
+        integer, intent(inout) :: errflg
 
-        INTEGER:: i, j, k, l, m, n
-        LOGICAL:: micro_init
-        real :: stime, etime
-        LOGICAL, PARAMETER :: precomputed_tables = .FALSE.
+        integer :: i, j, k, l, m, n
+        logical :: micro_init
+        real(wp) :: stime, etime
+        logical, parameter :: precomputed_tables = .false.
 
         ! Set module variable is_aerosol_aware/merra2_aerosol_aware
         configs%aerosol_aware = is_aerosol_aware_in
@@ -54,59 +50,66 @@ contains
             end if
         end if
 
-        micro_init = .FALSE.
+        micro_init = .false.
 
         av_g(idx_bg1) = av_g_old
         bv_g(idx_bg1) = bv_g_old
         dimNRHG = NRHG1
 
-        !> - Allocate space for lookup tables (J. Michalakes 2009Jun08).
-
-        if (.NOT. ALLOCATED(tcg_racg) ) then
-            ALLOCATE(tcg_racg(ntb_g1,ntb_g,1,ntb_r1,ntb_r))
-            micro_init = .TRUE.
+        ! Allocate space for lookup tables (J. Michalakes 2009Jun08).
+        if (.not. allocated(tcg_racg)) then
+            allocate(tcg_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+            micro_init = .true.
         endif
 
-        if (.NOT. ALLOCATED(tmr_racg)) ALLOCATE(tmr_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tcr_gacr)) ALLOCATE(tcr_gacr(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_racg)) ALLOCATE(tnr_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_gacr)) ALLOCATE(tnr_gacr(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        ! Rain-graupel (including array above tcg_racg)
+        if (.not. allocated(tmr_racg)) allocate(tmr_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        if (.not. allocated(tcr_gacr)) allocate(tcr_gacr(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        if (.not. allocated(tnr_racg)) allocate(tnr_racg(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
+        if (.not. allocated(tnr_gacr)) allocate(tnr_gacr(ntb_g1,ntb_g,dimNRHG,ntb_r1,ntb_r))
 
-        if (.NOT. ALLOCATED(tcs_racs1)) ALLOCATE(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tmr_racs1)) ALLOCATE(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tcs_racs2)) ALLOCATE(tcs_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tmr_racs2)) ALLOCATE(tmr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tcr_sacr1)) ALLOCATE(tcr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tms_sacr1)) ALLOCATE(tms_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tcr_sacr2)) ALLOCATE(tcr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tms_sacr2)) ALLOCATE(tms_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_racs1)) ALLOCATE(tnr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_racs2)) ALLOCATE(tnr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_sacr1)) ALLOCATE(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
-        if (.NOT. ALLOCATED(tnr_sacr2)) ALLOCATE(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
+        ! Rain-snow
+        if (.not. allocated(tcs_racs1)) allocate(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tmr_racs1)) allocate(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tcs_racs2)) allocate(tcs_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tmr_racs2)) allocate(tmr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tcr_sacr1)) allocate(tcr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tms_sacr1)) allocate(tms_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tcr_sacr2)) allocate(tcr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tms_sacr2)) allocate(tms_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tnr_racs1)) allocate(tnr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tnr_racs2)) allocate(tnr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tnr_sacr1)) allocate(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r))
+        if (.not. allocated(tnr_sacr2)) allocate(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r))
 
-        if (.NOT. ALLOCATED(tpi_qcfz)) ALLOCATE(tpi_qcfz(ntb_c,nbc,ntb_t1,ntb_IN))
-        if (.NOT. ALLOCATED(tni_qcfz)) ALLOCATE(tni_qcfz(ntb_c,nbc,ntb_t1,ntb_IN))
+        ! Cloud water freezing
+        if (.not. allocated(tpi_qcfz)) allocate(tpi_qcfz(ntb_c,nbc,ntb_t1,ntb_IN))
+        if (.not. allocated(tni_qcfz)) allocate(tni_qcfz(ntb_c,nbc,ntb_t1,ntb_IN))
 
-        if (.NOT. ALLOCATED(tpi_qrfz)) ALLOCATE(tpi_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
-        if (.NOT. ALLOCATED(tpg_qrfz)) ALLOCATE(tpg_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
-        if (.NOT. ALLOCATED(tni_qrfz)) ALLOCATE(tni_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
-        if (.NOT. ALLOCATED(tnr_qrfz)) ALLOCATE(tnr_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        ! Rain freezing
+        if (.not. allocated(tpi_qrfz)) allocate(tpi_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        if (.not. allocated(tpg_qrfz)) allocate(tpg_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        if (.not. allocated(tni_qrfz)) allocate(tni_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
+        if (.not. allocated(tnr_qrfz)) allocate(tnr_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_IN))
 
-        if (.NOT. ALLOCATED(tps_iaus)) ALLOCATE(tps_iaus(ntb_i,ntb_i1))
-        if (.NOT. ALLOCATED(tni_iaus)) ALLOCATE(tni_iaus(ntb_i,ntb_i1))
-        if (.NOT. ALLOCATED(tpi_ide)) ALLOCATE(tpi_ide(ntb_i,ntb_i1))
+        ! Ice growth and conversion to snow
+        if (.not. allocated(tps_iaus)) allocate(tps_iaus(ntb_i,ntb_i1))
+        if (.not. allocated(tni_iaus)) allocate(tni_iaus(ntb_i,ntb_i1))
+        if (.not. allocated(tpi_ide)) allocate(tpi_ide(ntb_i,ntb_i1))
 
-        if (.NOT. ALLOCATED(t_Efrw)) ALLOCATE(t_Efrw(nbr,nbc))
-        if (.NOT. ALLOCATED(t_Efsw)) ALLOCATE(t_Efsw(nbs,nbc))
+        ! Collision efficiencies
+        if (.not. allocated(t_efrw)) allocate(t_efrw(nbr,nbc))
+        if (.not. allocated(t_efsw)) allocate(t_efsw(nbs,nbc))
 
-        if (.NOT. ALLOCATED(tnr_rev)) ALLOCATE(tnr_rev(nbr, ntb_r1, ntb_r))
-        if (.NOT. ALLOCATED(tpc_wev)) ALLOCATE(tpc_wev(nbc,ntb_c,nbc))
-        if (.NOT. ALLOCATED(tnc_wev)) ALLOCATE(tnc_wev(nbc,ntb_c,nbc))
+        ! Cloud water
+        if (.not. allocated(tnr_rev)) allocate(tnr_rev(nbr,ntb_r1,ntb_r))
+        if (.not. allocated(tpc_wev)) allocate(tpc_wev(nbc,ntb_c,nbc))
+        if (.not. allocated(tnc_wev)) allocate(tnc_wev(nbc,ntb_c,nbc))
 
-        if (.NOT. ALLOCATED(tnccn_act))                                   &
-            ALLOCATE(tnccn_act(ntb_arc,ntb_arw,ntb_art,ntb_arr,ntb_ark))
+        ! CCN
+        if (.not. allocated(tnccn_act)) allocate(tnccn_act(ntb_arc,ntb_arw,ntb_art,ntb_arr,ntb_ark))
 
+        !=================================================================================================================
         if_micro_init: if (micro_init) then
 
             !> - From Martin et al. (1994), assign gamma shape parameter mu for cloud
@@ -134,13 +137,13 @@ contains
                 cce(3,n) = bm_r + n + 4.
                 cce(4,n) = n + bv_c + 1.
                 cce(5,n) = bm_r + n + bv_c + 1.
-                ccg(1,n) = GAMMA(cce(1,n))
-                ccg(2,n) = GAMMA(cce(2,n))
-                ccg(3,n) = GAMMA(cce(3,n))
-                ccg(4,n) = GAMMA(cce(4,n))
-                ccg(5,n) = GAMMA(cce(5,n))
-                ocg1(n) = 1./ccg(1,n)
-                ocg2(n) = 1./ccg(2,n)
+                ccg(1,n) = gamma(cce(1,n))
+                ccg(2,n) = gamma(cce(2,n))
+                ccg(3,n) = gamma(cce(3,n))
+                ccg(4,n) = gamma(cce(4,n))
+                ccg(5,n) = gamma(cce(5,n))
+                ocg1(n) = 1.0 / ccg(1,n)
+                ocg2(n) = 1.0 / ccg(2,n)
             enddo
 
             cie(1) = mu_i + 1.
@@ -150,16 +153,16 @@ contains
             cie(5) = mu_i + 2.
             cie(6) = bm_i*0.5 + mu_i + bv_i + 1.
             cie(7) = bm_i*0.5 + mu_i + 1.
-            cig(1) = GAMMA(cie(1))
-            cig(2) = GAMMA(cie(2))
-            cig(3) = GAMMA(cie(3))
-            cig(4) = GAMMA(cie(4))
-            cig(5) = GAMMA(cie(5))
-            cig(6) = GAMMA(cie(6))
-            cig(7) = GAMMA(cie(7))
-            oig1 = 1./cig(1)
-            oig2 = 1./cig(2)
-            obmi = 1./bm_i
+            cig(1) = gamma(cie(1))
+            cig(2) = gamma(cie(2))
+            cig(3) = gamma(cie(3))
+            cig(4) = gamma(cie(4))
+            cig(5) = gamma(cie(5))
+            cig(6) = gamma(cie(6))
+            cig(7) = gamma(cie(7))
+            oig1 = 1.0 / cig(1)
+            oig2 = 1.0 / cig(2)
+            obmi = 1.0 / bm_i
 
             cre(1) = bm_r + 1.
             cre(2) = mu_r + 1.
@@ -174,14 +177,16 @@ contains
             cre(11) = 0.5*(bv_r + 5. + 2.*mu_r)
             cre(12) = bm_r*0.5 + mu_r + 1.
             cre(13) = bm_r*2. + mu_r + bv_r + 1.
+
             do n = 1, 13
-                crg(n) = GAMMA(cre(n))
+                crg(n) = gamma(cre(n))
             enddo
-            obmr = 1./bm_r
-            ore1 = 1./cre(1)
-            org1 = 1./crg(1)
-            org2 = 1./crg(2)
-            org3 = 1./crg(3)
+
+            obmr = 1.0 / bm_r
+            ore1 = 1.0 / cre(1)
+            org1 = 1.0 / crg(1)
+            org2 = 1.0 / crg(2)
+            org3 = 1.0 / crg(3)
 
             cse(1) = bm_s + 1.
             cse(2) = bm_s + 2.
@@ -202,12 +207,12 @@ contains
             cse(17) = cse(16) + mu_s + 1.
             cse(18) = bv_s + mu_s + 3.
             do n = 1, 18
-                csg(n) = GAMMA(cse(n))
+                csg(n) = gamma(cse(n))
             enddo
-            oams = 1./am_s
-            obms = 1./bm_s
-            ocms = oams**obms
 
+            oams = 1.0 / am_s
+            obms = 1.0 / bm_s
+            ocms = oams**obms
 
             cge(1,:) = bm_g + 1.
             cge(2,:) = mu_g + 1.
@@ -217,23 +222,18 @@ contains
             cge(12,:) = bm_g*0.5 + mu_g + 1.
 
             do m = 1, NRHG
-                cge(5,m) = bm_g*2. + mu_g + bv_g(idx_bg1) + 1.
-                cge(6,m) = bm_g + mu_g + bv_g(idx_bg1) + 1.
-                cge(7,m) = bm_g*0.5 + mu_g + bv_g(idx_bg1) + 1.
-                cge(8,m) = mu_g + bv_g(idx_bg1) + 1.      ! not used
-                cge(9,m) = mu_g + bv_g(idx_bg1) + 3.
-                cge(11,m) = 0.5*(bv_g(idx_bg1) + 5. + 2.*mu_g)
+                cge(5,m) = bm_g*2. + mu_g + bv_g(m) + 1.
+                cge(6,m) = bm_g + mu_g + bv_g(m) + 1.
+                cge(7,m) = bm_g*0.5 + mu_g + bv_g(m) + 1.
+                cge(8,m) = mu_g + bv_g(m) + 1.      ! not used
+                cge(9,m) = mu_g + bv_g(m) + 3.
+                cge(11,m) = 0.5*(bv_g(m) + 5. + 2.*mu_g)
             enddo
 
             do m = 1, NRHG
                 do n = 1, 12
                     cgg(n,m) = gamma(cge(n,m))
                 enddo
-            enddo
-
-            do m = 1, NRHG
-                oamg(m) = 1.0 / am_g(idx_bg1)
-                ocmg(m) = oamg(m)**obmg
             enddo
 
             oamg = 1.0 / am_g
@@ -249,95 +249,94 @@ contains
             ogg2 = 1.0 / cgg(2,1)
             ogg3 = 1.0 / cgg(3,1)
 
-            !+---+-----------------------------------------------------------------+
-            !> - Simplify various rate equations
-            !+---+-----------------------------------------------------------------+
+            !=================================================================================================================
+            ! Simplify various rate eqns the best we can now.
 
-            !>  - Compute rain collecting cloud water and cloud ice
-            t1_qr_qc = PI*.25*av_r * crg(9)
-            t1_qr_qi = PI*.25*av_r * crg(9)
-            t2_qr_qi = PI*.25*am_r*av_r * crg(8)
+            ! Rain collecting cloud water and cloud ice
+            t1_qr_qc = PI * 0.25 * av_r * crg(9)
+            t1_qr_qi = PI * 0.25 * av_r * crg(9)
+            t2_qr_qi = PI * 0.25 * am_r*av_r * crg(8)
 
-            !>  - Compute graupel collecting cloud water
-!             t1_qg_qc = PI*.25*av_g * cgg(9)
+            ! Graupel collecting cloud water
+            !     t1_qg_qc = PI*.25*av_g * cgg(9)
 
-            !>  - Compute snow collecting cloud water
-            t1_qs_qc = PI*.25*av_s
+            ! Snow collecting cloud water
+            t1_qs_qc = PI * 0.25 * av_s
 
-            !>  - Compute snow collecting cloud ice
-            t1_qs_qi = PI*.25*av_s
+            ! Snow collecting cloud ice
+            t1_qs_qi = PI * 0.25 * av_s
 
-            !>  - Compute evaporation of rain; ignore depositional growth of rain
+            ! Evaporation of rain; ignore depositional growth of rain.
             t1_qr_ev = 0.78 * crg(10)
-            t2_qr_ev = 0.308*Sc3*SQRT(av_r) * crg(11)
+            t2_qr_ev = 0.308 * Sc3 * SQRT(av_r) * crg(11)
 
-            !>  - Compute sublimation/depositional growth of snow
+            ! Sublimation/depositional growth of snow
             t1_qs_sd = 0.86
-            t2_qs_sd = 0.28*Sc3*SQRT(av_s)
+            t2_qs_sd = 0.28 * Sc3 * SQRT(av_s)
 
-            !>  - Compute melting of snow
-            t1_qs_me = PI*4.*C_sqrd*olfus * 0.86
-            t2_qs_me = PI*4.*C_sqrd*olfus * 0.28*Sc3*SQRT(av_s)
+            ! Melting of snow
+            t1_qs_me = PI * 4. *C_sqrd * olfus * 0.86
+            t2_qs_me = PI * 4. *C_sqrd * olfus * 0.28 * Sc3 * SQRT(av_s)
 
-            !>  - Compute sublimation/depositional growth of graupel
+            ! Sublimation/depositional growth of graupel
             t1_qg_sd = 0.86 * cgg(10,1)
-!             t2_qg_sd = 0.28*Sc3*SQRT(av_g) * cgg(11)
+            !     t2_qg_sd = 0.28*Sc3*SQRT(av_g) * cgg(11)
 
-            !>  - Compute melting of graupel
+            ! Melting of graupel
             t1_qg_me = PI * 4. * C_cube * olfus * 0.86 * cgg(10,1)
-!             t2_qg_me = PI*4.*C_cube*olfus * 0.28*Sc3*SQRT(av_g) * cgg(11)
+            !     t2_qg_me = PI*4.*C_cube*olfus * 0.28*Sc3*SQRT(av_g) * cgg(11)
 
-            !>  - Compute constants for helping find lookup table indexes
-            nic2 = NINT(ALOG10(r_c(1)))
-            nii2 = NINT(ALOG10(r_i(1)))
-            nii3 = NINT(ALOG10(Nt_i(1)))
-            nir2 = NINT(ALOG10(r_r(1)))
-            nir3 = NINT(ALOG10(N0r_exp(1)))
-            nis2 = NINT(ALOG10(r_s(1)))
-            nig2 = NINT(ALOG10(r_g(1)))
-            nig3 = NINT(ALOG10(N0g_exp(1)))
-            niIN2 = NINT(ALOG10(Nt_IN(1)))
 
-            !>  - Create bins of cloud water (from min diameter up to 100 microns)
-            Dc(1) = D0c*1.0d0
-            dtc(1) = D0c*1.0d0
+            ! Constants for helping find lookup table indexes.
+            nic2 = nint(log10(r_c(1)))
+            nii2 = nint(log10(r_i(1)))
+            nii3 = nint(log10(Nt_i(1)))
+            nir2 = nint(log10(r_r(1)))
+            nir3 = nint(log10(N0r_exp(1)))
+            nis2 = nint(log10(r_s(1)))
+            nig2 = nint(log10(r_g(1)))
+            nig3 = nint(log10(N0g_exp(1)))
+            niIN2 = nint(log10(Nt_IN(1)))
+
+            ! Create bins of cloud water (from minimum diameter to 100 microns).
+            Dc(1) = D0c*1.0_dp
+            dtc(1) = D0c*1.0_dp
             do n = 2, nbc
-                Dc(n) = Dc(n-1) + 1.0D-6
+                Dc(n) = Dc(n-1) + 1.0e-6_dp
                 dtc(n) = (Dc(n) - Dc(n-1))
             enddo
 
-            !>  - Create bins of cloud ice (from min diameter up to 5x min snow size)
+            ! Create bins of cloud ice (from min diameter up to 2x min snow size).
             call create_bins(numbins=nbi, lowbin=D0i*1.0_dp, highbin=D0s*2.0_dp, &
                 bins=Di, deltabins=dti)
 
-            !>  - Create bins of rain (from min diameter up to 5 mm)
+            ! Create bins of rain (from min diameter up to 5 mm).
             call create_bins(numbins=nbr, lowbin=D0r*1.0_dp, highbin=0.005_dp, &
                 bins=Dr, deltabins=dtr)
 
-            !>  - Create bins of snow (from min diameter up to 2 cm)
+            ! Create bins of snow (from min diameter up to 2 cm).
             call create_bins(numbins=nbs, lowbin=D0s*1.0_dp, highbin=0.02_dp, &
                 bins=Ds, deltabins=dts)
 
-            !>  - Create bins of graupel (from min diameter up to 5 cm)
+            ! Create bins of graupel (from min diameter up to 5 cm).
             call create_bins(numbins=nbg, lowbin=D0g*1.0_dp, highbin=0.05_dp, &
                 bins=Dg, deltabins=dtg)
 
-            !>  - Create bins of cloud droplet number concentration (1 to 3000 per cc)
+            ! Create bins of cloud droplet number concentration (1 to 3000 per cc).
             call create_bins(numbins=nbc, lowbin=1.0_dp, highbin=3000.0_dp, &
                 bins=t_Nc)
             t_Nc = t_Nc * 1.0e6_dp
-            nic1 = DLOG(t_Nc(nbc)/t_Nc(1))
+            nic1 = log(t_Nc(nbc)/t_Nc(1))
 
-            !+---+-----------------------------------------------------------------+
-            !> - Create lookup tables for most costly calculations
-            !+---+-----------------------------------------------------------------+
+            !=================================================================================================================
+            ! Create lookup tables for most costly calculations
 
             ! Assign mpicomm to module variable
             mpi_communicator = mpicomm
 
             ! Standard tables are only written by master MPI task;
             ! (physics init cannot be called by multiple threads,
-            !  hence no need to test for a specific thread number)
+            ! hence no need to test for a specific thread number)
             if (mpirank==mpiroot) then
                 thompson_table_writer = .true.
             else
@@ -353,11 +352,11 @@ contains
                         do n = 1, dimNRHG
                             do j = 1, ntb_g
                                 do i = 1, ntb_g1
-                                    tcg_racg(i,j,n,k,m) = 0.0d0
-                                    tmr_racg(i,j,n,k,m) = 0.0d0
-                                    tcr_gacr(i,j,n,k,m) = 0.0d0
-                                    tnr_racg(i,j,n,k,m) = 0.0d0
-                                    tnr_gacr(i,j,n,k,m) = 0.0d0
+                                    tcg_racg(i,j,n,k,m) = 0.0_dp
+                                    tmr_racg(i,j,n,k,m) = 0.0_dp
+                                    tcr_gacr(i,j,n,k,m) = 0.0_dp
+                                    tnr_racg(i,j,n,k,m) = 0.0_dp
+                                    tnr_gacr(i,j,n,k,m) = 0.0_dp
                                 enddo
                             enddo
                         enddo
@@ -368,18 +367,18 @@ contains
                     do k = 1, ntb_r1
                         do j = 1, ntb_t
                             do i = 1, ntb_s
-                                tcs_racs1(i,j,k,m) = 0.0d0
-                                tmr_racs1(i,j,k,m) = 0.0d0
-                                tcs_racs2(i,j,k,m) = 0.0d0
-                                tmr_racs2(i,j,k,m) = 0.0d0
-                                tcr_sacr1(i,j,k,m) = 0.0d0
-                                tms_sacr1(i,j,k,m) = 0.0d0
-                                tcr_sacr2(i,j,k,m) = 0.0d0
-                                tms_sacr2(i,j,k,m) = 0.0d0
-                                tnr_racs1(i,j,k,m) = 0.0d0
-                                tnr_racs2(i,j,k,m) = 0.0d0
-                                tnr_sacr1(i,j,k,m) = 0.0d0
-                                tnr_sacr2(i,j,k,m) = 0.0d0
+                                tcs_racs1(i,j,k,m) = 0.0_dp
+                                tmr_racs1(i,j,k,m) = 0.0_dp
+                                tcs_racs2(i,j,k,m) = 0.0_dp
+                                tmr_racs2(i,j,k,m) = 0.0_dp
+                                tcr_sacr1(i,j,k,m) = 0.0_dp
+                                tms_sacr1(i,j,k,m) = 0.0_dp
+                                tcr_sacr2(i,j,k,m) = 0.0_dp
+                                tms_sacr2(i,j,k,m) = 0.0_dp
+                                tnr_racs1(i,j,k,m) = 0.0_dp
+                                tnr_racs2(i,j,k,m) = 0.0_dp
+                                tnr_sacr1(i,j,k,m) = 0.0_dp
+                                tnr_sacr2(i,j,k,m) = 0.0_dp
                             enddo
                         enddo
                     enddo
@@ -389,16 +388,16 @@ contains
                     do k = 1, ntb_t1
                         do j = 1, ntb_r1
                             do i = 1, ntb_r
-                                tpi_qrfz(i,j,k,m) = 0.0d0
-                                tni_qrfz(i,j,k,m) = 0.0d0
-                                tpg_qrfz(i,j,k,m) = 0.0d0
-                                tnr_qrfz(i,j,k,m) = 0.0d0
+                                tpi_qrfz(i,j,k,m) = 0.0_dp
+                                tni_qrfz(i,j,k,m) = 0.0_dp
+                                tpg_qrfz(i,j,k,m) = 0.0_dp
+                                tnr_qrfz(i,j,k,m) = 0.0_dp
                             enddo
                         enddo
                         do j = 1, nbc
                             do i = 1, ntb_c
-                                tpi_qcfz(i,j,k,m) = 0.0d0
-                                tni_qcfz(i,j,k,m) = 0.0d0
+                                tpi_qcfz(i,j,k,m) = 0.0_dp
+                                tni_qcfz(i,j,k,m) = 0.0_dp
                             enddo
                         enddo
                     enddo
@@ -406,9 +405,9 @@ contains
 
                 do j = 1, ntb_i1
                     do i = 1, ntb_i
-                        tps_iaus(i,j) = 0.0d0
-                        tni_iaus(i,j) = 0.0d0
-                        tpi_ide(i,j) = 0.0d0
+                        tps_iaus(i,j) = 0.0_dp
+                        tni_iaus(i,j) = 0.0_dp
+                        tpi_ide(i,j) = 0.0_dp
                     enddo
                 enddo
 
@@ -424,7 +423,7 @@ contains
                 do k = 1, ntb_r
                     do j = 1, ntb_r1
                         do i = 1, nbr
-                            tnr_rev(i,j,k) = 0.0d0
+                            tnr_rev(i,j,k) = 0.0_dp
                         enddo
                     enddo
                 enddo
@@ -432,8 +431,8 @@ contains
                 do k = 1, nbc
                     do j = 1, ntb_c
                         do i = 1, nbc
-                            tpc_wev(i,j,k) = 0.0d0
-                            tnc_wev(i,j,k) = 0.0d0
+                            tpc_wev(i,j,k) = 0.0_dp
+                            tnc_wev(i,j,k) = 0.0_dp
                         enddo
                     enddo
                 enddo
@@ -495,7 +494,6 @@ contains
             call cpu_time(etime)
             if (mpirank==mpiroot) print '("Calling radar_init took ",f10.3," seconds.")', etime-stime
 
-
             if_not_iiwarm: if (.not. iiwarm) then
 
                 precomputed_tables_2: if (.not.precomputed_tables) then
@@ -534,13 +532,14 @@ contains
 
         endif if_micro_init
 
-    end SUBROUTINE thompson_init
+    end subroutine thompson_init
 
-    !>\ingroup aathompson
-    !!This is a wrapper routine designed to transfer values from 3D to 1D.
-    !!\section gen_mpgtdriver Thompson mp_gt_driver General Algorithm
-    !> @{
-    SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,     &
+    !=================================================================================================================
+    ! This is a wrapper routine designed to transfer values from 3D to 1D.
+    ! Required microphysics variables are qv, qc, qr, nr, qi, ni, qs, qg
+    ! Optional microphysics variables are aerosol aware (nc, nwfa, nifa, nwfa2d, nifa2d), and hail aware (ng, qg)
+
+    subroutine mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
         nwfa, nifa, nwfa2d, nifa2d,             &
         tt, th, pii,                            &
         p, w, dz, dt_in, dt_inner,              &
@@ -549,9 +548,6 @@ contains
         SNOWNC, SNOWNCV,                        &
         ICENC, ICENCV,                          &
         GRAUPELNC, GRAUPELNCV, SR,              &
-#if ( WRF_CHEM == 1 )
-        rainprod, evapprod,                     &
-#endif
         refl_10cm, diagflag, do_radar_ref,      &
         max_hail_diam_sfc,                      &
         vt_dbz_wt, first_time_step,             &
@@ -585,8 +581,6 @@ contains
         nrten3, ncten3, qcten3,                 &
         pfils, pflls)
 
-        implicit none
-
         !..Subroutine arguments
         INTEGER, INTENT(IN):: ids,ide, jds,jde, kds,kde, &
             ims,ime, jms,jme, kms,kme, &
@@ -609,10 +603,6 @@ contains
         REAL, DIMENSION(:), INTENT(IN) :: spp_prt_list, spp_stddev_cutoff
         CHARACTER(len=10), DIMENSION(:), INTENT(IN) :: spp_var_list
         INTEGER, INTENT(IN):: has_reqc, has_reqi, has_reqs
-#if ( WRF_CHEM == 1 )
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
-            rainprod, evapprod
-#endif
         REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(IN):: &
             p, w, dz
         REAL, DIMENSION(ims:ime, jms:jme), INTENT(INOUT):: &
@@ -676,10 +666,6 @@ contains
             nrten1, ncten1, qcten1
 
         REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
-#if ( WRF_CHEM == 1 )
-        REAL, DIMENSION(kts:kte):: &
-            rainprod1d, evapprod1d
-#endif
         REAL, DIMENSION(its:ite, jts:jte):: pcp_ra, pcp_sn, pcp_gr, pcp_ic
         REAL:: dt, pptrain, pptsnow, pptgraul, pptice
         REAL:: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
@@ -701,7 +687,7 @@ contains
 
         ! CCPP error handling
         character(len=*), optional, intent(  out) :: errmsg
-        integer,          optional, intent(  out) :: errflg
+        integer, optional, intent(  out) :: errflg
 
         ! CCPP
         if (present(errmsg)) errmsg = ''
@@ -937,7 +923,7 @@ contains
                         qg1d(k) = qg(i,k,j)
                         ni1d(k) = ni(i,k,j)
                         nr1d(k) = nr(i,k,j)
-                        rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+                        rho(k) = RoverRv * p1d(k) / (R * t1d(k) * (qv1d(k)+RoverRv))
 
                         ! These arrays are always allocated and must be initialized
                         !vtsk1(k) = 0.
@@ -993,12 +979,12 @@ contains
                     else
                         do k = kts, kte
                             if(lsml == 1) then
-                                nc1d(k) = Nt_c_l/rho(k)
+                                nc1d(k) = Nt_c_l / rho(k)
                             else
-                                nc1d(k) = Nt_c_o/rho(k)
+                                nc1d(k) = Nt_c_o / rho(k)
                             endif
-                            nwfa1d(k) = 11.1E6
-                            nifa1d(k) = naIN1*0.01
+                            nwfa1d(k) = nwfa_default
+                            nifa1d(k) = nifa_default
                         enddo
                     endif
 
@@ -1050,28 +1036,6 @@ contains
                         pfil1=pfil1, pfll1=pfll1, lsml=lsml, &
                         kts=kts, kte=kte, dt=dt, ii=i, jj=j, configs=configs)
 
-!                    call mp_thompson_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
-!                        nr1d, nc1d, ng1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d,  &
-!                        pptrain, pptsnow, pptgraul, pptice, &
-!#if ( WRF_CHEM == 1 )
-!                        rainprod1d, evapprod1d, &
-!#endif
-!                        rand1, rand2, rand3, &
-!                        ext_diag,                    &
-!                        sedi_semi, decfl,                                &
-!                        prw_vcdc1, prw_vcde1,                            &
-!                        tpri_inu1, tpri_ide1_d, tpri_ide1_s, tprs_ide1,  &
-!                        tprs_sde1_d, tprs_sde1_s,                        &
-!                        tprg_gde1_d, tprg_gde1_s, tpri_iha1, tpri_wfz1,  &
-!                        tpri_rfz1, tprg_rfz1, tprs_scw1, tprg_scw1,      &
-!                        tprg_rcs1, tprs_rcs1, tprr_rci1,                 &
-!                        tprg_rcg1, tprw_vcd1_c,                          &
-!                        tprw_vcd1_e, tprr_sml1, tprr_gml1, tprr_rcg1,    &
-!                        tprr_rcs1, tprv_rev1,                            &
-!                        tten1, qvten1, qrten1, qsten1,                   &
-!                        qgten1, qiten1, niten1, nrten1, ncten1, qcten1,  &
-!                        pfil1, pfll1, lsml, &
-!                        kts, kte, dt, i, j, configs)
 
                     pcp_ra(i,j) = pcp_ra(i,j) + pptrain
                     pcp_sn(i,j) = pcp_sn(i,j) + pptsnow
@@ -1106,7 +1070,7 @@ contains
                     !.. Changed 13 May 2013 to fake emissions in which nwfa2d is aerosol
                     !.. number tendency (number per kg per second).
                     if (configs%aerosol_aware) then
-                        if ( PRESENT (aero_ind_fdb) ) then
+                        if ( present (aero_ind_fdb) ) then
                             if ( .not. aero_ind_fdb) then
                                 nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt
                                 nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt
@@ -1154,10 +1118,7 @@ contains
                         else
                             th(i,k,j) = t1d(k)/pii(i,k,j)
                         end if
-#if ( WRF_CHEM == 1 )
-                        rainprod(i,k,j) = rainprod1d(k)
-                        evapprod(i,k,j) = evapprod1d(k)
-#endif
+
                         if (qc1d(k) .gt. qc_max) then
                             imax_qc = i
                             jmax_qc = j
