@@ -382,8 +382,8 @@ module module_mp_thompson_params
     ! mixing ratio.  Also, when mu_g is non-zero, these become equiv
     ! y-intercept for an exponential distrib and proper values are
     ! computed based on same mixing ratio and total number concentration.
-    real(wp), parameter :: gonv_min = 1.e2
-    real(wp), parameter :: gonv_max = 1.e6
+    real(dp), parameter :: gonv_min = 1.e2
+    real(dp), parameter :: gonv_max = 1.e6
 
     real(wp), parameter :: a_coeff = 0.47244157
     real(wp), parameter :: b_coeff = 0.54698726

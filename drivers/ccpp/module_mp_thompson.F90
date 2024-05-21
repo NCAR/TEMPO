@@ -1000,9 +1000,9 @@ contains
                             ! This is the one-moment graupel formulation
                             if (qg1d(k) > R1) then
                                 ygra1 = log10(max(1.e-9, qg1d(k)*rho(k)))
-                                zans1 = 3.0 + 2.0/7.0*(ygra1+8.0)
-                                zans1 = max(2.0, min(zans1, 6.0))
-                                n0_exp = 10.0**(zans1)
+                                zans1 = 3.4 + 2.0/7.0*(ygra1+8.0)
+                                ! zans1 = max(2.0, min(zans1, 6.0))
+                                N0_exp = max(gonv_min, min(10.0**(zans1), gonv_max))
                                 lam_exp = (n0_exp*am_g(idx_bg1)*cgg(1,1) / (rho(k)*qg1d(k)))**oge1
                                 lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
                                 ng1d(k) = cgg(2,1) * ogg3*rho(k) * qg1d(k) * lamg**bm_g / am_g(idx_bg1)
