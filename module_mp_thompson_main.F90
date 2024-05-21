@@ -1199,7 +1199,7 @@ contains
                     if ( (ssati(k).ge. demott_nuc_ssati) .or. (ssatw(k).gt. eps &
                         .and. temp(k).lt.253.15) ) then
 
-                        if (dustyIce) then
+                        if (dustyIce .and. (configs%aerosol_aware .or. merra2_aerosol_aware)) then
                             xnc = iceDeMott(tempc,qv(k),qvs(k),qvsi(k),rho(k),nifa(k))
                             rand = 0.0
                             if (present(rand3)) then
@@ -1216,7 +1216,7 @@ contains
                     endif
 
                     !..Freezing of aqueous aerosols based on Koop et al (2001, Nature)
-                    xni = ns(k)+ni(k) + (pni_rfz(k)+pni_wfz(k)+pni_inu(k))*dtsave
+                    xni = smo0(k)+ni(k) + (pni_rfz(k)+pni_wfz(k)+pni_inu(k))*dtsave
                     if ((configs%aerosol_aware .or. merra2_aerosol_aware) .and. homogIce .and. &
                         (xni.le.max_ni) .and.(temp(k).lt.238.).and.(ssati(k).ge.0.4)) then
 
