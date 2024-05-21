@@ -326,8 +326,8 @@ module module_mp_thompson_params
     ! scheme.  In 2-moment cloud water, Nt_c represents a maximum of
     ! droplet concentration and nu_c is also variable depending on local
     ! droplet number concentration.
-    real(wp), parameter :: Nt_c_o = 100.e6
-    real(wp), parameter :: Nt_c_l = 300.e6
+    real(wp), parameter :: Nt_c_o = 50.e6
+    real(wp), parameter :: Nt_c_l = 100.e6
     real(wp), parameter :: Nt_c_max = 1999.e6
     real(wp) :: Nt_c, mu_c
     real(wp) ::  mu_c_o, mu_c_l
@@ -380,8 +380,8 @@ module module_mp_thompson_params
     ! mixing ratio.  Also, when mu_g is non-zero, these become equiv
     ! y-intercept for an exponential distrib and proper values are
     ! computed based on same mixing ratio and total number concentration.
-    real(wp), parameter :: gonv_min = 1.e2
-    real(wp), parameter :: gonv_max = 1.e6
+    real(dp), parameter :: gonv_min = 1.e2
+    real(dp), parameter :: gonv_max = 1.e6
 
     real(wp), parameter :: a_coeff = 0.47244157
     real(wp), parameter :: b_coeff = 0.54698726
