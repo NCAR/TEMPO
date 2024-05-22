@@ -804,8 +804,8 @@ contains
 
                 !=================================================================================================================
                 ! Reflectivity
-                call calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, &
-                    t1d, p1d, dBZ, kts, kte, i, j, configs)
+                call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
+                    t1d=t1d, p1d=p1d, dBZ=dBZ, kts=kts, kte=kte, ii=i, jj=j, configs=configs)
                 do k = kts, kte
                     refl_10cm(i,k,j) = max(-35.0_wp, dBZ(k))
                 enddo
@@ -817,8 +817,9 @@ contains
                         re_qi1d(k) = 4.99e-6
                         re_qs1d(k) = 9.99e-6
                     enddo
-                    call calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d,  &
-                        re_qc1d, re_qi1d, re_qs1d, kts, kte, configs)
+                    call calc_effectRad (t1d=t1d, p1d=p1d, qv1d=qv1d, qc1d=qc1d, nc1d=nc1d, qi1d=qi1d, &
+                         ni1d=ni1d, qs1d=qs1d, re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, &
+                         kts=kts, kte=kte, configs=configs)
                     do k = kts, kte
                         re_cloud(i,k,j) = max(2.49e-6, min(re_qc1d(k), 50.e-6))
                         re_ice(i,k,j)   = max(4.99e-6, min(re_qi1d(k), 125.e-6))

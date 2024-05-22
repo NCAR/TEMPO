@@ -2011,10 +2011,6 @@ contains
                             endif
                         endif
                         pnc_wcd(k) = 0.5*(xnc-nc(k) + abs(xnc-nc(k)))*odts*orho
-
-                        ! Be careful here: initial cloud evaporation can increase aerosols
-                        if (configs%aerosol_aware) nwfaten(k) = nwfaten(k) - pnc_wcd(k)
-
                         !+---+-----------------------------------------------------------------+ !  EVAPORATION
                     elseif (clap .lt. -eps .AND. ssatw(k).lt.-1.e-6 .and. configs%aerosol_aware) then
                         tempc = temp(k) - 273.15
@@ -2061,15 +2057,10 @@ contains
                         prw_vcd(k) = max(real(-rc(k)*0.99*orho*odt, kind=dp), prw_vcd(k))
                         pnc_wcd(k) = max(real(-nc(k)*0.99*orho*odt, &
                             kind=dp), real(-tnc_wev(idx_d, idx_c, idx_n)*orho*odt, kind=dp))
-                        ! Be careful here: initial cloud evaporation can increase aerosols
-                        if (configs%aerosol_aware) nwfaten(k) = nwfaten(k) - pnc_wcd(k)
                     endif
                 else
                     prw_vcd(k) = -rc(k)*orho*odt
                     pnc_wcd(k) = -nc(k)*orho*odt
-                    ! Be careful here: initial cloud evaporation can increase aerosols
-                    ! if (configs%aerosol_aware) &
-                    ! nwfaten(k) = nwfaten(k) - pnc_wcd(k)
                 endif
 
                 !+---+-----------------------------------------------------------------+
@@ -2077,6 +2068,9 @@ contains
                 qvten(k) = qvten(k) - prw_vcd(k)
                 qcten(k) = qcten(k) + prw_vcd(k)
                 ncten(k) = ncten(k) + pnc_wcd(k)
+                ! Be careful here: cloud evaporation from initial conditions can
+                ! increase aerosols, especially if pnc_wcd(k) = -nc(k)*orho*odt
+                if (configs%aerosol_aware) nwfaten(k) = nwfaten(k) - pnc_wcd(k)
 
                 tten(k) = tten(k) + lvap(k)*ocp(k)*prw_vcd(k)*(1-IFDRY)
                 rc(k) = max(R1, (qc1d(k) + dt*qcten(k))*rho(k))
