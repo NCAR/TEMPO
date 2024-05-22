@@ -470,7 +470,7 @@ module module_mp_thompson_params
     real(wp), parameter :: re_qs_max = 999.0e-6              ! 999 microns (1 mm)
 
     ! MPI communicator
-!    type(MPI_Comm) :: mpi_communicator
+    type(MPI_Comm) :: mpi_communicator
 
     ! Write tables with master MPI task after computing them in thompson_init
     logical :: thompson_table_writer

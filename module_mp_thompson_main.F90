@@ -1021,7 +1021,9 @@ contains
                                 Ef_gw = 0.77
                             endif
                             ! Not sure what to do here - hail increases size rapidly here below melting level.
-                            if (temp(k).gt.T_0) Ef_gw = Ef_gw*0.1
+                            if (configs%hail_aware .and. temp(k) > T_0) then
+                               Ef_gw = Ef_gw*0.1
+                            endif
                             t1_qg_qc = PI*.25*av_g(idx_bg(k)) * cgg(9,idx_bg(k))
                             prg_gcw(k) = rhof(k)*t1_qg_qc*Ef_gw*rc(k)*N0_g(k) &
                                  *ilamg(k)**cge(9,idx_bg(k))
@@ -1352,7 +1354,7 @@ contains
                         const_ri = -1.*(mvd_c(k)*0.5e6)*vts/min(-0.1,tempc)
                         const_ri = max(0.1, min(const_ri, 10.))
                         rime_dens = (0.051 + 0.114*const_Ri - 0.0055*const_Ri*const_Ri)*1000.
-                        if(rime_dens .lt. 150.) then                                  ! Idea of A. Jensen
+                        if(configs%hail_aware .and. (rime_dens < 150.)) then                                  ! Idea of A. Jensen
                             g_frac = 0.
                             prg_scw(k)=0.
                             png_scw(k)=0.
@@ -1385,7 +1387,7 @@ contains
 
                     if (l_qg(k)) then
                         n0_melt = n0_g(k)
-                        if ((rg(k)*ng(k)) .lt. 1.e-4) then
+                        if (configs%hail_aware .and. ((rg(k)*ng(k)) < 1.e-4)) then
                             lamg = 1./ilamg(k)
                             n0_melt = (1.e-4/rg(k))*ogg2*lamg**cge(2,1)
                         endif
