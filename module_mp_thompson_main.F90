@@ -1021,9 +1021,7 @@ contains
                                 Ef_gw = 0.77
                             endif
                             ! Not sure what to do here - hail increases size rapidly here below melting level.
-                            if (configs%hail_aware .and. temp(k) > T_0) then
-                               Ef_gw = Ef_gw*0.1
-                            endif
+                            if (temp(k) > T_0) Ef_gw = Ef_gw*0.1
                             t1_qg_qc = PI*.25*av_g(idx_bg(k)) * cgg(9,idx_bg(k))
                             prg_gcw(k) = rhof(k)*t1_qg_qc*Ef_gw*rc(k)*N0_g(k) &
                                  *ilamg(k)**cge(9,idx_bg(k))
@@ -1386,7 +1384,7 @@ contains
 
                     if (l_qg(k)) then
                         n0_melt = n0_g(k)
-                        if (configs%hail_aware .and. ((rg(k)*ng(k)) < 1.e-4)) then
+                        if ((rg(k)*ng(k)) < 1.e-4) then
                             lamg = 1./ilamg(k)
                             n0_melt = (1.e-4/rg(k))*ogg2*lamg**cge(2,1)
                         endif
@@ -1408,13 +1406,7 @@ contains
                             pbg_gml(k) = prr_gml(k) / max(min(melt_f*rho_g(idx_bg(k)),1000.),50.)
                             !-GT        pnr_gml(k) = prr_gml(k)*ng(k)/rg(k)
 
-                            if (configs%hail_aware) then
-                               pnr_gml(k) = prr_gml(k)*ng(k)/rg(k) * 10.0**(-0.33*(temp(k)-T_0))
-                            else
-                               pnr_gml(k) = N0_g(k)*cgg(2,1)*ilamg(k)**cge(2,1) / rg(k)      &   ! RAIN2M
-                                    * prr_gml(k) * 10.0**(-0.5*tempc)
-                            endif
-
+                            pnr_gml(k) = prr_gml(k)*ng(k)/rg(k) * 10.0**(-0.33*(temp(k)-T_0))
                          elseif (ssati(k).lt. 0.) then
                             prr_gml(k) = 0.0
                             t2_qg_sd = 0.28*Sc3*sqrt(av_g(idx_bg(k))) * cgg(11,idx_bg(k))
@@ -1882,7 +1874,7 @@ contains
                     zans1 = 3.4 + 2./7.*(ygra1+8.)
                     ! zans1 = max(2., min(zans1, 6.))
                     N0_exp = max(gonv_min, min(10.0**(zans1), gonv_max))
-                    lam_exp = (n0_exp*am_g(idx_bg(k))*cgg(1,1)/rg(k))**oge1
+                    lam_exp = (N0_exp*am_g(idx_bg(k))*cgg(1,1)/rg(k))**oge1
                     lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
                     ng(k) = cgg(2,1)*ogg3*rg(k)*lamg**bm_g / am_g(idx_bg(k))
                     rb(k) = rg(k)/rho(k)/rho_g(idx_bg(k))
@@ -2388,7 +2380,6 @@ contains
                             vtg = rhof(k)*afall*cgg(8,idx_bg(k))*ogg2 * ilamg(k)**bfall
                         endif
                         vtngk(k) = vtg
-
                     else
                         vtgk(k) = vtgk(k+1)
                         vtngk(k) = vtngk(k+1)
