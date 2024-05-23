@@ -1365,25 +1365,24 @@ contains
                 else
 
                     !..Melt snow and graupel and enhance from collisions with liquid.
-                    !.. We also need to sublimate snow and graupel if subsaturated.
-                    if (l_qs(k)) then
-                        prr_sml(k) = (tempc*tcond(k)-lvap0*diffu(k)*delQvs(k))       &
-                            * (t1_qs_me*smo1(k) + t2_qs_me*rhof2(k)*vsc2(k)*smof(k))
-                        if (prr_sml(k) .gt. 0.) then
-                            prr_sml(k) = prr_sml(k) + 4218.*olfus*(temp(k)-T_0)       &
-                                * (prr_rcs(k)+prs_scw(k))
-                        endif
-                        prr_sml(k) = min(real(rs(k)*odts, kind=dp), max(zerod0, prr_sml(k)))
-
-                        if (prr_sml(k).gt.0.0) then
-                            pnr_sml(k) = smo0(k)/rs(k)*prr_sml(k) * 10.0**(-0.25*(temp(k)-T_0))
-                        elseif (ssati(k).lt. 0.) then
-                            prs_sde(k) = C_sqrd*t1_subl*diffu(k)*ssati(k)*rvs &
-                                * (t1_qs_sd*smo1(k) &
-                                + t2_qs_sd*rhof2(k)*vsc2(k)*smof(k))
-                            prs_sde(k) = max(real(-rs(k)*odts, kind=dp), prs_sde(k))
-                        endif
-                    endif
+                   !.. We also need to sublimate snow and graupel if subsaturated.
+                   if (L_qs(k)) then
+                      prr_sml(k) = (tempc*tcond(k)-lvap0*diffu(k)*delQvs(k))       &
+                           * (t1_qs_me*smo1(k) + t2_qs_me*rhof2(k)*vsc2(k)*smof(k))
+                      if (prr_sml(k) .gt. 0.) then
+                         prr_sml(k) = prr_sml(k) + 4218.*olfus*tempc               &
+                              * (prr_rcs(k)+prs_scw(k))
+                         prr_sml(k) = MIN(DBLE(rs(k)*odts), prr_sml(k))
+                         pnr_sml(k) = smo0(k)/rs(k)*prr_sml(k) * 10.0**(-0.25*tempc)   ! RAIN2M
+                         pnr_sml(k) = MIN(DBLE(smo0(k)*odts), pnr_sml(k))
+                      elseif (ssati(k).lt. 0.) then
+                         prr_sml(k) = 0.0
+                         prs_sde(k) = C_cube*t1_subl*diffu(k)*ssati(k)*rvs         &
+                              * (t1_qs_sd*smo1(k)                            &
+                              + t2_qs_sd*rhof2(k)*vsc2(k)*smof(k))
+                         prs_sde(k) = MAX(DBLE(-rs(k)*odts), prs_sde(k))
+                      endif
+                   endif
 
                     if (l_qg(k)) then
                         n0_melt = n0_g(k)
@@ -1408,8 +1407,16 @@ contains
                             !..1000 is density water, 50 is lower limit (max ice density is 800)
                             pbg_gml(k) = prr_gml(k) / max(min(melt_f*rho_g(idx_bg(k)),1000.),50.)
                             !-GT        pnr_gml(k) = prr_gml(k)*ng(k)/rg(k)
-                            pnr_gml(k) = prr_gml(k)*ng(k)/rg(k) * 10.0**(-0.33*(temp(k)-T_0))
-                        elseif (ssati(k).lt. 0.) then
+
+                            if (configs%hail_aware) then
+                               pnr_gml(k) = prr_gml(k)*ng(k)/rg(k) * 10.0**(-0.33*(temp(k)-T_0))
+                            else
+                               pnr_gml(k) = N0_g(k)*cgg(2,1)*ilamg(k)**cge(2,1) / rg(k)      &   ! RAIN2M
+                                    * prr_gml(k) * 10.0**(-0.5*tempc)
+                            endif
+
+                         elseif (ssati(k).lt. 0.) then
+                            prr_gml(k) = 0.0
                             t2_qg_sd = 0.28*Sc3*sqrt(av_g(idx_bg(k))) * cgg(11,idx_bg(k))
                             prg_gde(k) = C_cube*t1_subl*diffu(k)*ssati(k)*rvs &
                                 * N0_g(k) * (t1_qg_sd*ilamg(k)**cge(10,1) &
@@ -2371,7 +2378,14 @@ contains
                             bfall = bv_g_old
                         endif
                         vtg = rhof(k)*afall*cgg(6,idx_bg(k))*ogg3 * ilamg(k)**bfall
-                        vtgk(k) = vtg
+#if defined(ccpp_default)
+                        if (temp(k).gt. T_0) then
+                            vtgk(k) = MAX(vtg, vtrk(k))
+                        else
+                            vtgk(k) = vtg
+                        endif
+#endif
+!!                        vtgk(k) = vtg
                         ! Goal: less prominent size sorting
                         !    the ELSE section below is technically (mathematically) correct:
                         if (mu_g .eq. 0) then
@@ -2380,13 +2394,7 @@ contains
                             vtg = rhof(k)*afall*cgg(8,idx_bg(k))*ogg2 * ilamg(k)**bfall
                         endif
                         vtngk(k) = vtg
-#if defined(ccpp_default)
-                        if (temp(k).gt. T_0) then
-                            vtgk(k) = MAX(vtg, vtrk(k))
-                        else
-                            vtgk(k) = vtg
-                        endif
-#endif                         
+
                     else
                         vtgk(k) = vtgk(k+1)
                         vtngk(k) = vtngk(k+1)
@@ -2651,25 +2659,21 @@ contains
                         vtgk(k) = 0.
                     enddo
                     do k = kte, kts, -1
-                        vtg = 0.
-                        if (rg(k).gt. R1) then
-                            ygra1 = alog10(max(1.E-9, rg(k)))
-                            rand = 0.0
-                            if (present(rand1)) then
-                                rand = rand1
-                            endif
-                            lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
+                       vtg = 0.
 
-                            ! zans1 = 3.4 + 2./7.*(ygra1+8.) + rand
-                            ! ilamg(k) = 1./lamg
-                            ! N0_g(k) = ng(k)*ogg2*lamg**cge(2,1)
-                
-                            ! N0_exp = 10.**(zans1)
-                            ! N0_exp = MAX(DBLE(gonv_min), MIN(N0_exp, DBLE(gonv_max)))
-                            ! lam_exp = (N0_exp*am_g*cgg(1)/rg(k))**oge1
-                            ! lamg = lam_exp * (cgg(3)*ogg2*ogg1)**obmg
+                       if (rg(k).gt. R1) then
+                          ygra1 = alog10(max(1.E-9, rg(k)))
+                          rand = 0.0
+                          if (present(rand1)) then
+                             rand = rand1
+                          endif
+                          zans1 = 3.4 + 2./7.*(ygra1+8.) + rand
+                          N0_exp = 10.**(zans1)
+                          N0_exp = MAX(DBLE(gonv_min), MIN(N0_exp, DBLE(gonv_max)))
+                          lam_exp = (N0_exp*am_g(idx_bg(k))*cgg(1,1)/rg(k))**oge1
+                          lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
 
-                            vtg = rhof(k)*afall*cgg(6,idx_bg(k))*ogg3 * ilamg(k)**bfall
+                          vtg = rhof(k)*afall*cgg(6,idx_bg(k))*ogg3 * (1./lamg)**bfall
                             ! vtg = rhof(k)*av_g*cgg(6)*ogg3 * (1./lamg)**bv_g
                             if (temp(k).gt. T_0) then
                                 vtgk(k) = MAX(vtg, vtrk(k))
