@@ -13,7 +13,7 @@ jobs:
 
     # Environmental variables
     env:
-      driver_ROOT: /home/runner/work/GSL_cloud_physics/GSL_cloud_physics
+      driver_ROOT: /home/runner/work/TEMPO/TEMPO
 
     # Workflow steps
     steps:
@@ -23,10 +23,10 @@ jobs:
 
     - name: Build unit tests
       run: |
-        cd ${driver_ROOT}/unit_tests
+        cd ${driver_ROOT}/tests
         make driver
 
     - name: Run unit tests
       run: |
-        cd ${driver_ROOT}/unit_tests
+        cd ${driver_ROOT}/tests
         ./driver
