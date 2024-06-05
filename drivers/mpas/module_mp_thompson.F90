@@ -696,6 +696,12 @@ contains
 
                     ! nwfa, nifa, and nc are optional aerosol-aware variables
                     if (present(nwfa)) then
+                        if (present(nwfa2d)) then
+                           if (k == kts) then
+                              nwfa(i,k,j) = nwfa(i,k,j) + nwfa2d(i,j) * dt
+                           endif
+                        endif
+                        nwfa(i,k,j) = max(nwfa_default, min(aero_max, nwfa(i,k,j)))
                         nwfa1d(k) = nwfa(i,k,j)
                     else
                         nwfa1d(k) = nwfa_default / rho(k)

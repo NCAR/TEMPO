@@ -2066,8 +2066,7 @@ contains
                     endif
                 else
                     prw_vcd(k) = -rc(k)*orho*odt
-                    ! pnc_wcd(k) = -nc(k)*orho*odt
-                    pnc_wcd(k) = 0.0
+                    pnc_wcd(k) = -nc(k)*orho*odt
                 endif
 
                 !+---+-----------------------------------------------------------------+
@@ -2075,7 +2074,8 @@ contains
                 qvten(k) = qvten(k) - prw_vcd(k)
                 qcten(k) = qcten(k) + prw_vcd(k)
                 ncten(k) = ncten(k) + pnc_wcd(k)
-                ! Be careful here: initial cloud evaporation can increase aerosols
+                ! Be careful here: depending on initial conditions,
+                ! cloud evaporation can increase aerosols
                 if (configs%aerosol_aware) nwfaten(k) = nwfaten(k) - pnc_wcd(k)
 
                 tten(k) = tten(k) + lvap(k)*ocp(k)*prw_vcd(k)*(1-IFDRY)
