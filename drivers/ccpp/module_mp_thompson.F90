@@ -204,11 +204,19 @@ contains
             cse(14) = bm_s + bv_s
             cse(15) = mu_s + 1.
             cse(16) = 1.0 + (1.0 + bv_s)/2.
-            cse(17) = cse(16) + mu_s + 1.
-            cse(18) = bv_s + mu_s + 3.
-            do n = 1, 18
-                csg(n) = gamma(cse(n))
-            enddo
+
+            if (original_thompson) then
+               cse(17) = cse(16) + mu_s + 1.
+               cse(18) = bv_s + mu_s + 3.
+               do n = 1, 18
+                  csg(n) = gamma(cse(n))
+               enddo
+            else
+               cse(17) = bm_s + bv_s + 2.
+               do n = 1, 17
+                  csg(n) = gamma(cse(n))
+               enddo
+            endif
 
             oams = 1.0 / am_s
             obms = 1.0 / bm_s
