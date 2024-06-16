@@ -118,8 +118,8 @@ contains
             !.. disp=SQRT((mu+2)/(mu+1) - 1) so mu varies from 15 for Maritime
             !.. to 2 for really dirty air.  This not used in 2-moment cloud water
             !.. scheme and nu_c used instead and varies from 2 to 15 (integer-only).
-            mu_c_l = MIN(15., (1000.E6/Nt_c_l + 2.))
-            mu_c_o = MIN(15., (1000.E6/Nt_c_o + 2.))
+            mu_c_l = min(15.0_wp, (1000.e6_wp/Nt_c_l + 2.))
+            mu_c_o = min(15.0_wp, (1000.e6_wp/Nt_c_o + 2.))
 
             !> - Compute Schmidt number to one-third used numerous times
             Sc3 = Sc**(1./3.)
@@ -582,52 +582,53 @@ contains
         pfils, pflls)
 
         !..Subroutine arguments
-        INTEGER, INTENT(IN):: ids,ide, jds,jde, kds,kde, &
+         integer, intent(in):: ids,ide, jds,jde, kds,kde, &
             ims,ime, jms,jme, kms,kme, &
             its,ite, jts,jte, kts,kte
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout):: &
             qv, qc, qr, qi, qs, qg, ni, nr
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), optional, intent(inout):: &
             tt, th
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(IN):: &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), optional, intent(in):: &
             pii
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
-            nc, nwfa, nifa, ng, qb
-        REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d
-        INTEGER, DIMENSION(ims:ime, jms:jme), INTENT(IN):: lsm
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), optional, intent(inout):: &
+                           nc, nwfa, nifa, qb, ng
+         real(wp), dimension(ims:ime, jms:jme), optional, intent(in):: nwfa2d, nifa2d
+         integer, dimension(ims:ime, jms:jme), intent(in):: lsm
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), optional, intent(inout):: &
             re_cloud, re_ice, re_snow
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: pfils, pflls
-        INTEGER, INTENT(IN) :: rand_perturb_on, kme_stoch, n_var_spp
-        REAL, DIMENSION(:,:), INTENT(IN) :: rand_pert
-        REAL, DIMENSION(:), INTENT(IN) :: spp_prt_list, spp_stddev_cutoff
-        CHARACTER(len=10), DIMENSION(:), INTENT(IN) :: spp_var_list
-        INTEGER, INTENT(IN):: has_reqc, has_reqi, has_reqs
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(IN):: &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout):: pfils, pflls
+         integer, intent(in) :: rand_perturb_on, kme_stoch, n_var_spp
+         real(wp), dimension(:,:), intent(in) :: rand_pert
+         real(wp), dimension(:), intent(in) :: spp_prt_list, spp_stddev_cutoff
+         character(len=10), dimension(:), intent(in) :: spp_var_list
+         integer, intent(in):: has_reqc, has_reqi, has_reqs
+         
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in):: &
             p, w, dz
-        REAL, DIMENSION(ims:ime, jms:jme), INTENT(INOUT):: &
+         real(wp), dimension(ims:ime, jms:jme), intent(inout):: &
             RAINNC, RAINNCV, SR
-        REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(INOUT)::      &
+         real(wp), dimension(ims:ime, jms:jme), optional, intent(inout)::      &
             SNOWNC, SNOWNCV,                              &
             ICENC, ICENCV,                                &
             GRAUPELNC, GRAUPELNCV
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT)::       &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout)::       &
             refl_10cm
-        REAL, DIMENSION(ims:ime, jms:jme), INTENT(INOUT)::       &
+         real(wp), dimension(ims:ime, jms:jme), intent(inout)::       &
             max_hail_diam_sfc
-        REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+         real(wp), dimension(ims:ime, kms:kme, jms:jme), optional, intent(inout):: &
             vt_dbz_wt
-        LOGICAL, INTENT(IN) :: first_time_step
-        REAL, INTENT(IN):: dt_in, dt_inner
-        LOGICAL, INTENT(IN) :: sedi_semi
-        INTEGER, INTENT(IN) :: decfl
+         logical, intent(in) :: first_time_step
+         real(wp), intent(in):: dt_in, dt_inner
+         logical, intent(in) :: sedi_semi
+         integer, intent(in) :: decfl
         ! To support subcycling: current step and maximum number of steps
-        INTEGER, INTENT (IN) :: istep, nsteps
-        LOGICAL, INTENT (IN) :: fullradar_diag
+         integer, intent (in) :: istep, nsteps
+         logical, intent (in) :: fullradar_diag 
         ! Extended diagnostics, array pointers only associated if ext_diag flag is .true.
-        LOGICAL, INTENT (IN) :: ext_diag
-        LOGICAL, OPTIONAL, INTENT(IN):: aero_ind_fdb
-        REAL, DIMENSION(:,:,:), INTENT(INOUT)::                     &
+         logical, intent (in) :: ext_diag
+         logical, optional, intent(in):: aero_ind_fdb
+         real(wp), dimension(:,:,:), intent(inout)::                     &
         !vts1, txri, txrc,                       &
             prw_vcdc,                               &
             prw_vcde, tpri_inu, tpri_ide_d,         &
@@ -644,12 +645,12 @@ contains
             nrten3, ncten3, qcten3
 
         !..Local variables
-        REAL, DIMENSION(kts:kte):: &
-            qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, ni1d,     &
-            nr1d, nc1d, nwfa1d, nifa1d, ng1d, qb1d,                  &
+         real(wp), dimension(kts:kte):: &
+                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, &
+                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, &
             t1d, p1d, w1d, dz1d, rho, dBZ, pfil1, pfll1
         !..Extended diagnostics, single column arrays
-        REAL, DIMENSION(:), ALLOCATABLE::                              &
+         real(wp), dimension(:), allocatable::                              &
         !vtsk1, txri1, txrc1,                       &
             prw_vcdc1,                                 &
             prw_vcde1, tpri_inu1, tpri_ide1_d,         &
@@ -665,29 +666,28 @@ contains
             qrten1, qsten1, qgten1, qiten1, niten1,    &
             nrten1, ncten1, qcten1
 
-        REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
-        REAL, DIMENSION(its:ite, jts:jte):: pcp_ra, pcp_sn, pcp_gr, pcp_ic
-        REAL:: dt, pptrain, pptsnow, pptgraul, pptice
-        REAL:: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
-        INTEGER:: lsml
-        REAL:: rand1, rand2, rand3, rand_pert_max
-        INTEGER:: i, j, k, m
-        INTEGER:: imax_qc,imax_qr,imax_qi,imax_qs,imax_qg,imax_ni,imax_nr
-        INTEGER:: jmax_qc,jmax_qr,jmax_qi,jmax_qs,jmax_qg,jmax_ni,jmax_nr
-        INTEGER:: kmax_qc,kmax_qr,kmax_qi,kmax_qs,kmax_qg,kmax_ni,kmax_nr
-        INTEGER:: i_start, j_start, i_end, j_end
-        LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
-        INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref
-        logical :: melti = .false.
-        INTEGER :: ndt, it
+         real(wp), dimension(kts:kte):: re_qc1d, re_qi1d, re_qs1d
 
-        real :: ygra1, zans1
-        real :: graupel_vol
-        double precision :: lamg, lam_exp, lamr, n0_min, n0_exp
+         real(wp), dimension(its:ite, jts:jte):: pcp_ra, pcp_sn, pcp_gr, pcp_ic
+         real(wp) :: dt, pptrain, pptsnow, pptgraul, pptice
+         real(wp) :: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
+         real(wp) :: ygra1, zans1
+         real(dp) :: lamg, lam_exp, lamr, N0_min, N0_exp
+         integer:: lsml
+         real(wp) :: rand1, rand2, rand3, rand_pert_max
+         integer:: i, j, k, m
+         integer:: imax_qc,imax_qr,imax_qi,imax_qs,imax_qg,imax_ni,imax_nr
+         integer:: jmax_qc,jmax_qr,jmax_qi,jmax_qs,jmax_qg,jmax_ni,jmax_nr
+         integer:: kmax_qc,kmax_qr,kmax_qi,kmax_qs,kmax_qg,kmax_ni,kmax_nr
+         integer:: i_start, j_start, i_end, j_end
+         logical, optional, intent(in) :: diagflag
+         integer, optional, intent(in) :: do_radar_ref
+        logical :: melti = .false.
+         integer :: ndt, it
 
         ! CCPP error handling
         character(len=*), optional, intent(  out) :: errmsg
-        integer, optional, intent(  out) :: errflg
+         integer, optional, intent(  out) :: errflg
 
         ! CCPP
         if (present(errmsg)) errmsg = ''
@@ -1117,7 +1117,7 @@ contains
                             tt(i,k,j) = t1d(k)
                         else
                             th(i,k,j) = t1d(k)/pii(i,k,j)
-                        end if
+                        endif
 
                         if (qc1d(k) .gt. qc_max) then
                             imax_qc = i
@@ -1187,9 +1187,9 @@ contains
                                 ' at i,j,k=', i,j,k
                             if (k.lt.kte-2 .and. k.gt.kts+1) then
                                 write(*,*) '   below and above are: ', qv(i,k-1,j), qv(i,k+1,j)
-                                qv(i,k,j) = MAX(1.E-7, 0.5*(qv(i,k-1,j) + qv(i,k+1,j)))
+                                qv(i,k,j) = max(1.e-7, 0.5*(qv(i,k-1,j) + qv(i,k+1,j)))
                             else
-                                qv(i,k,j) = 1.E-7
+                                qv(i,k,j) = 1.e-7
                             endif
                         endif
                     enddo
@@ -1286,7 +1286,7 @@ contains
                                         melti=melti, configs=configs)
                                 end if
                                 do k = kts, kte
-                                    refl_10cm(i,k,j) = MAX(-35., dBZ(k))
+                                    refl_10cm(i,k,j) = max(-35., dBZ(k))
                                 enddo
                             endif
                         ENDIF diagflag_present
@@ -1303,9 +1303,9 @@ contains
                                  re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, &
                                  kts=kts, kte=kte, lsml=lsml, configs=configs)
                             do k = kts, kte
-                                re_cloud(i,k,j) = MAX(re_qc_min, MIN(re_qc1d(k), re_qc_max))
-                                re_ice(i,k,j)   = MAX(re_qi_min, MIN(re_qi1d(k), re_qi_max))
-                                re_snow(i,k,j)  = MAX(re_qs_min, MIN(re_qs1d(k), re_qs_max))
+                                re_cloud(i,k,j) = max(re_qc_min, min(re_qc1d(k), re_qc_max))
+                                re_ice(i,k,j)   = max(re_qi_min, min(re_qi1d(k), re_qi_max))
+                                re_snow(i,k,j)  = max(re_qs_min, min(re_qs1d(k), re_qs_max))
                             enddo
                         ENDIF
                     ENDIF last_step_only

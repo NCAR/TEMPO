@@ -53,7 +53,6 @@ contains
 #if defined(ccpp_default) && defined (MPI)
         use mpi_f08
 #endif
-        implicit none
 
         ! Subroutine arguments
         integer, intent(in) :: kts, kte, ii, jj
@@ -1370,9 +1369,10 @@ contains
                       if (prr_sml(k) .gt. 0.) then
                          prr_sml(k) = prr_sml(k) + 4218.*olfus*tempc               &
                               * (prr_rcs(k)+prs_scw(k))
-                         prr_sml(k) = MIN(DBLE(rs(k)*odts), prr_sml(k))
+                         prr_sml(k) = min(real(rs(k)*odts, kind=dp), max(zerod0, prr_sml(k)))
+
                          pnr_sml(k) = smo0(k)/rs(k)*prr_sml(k) * 10.0**(-0.25*tempc)   ! RAIN2M
-                         pnr_sml(k) = MIN(DBLE(smo0(k)*odts), pnr_sml(k))
+                         pnr_sml(k) = min(real(smo0(k)*odts, kind=dp), pnr_sml(k))
                       else
                          prr_sml(k) = 0.0
                          pnr_sml(k) = 0.0
@@ -1380,7 +1380,8 @@ contains
                             prs_sde(k) = C_cube*t1_subl*diffu(k)*ssati(k)*rvs         &
                                  * (t1_qs_sd*smo1(k)                            &
                                  + t2_qs_sd*rhof2(k)*vsc2(k)*smof(k))
-                            prs_sde(k) = MAX(DBLE(-rs(k)*odts), prs_sde(k))
+                            prs_sde(k) = max(real(-rs(k)*odts, kind=dp), prs_sde(k))
+
                          endif
                       endif
                    endif
@@ -3026,8 +3027,7 @@ contains
         !     u = (w_local-ta_Ww(j-1))/(ta_Ww(j)-ta_Ww(j-1))
 
         fraction = (1.0-t)*(1.0-u)*A + t*(1.0-u)*B + t*u*C + (1.0-t)*u*D
-        fraction = MAX(fraction, lower_lim_nuc_frac)
-
+        fraction = max(fraction, lower_lim_nuc_frac)
 
         !     if (NCCN*fraction .gt. 0.75*Nt_c_max) then
         !        write(*,*) ' DEBUG-GT ', n_local, w_local, Tt, i, j, k
