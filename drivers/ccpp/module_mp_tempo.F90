@@ -15,11 +15,12 @@ contains
     !=================================================================================================================
     ! This subroutine handles initialzation of the microphysics scheme including building of lookup tables,
     ! allocating arrays for the microphysics scheme, and defining gamma function variables.
-    subroutine tempo_init(is_aerosol_aware_in, merra2_aerosol_aware_in, &
+    subroutine tempo_init(is_aerosol_aware_in, merra2_aerosol_aware_in, is_hail_aware_in, &
         mpicomm, mpirank, mpiroot, threads, errmsg, errflg)
 
         logical, intent(in) :: is_aerosol_aware_in
         logical, intent(in) :: merra2_aerosol_aware_in
+        logical, intent(in) :: is_hail_aware_in
         type(MPI_Comm), intent(in) :: mpicomm
         integer, intent(in) :: mpirank, mpiroot
         integer, intent(in) :: threads
@@ -34,6 +35,7 @@ contains
         ! Set module variable is_aerosol_aware/merra2_aerosol_aware
         configs%aerosol_aware = is_aerosol_aware_in
         merra2_aerosol_aware = merra2_aerosol_aware_in
+        configs%hail_aware = is_hail_aware_in
         if (configs%aerosol_aware .and. merra2_aerosol_aware) then
             errmsg = 'Logic error in thompson_init: only one of the two options can be true, ' // &
                 'not both: is_aerosol_aware or merra2_aerosol_aware'
@@ -52,9 +54,13 @@ contains
 
         micro_init = .false.
 
-        av_g(idx_bg1) = av_g_old
-        bv_g(idx_bg1) = bv_g_old
-        dimNRHG = NRHG1
+        if (configs%hail_aware) then
+           dimNRHG = NRHG
+        else
+           av_g(idx_bg1) = av_g_old
+           bv_g(idx_bg1) = bv_g_old
+           dimNRHG = NRHG1
+        endif
 
         ! Allocate space for lookup tables (J. Michalakes 2009Jun08).
         if (.not. allocated(tcg_racg)) then

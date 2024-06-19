@@ -126,6 +126,22 @@
   type = real
   kind = kind_phys
   intent = inout
+[chw]
+  standard_name = mass_number_concentration_of_graupel_in_air
+  long_name = graupel number concentration
+  units = kg-1
+  dimensions = (horizontal_dimension,vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+[vh]
+  standard_name = graupel_volume
+  long_name = graupel particle volume
+  units = m3 kg-1
+  dimensions = (horizontal_dimension,vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
 [ni]
   standard_name = mass_number_concentration_of_cloud_ice_water_crystals_in_air
   long_name = ice number concentration
@@ -145,6 +161,13 @@
 [is_aerosol_aware]
   standard_name = flag_for_aerosol_physics
   long_name = flag for aerosol-aware physics
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+[is_hail_aware]
+  standard_name = flag_for_hail_physics
+  long_name = flag for hail-aware physics
   units = flag
   dimensions = ()
   type = logical
@@ -388,6 +411,22 @@
   standard_name = graupel_mixing_ratio_of_new_state
   long_name = graupel mixing ratio wrt dry+vapor (no condensates)
   units = kg kg-1
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+[chw]
+  standard_name = mass_number_concentration_of_graupel_of_new_state
+  long_name = graupel number concentration
+  units = kg-1
+  dimensions = (horizontal_loop_extent,vertical_layer_dimension)
+  type = real
+  kind = kind_phys
+  intent = inout
+[vh]
+  standard_name = graupel_volume_of_new_state
+  long_name = graupel particle volume
+  units = m3 kg-1
   dimensions = (horizontal_loop_extent,vertical_layer_dimension)
   type = real
   kind = kind_phys
