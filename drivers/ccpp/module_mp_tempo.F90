@@ -1,6 +1,6 @@
 ! 3D TEMPO Driver for CCPP
 !=================================================================================================================
-module module_mp_thompson
+module module_mp_tempo
 
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
     use module_mp_thompson_params
@@ -15,7 +15,7 @@ contains
     !=================================================================================================================
     ! This subroutine handles initialzation of the microphysics scheme including building of lookup tables,
     ! allocating arrays for the microphysics scheme, and defining gamma function variables.
-    subroutine thompson_init(is_aerosol_aware_in, merra2_aerosol_aware_in, &
+    subroutine tempo_init(is_aerosol_aware_in, merra2_aerosol_aware_in, &
         mpicomm, mpirank, mpiroot, threads, errmsg, errflg)
 
         logical, intent(in) :: is_aerosol_aware_in
@@ -42,11 +42,11 @@ contains
         end if
         if (mpirank==mpiroot) then
             if (configs%aerosol_aware) then
-                write (*,'(a)') 'Using aerosol-aware version of Thompson microphysics'
+                write (*,'(a)') 'Using aerosol-aware version of TEMPO microphysics'
             else if(merra2_aerosol_aware) then
-                write (*,'(a)') 'Using merra2 aerosol-aware version of Thompson microphysics'
+                write (*,'(a)') 'Using merra2 aerosol-aware version of TEMPO microphysics'
             else
-                write (*,'(a)') 'Using non-aerosol-aware version of Thompson microphysics'
+                write (*,'(a)') 'Using non-aerosol-aware version of TEMPO microphysics'
             end if
         end if
 
@@ -532,7 +532,7 @@ contains
 
         endif if_micro_init
 
-    end subroutine thompson_init
+    end subroutine tempo_init
 
     !=================================================================================================================
     ! This is a wrapper routine designed to transfer values from 3D to 1D.
@@ -1382,7 +1382,7 @@ contains
     !> @}
 
     !>\ingroup aathompson
-    SUBROUTINE thompson_finalize()
+    SUBROUTINE tempo_finalize()
 
         IMPLICIT NONE
 
@@ -1426,9 +1426,9 @@ contains
 
         if (ALLOCATED(tnccn_act)) DEALLOCATE(tnccn_act)
 
-    END SUBROUTINE thompson_finalize
+    END SUBROUTINE tempo_finalize
 
-end module module_mp_thompson
+end module module_mp_tempo
  !+---+-----------------------------------------------------------------+
  !ctrlL
  !+---+-----------------------------------------------------------------+
