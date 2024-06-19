@@ -15,10 +15,18 @@ module module_mp_thompson_params
     use mpi_f08
 #endif
 
+!!!! #define original_mp 1
+
     implicit none
 
     !=================================================================================================================
     ! Parameters needed first by thompson_init()
+
+#if defined(original_mp)
+    logical, parameter :: original_thompson = .true.
+#else
+    logical, parameter :: original_thompson = .false.
+#endif
 
     ! Derived data type for configuration flags
     type config_flags
@@ -157,7 +165,7 @@ module module_mp_thompson_params
     integer, parameter :: ntb_t = 9
     integer, parameter :: ntb_g1 = 37
 
-#if defined(ccpp_default)
+#if defined(ccpp_default) && defined(original_mp)
     integer, parameter :: ntb_s = 28
     integer, parameter :: ntb_g = 28
 #else
@@ -220,7 +228,7 @@ module module_mp_thompson_params
         1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
         1.e6/)
 
-#if defined(ccpp_default)
+#if defined(ccpp_default) && defined(original_mp)
     ! Lookup tables for graupel content (kg/m**3).
     real(wp), dimension(ntb_g), parameter :: &
         r_g = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
@@ -306,7 +314,7 @@ module module_mp_thompson_params
     real(wp) :: oams, obms, ocms
     real(wp), dimension(12,NRHG) :: cge, cgg
     real(wp), dimension(NRHG) :: oamg, ocmg
-#if defined(ccpp_default)
+#if defined(ccpp_default) && defined(original_mp)
     real, dimension(18) :: cse, csg
 #else
     real(wp), dimension(17) :: cse, csg

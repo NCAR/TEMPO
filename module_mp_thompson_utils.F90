@@ -1413,7 +1413,7 @@ contains
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
             rc(k) = MAX(R1, qc1d(k)*rho(k))
             nc(k) = MAX(2., MIN(nc1d(k)*rho(k), Nt_c_max))
-            if (.NOT. (configs%aerosol_aware .or. merra2_aerosol_aware)) then
+            if (.not. (configs%aerosol_aware .or. merra2_aerosol_aware)) then
                nc(k) = Nt_c
                if (present(lsml)) then
                   if( lsml == 1) then
