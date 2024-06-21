@@ -1,12 +1,12 @@
 [ccpp-table-properties]
   name = mp_tempo
   type = scheme
-  dependencies = ../../hooks/machine.F
-  dependencies = ../module_mp_radar.F90
-  dependencies = module_mp_thompson_params.F90
-  dependencies = module_mp_thompson_utils.F90	
-  dependencies = module_mp_thompson_main.F90
-  dependencies = drivers/ccpp/module_mp_tempo.F90
+  dependencies = ../../../../hooks/machine.F
+  dependencies = ../../../module_mp_radar.F90
+  dependencies = ../../module_mp_thompson_params.F90
+  dependencies = ../../module_mp_thompson_utils.F90	
+  dependencies = ../../module_mp_thompson_main.F90
+  dependencies = module_mp_tempo.F90
 
 ########################################################################
 [ccpp-arg-table]
@@ -450,6 +450,13 @@
 [is_aerosol_aware]
   standard_name = flag_for_aerosol_physics
   long_name = flag for aerosol-aware physics
+  units = flag
+  dimensions = ()
+  type = logical
+  intent = in
+[is_hail_aware]
+  standard_name = flag_for_hail_physics
+  long_name = flag for hail-aware physics
   units = flag
   dimensions = ()
   type = logical

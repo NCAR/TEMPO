@@ -339,7 +339,7 @@ module mp_tempo
                               con_eps, convert_dry_rho,            &
                               spechum, qc, qr, qi, qs, qg, ni, nr, &
                               chw, vh, &
-                              is_aerosol_aware,                    &
+                              is_aerosol_aware, is_hail_aware,     &
                               merra2_aerosol_aware, nc, nwfa, nifa,&
                               nwfa2d, nifa2d, aero_ind_fdb,        &
                               tgrs, prsl, phii, omega,             &
@@ -382,7 +382,7 @@ module mp_tempo
          real(kind_phys),           intent(inout) :: vh(:,:)
          ! Aerosols
          logical,                   intent(in)    :: is_aerosol_aware, fullradar_diag 
-         logical,                   intent(in)    :: merra2_aerosol_aware
+         logical,                   intent(in)    :: merra2_aerosol_aware, is_hail_aware
          real(kind_phys), optional, intent(inout) :: nc(:,:)
          real(kind_phys), optional, intent(inout) :: nwfa(:,:)
          real(kind_phys), optional, intent(inout) :: nifa(:,:)
@@ -525,6 +525,7 @@ module mp_tempo
          errflg = 0
 
          if (first_time_step .and. istep==1 .and. blkno==1) then
+            write(*,*) 'Calling TEMPO microphysics run' 
             ! Check initialization state
             if (.not.is_initialized) then
                write(errmsg, fmt='((a))') 'mp_tempo_run called before mp_tempo_init'

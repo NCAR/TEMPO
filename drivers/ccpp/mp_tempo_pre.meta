@@ -1,7 +1,7 @@
 [ccpp-table-properties]
   name = mp_tempo_pre
   type = scheme
-  dependencies = ../../hooks/machine.F
+  dependencies = ../../../../hooks/machine.F
 
 ########################################################################
 [ccpp-arg-table]
