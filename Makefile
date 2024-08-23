@@ -3,22 +3,22 @@
 all: dummy microphysics
 
 dummy:
-	echo "****** compiling Thompson-Eidhammer microphysics ******"
+	echo "****** compiling TEMPO microphysics ******"
 
 OBJS = \
-	module_mp_thompson_params.o    \
-	module_mp_thompson_utils.o     \
-	module_mp_thompson_main.o      \
-	module_mp_thompson.o
+	module_mp_tempo_params.o    \
+	module_mp_tempo_utils.o     \
+	module_mp_tempo_main.o      \
+	module_mp_tempo.o
 
 microphysics: $(OBJS)
 	ar -ru ./../libphys.a $(OBJS)
 
 # DEPENDENCIES:
-module_mp_thompson.o: \
-	module_mp_thompson_params.o \
-	module_mp_thompson_utils.o \
-	module_mp_thompson_main.o
+module_mp_tempo.o: \
+	module_mp_tempo_params.o \
+	module_mp_tempo_utils.o \
+	module_mp_tempo_main.o
 
 clean:
 	$(RM) *.f90 *.o *.mod

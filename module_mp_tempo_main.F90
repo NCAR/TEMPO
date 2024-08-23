@@ -1,9 +1,9 @@
-! 1D Thompson microphysics scheme
+! 1D TEMPO microphysics scheme
 !=================================================================================================================
-module module_mp_thompson_main
+module module_mp_tempo_main
 
-    use module_mp_thompson_params
-    use module_mp_thompson_utils, only: rslf, rsif
+    use module_mp_tempo_params
+    use module_mp_tempo_utils, only: rslf, rsif
     
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
@@ -23,7 +23,7 @@ contains
     ! A complete description is now found in Thompson et al. (2004, 2008), Thompson and Eidhammer (2014),
     ! and Jensen et al. (2023).
 
-    subroutine mp_thompson_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
+    subroutine mp_tempo_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
         nwfa1d, nifa1d, t1d, p1d, w1d, dzq, pptrain, pptsnow, pptgraul, pptice, &
 #if defined(mpas)
         rainprod, evapprod, &
@@ -2890,7 +2890,7 @@ contains
         endif calculate_extended_diagnostics
 #endif
 
-    end subroutine mp_thompson_main
+    end subroutine mp_tempo_main
     !=================================================================================================================
     !..Function to compute collision efficiency of collector species (rain,
     !.. snow, graupel) of aerosols.  Follows Wang et al, 2010, ACP, which
@@ -3412,4 +3412,4 @@ contains
 
   !------------------
   
-end module module_mp_thompson_main
+end module module_mp_tempo_main

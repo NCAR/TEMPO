@@ -1,12 +1,12 @@
 ! 3D TEMPO Driver for MPAS
 !=================================================================================================================
-module module_mp_thompson
+module module_mp_tempo
 
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
-    use module_mp_thompson_params
-    use module_mp_thompson_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
+    use module_mp_tempo_params
+    use module_mp_tempo_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
          calc_refl10cm, calc_effectRad
-    use module_mp_thompson_main, only : mp_thompson_main
+    use module_mp_tempo_main, only : mp_tempo_main
     use mpas_atmphys_utilities, only : physics_message, physics_error_fatal
     use mpas_io_units, only : mpas_new_unit, mpas_release_unit
     use mp_radar
@@ -22,7 +22,7 @@ contains
     !   l_mp_tables = .false. to build lookup tables. If l_mp_tables = .true., lookup tables are not built.
 
     ! AAJ No support yet for hail_aware in microphysics driver
-    subroutine thompson_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
+    subroutine tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
 
         ! Input arguments:
         logical, intent(in) :: l_mp_tables, hail_aware_flag
@@ -42,12 +42,12 @@ contains
         if (l_mp_tables) then
             configs%hail_aware = hail_aware_flag
             write(message, '(L1)') configs%hail_aware
-            call physics_message('--- thompson_init() called with hail_aware_flag = ' // trim(message))
+            call physics_message('--- tempo_init() called with hail_aware_flag = ' // trim(message))
 
             if (present(aerosol_aware_flag)) then
                 configs%aerosol_aware = aerosol_aware_flag
                 write(message, '(L1)') configs%aerosol_aware
-                call physics_message('--- thompson_init() called with aerosol_aware_flag = ' // trim(message))
+                call physics_message('--- tempo_init() called with aerosol_aware_flag = ' // trim(message))
             endif
         endif
 
@@ -79,23 +79,23 @@ contains
 
                 if (qr_acr_qg_filesize == qr_acr_qg_dim1size) then
                     using_hail_aware_table = .false.
-                    call physics_message('--- thompson_init() ' // &
+                    call physics_message('--- tempo_init() ' // &
                         'Lookup table for qr_acr_qg is not hail aware.')
                     dimNRHG = NRHG1
                     if (hail_aware_flag) then
-                        call physics_error_fatal('--- thompson_init() Cannot use hail-aware microphysics ' // &
+                        call physics_error_fatal('--- tempo_init() Cannot use hail-aware microphysics ' // &
                             'with non hail-aware qr_acr_qg lookup table. ' // &
                             'Please rebuild table with parameter build_hail_aware_table set to true.')
                     endif
                 elseif (qr_acr_qg_filesize == qr_acr_qg_dim9size) then
                     using_hail_aware_table = .true.
-                    call physics_message('--- thompson_init() ' // &
+                    call physics_message('--- tempo_init() ' // &
                         'Lookup table for qr_acr_qg is hail aware.')
                     dimNRHG = NRHG
                 else
                     using_hail_aware_table = .false.
                     if (hail_aware_flag) using_hail_aware_table = .true.
-                    call physics_message('--- thompson_init() ' // &
+                    call physics_message('--- tempo_init() ' // &
                         'Could not determine if lookup table for qr_acr_qg is hail aware based on file size.')
                 endif
             endif
@@ -486,7 +486,7 @@ contains
 
             open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- thompson_init() failure opening CCN_ACTIVATE.BIN')
+                call physics_error_fatal('--- tempo_init() failure opening CCN_ACTIVATE.BIN')
             endif
             read(mp_unit) tnccn_act
             close(unit=mp_unit)
@@ -496,7 +496,7 @@ contains
             open(unit=mp_unit,file='MP_THOMPSON_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- thompson_init() failure opening MP_THOMPSON_QRacrQG.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_QRacrQG.DBL')
             endif
             read(mp_unit) tcg_racg
             read(mp_unit) tmr_racg
@@ -509,7 +509,7 @@ contains
             open(unit=mp_unit,file='MP_THOMPSON_QRacrQS_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- thompson_init() failure opening MP_THOMPSON_QRacrQS.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_QRacrQS.DBL')
             endif
             read(mp_unit) tcs_racs1
             read(mp_unit) tmr_racs1
@@ -529,7 +529,7 @@ contains
             open(unit=mp_unit,file='MP_THOMPSON_freezeH2O_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- thompson_init() failure opening MP_THOMPSON_freezeH2O.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_freezeH2O.DBL')
             endif
             read(mp_unit) tpi_qrfz
             read(mp_unit) tni_qrfz
@@ -543,7 +543,7 @@ contains
             open(unit=mp_unit,file='MP_THOMPSON_QIautQS_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- thompson_init() failure opening MP_THOMPSON_QIautQS.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_QIautQS.DBL')
             endif
             read(mp_unit) tpi_ide
             read(mp_unit) tps_iaus
@@ -565,14 +565,14 @@ contains
 
         endif ! micro_init
 
-    end subroutine thompson_init
+    end subroutine tempo_init
 
     !=================================================================================================================
     ! This is a wrapper routine designed to transfer values from 3D to 1D.
     ! Required microphysics variables are qv, qc, qr, nr, qi, ni, qs, qg
     ! Optional microphysics variables are aerosol aware (nc, nwfa, nifa, nwfa2d, nifa2d), and hail aware (ng, qg)
 
-    subroutine thompson_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
+    subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
         rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
@@ -751,17 +751,17 @@ contains
                 endif
                 
                 if (itimestep == 1) then
-                   call physics_message('--- thompson_3d_to_1d_driver() configuration...')
+                   call physics_message('--- tempo_3d_to_1d_driver() configuration...')
                    write(message, '(L1)') configs%hail_aware
                    call physics_message('       hail_aware_flag = ' // trim(message))
                    write(message, '(L1)') configs%aerosol_aware
                    call physics_message('       aerosol_aware_flag = ' // trim(message))
-                   call physics_message('calling mp_thompson_main() at itimestep = 1')
+                   call physics_message('calling mp_tempo_main() at itimestep = 1')
                 endif
 
                 !=================================================================================================================
                 ! Main call to the 1D microphysics
-                call mp_thompson_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
+                call mp_tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
                            ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
                            w1d=w1d, dzq=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, &
                            rainprod=rainprod1d, evapprod=evapprod1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, configs=configs)
@@ -836,7 +836,7 @@ contains
             enddo i_loop
         enddo j_loop
 
-    end subroutine thompson_3d_to_1d_driver
+    end subroutine tempo_3d_to_1d_driver
     !=================================================================================================================
 
-end module module_mp_thompson
+end module module_mp_tempo
