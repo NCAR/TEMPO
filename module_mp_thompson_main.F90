@@ -72,7 +72,7 @@ contains
         ! Extended diagnostics, most arrays only allocated if ext_diag is true
         logical, intent(in) :: ext_diag
         logical, intent(in) :: sedi_semi
-        real(wp), dimension(:), intent(out) :: &
+        real(wp), optional, dimension(:), intent(out) :: &
             prw_vcdc1, &
             prw_vcde1, tpri_inu1, tpri_ide1_d, &
             tpri_ide1_s, tprs_ide1, &
