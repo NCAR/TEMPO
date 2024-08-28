@@ -45,7 +45,7 @@ module mp_tempo
                                   nc, nwfa2d, nifa2d,                      &
                                   nwfa, nifa, tgrs, prsl, phil, area,      &
                                   aerfld, mpicomm, mpirank, mpiroot,       &
-                                  threads, ext_diag, diag3d,               &
+                                  threads, diag3d,                         &
                                   errmsg, errflg)
 
          implicit none
@@ -92,8 +92,7 @@ module mp_tempo
          ! Threading/blocking information
          integer,                   intent(in   ) :: threads
          ! Extended diagnostics
-         logical,                   intent(in   ) :: ext_diag
-         real(kind_phys),           intent(in   ) :: diag3d(:,:,:)
+         real(kind_phys),           intent(in   ),optional :: diag3d(:,:,:)
          ! CCPP error handling
          character(len=*),          intent(  out) :: errmsg
          integer,                   intent(  out) :: errflg
@@ -121,7 +120,7 @@ module mp_tempo
             return
          end if
 
-         if (ext_diag) then
+         if (present(diag3d)) then
             if (size(diag3d,dim=3) /= ext_ndiag3d) then
                write(errmsg,'(*(a))') "Logic error: number of diagnostic 3d arrays from model does not match requirements"
                errflg = 1
@@ -351,7 +350,7 @@ module mp_tempo
                               max_hail_diam_sfc,                   &
                               do_radar_ref, aerfld,                &
                               mpicomm, mpirank, mpiroot, blkno,    &
-                              ext_diag, diag3d, reset_diag3d,      &
+                              diag3d, reset_diag3d,                &
                               spp_wts_mp, spp_mp, n_var_spp,       &
                               spp_prt_list, spp_var_list,          &
                               spp_stddev_cutoff,                   &
@@ -419,8 +418,7 @@ module mp_tempo
          integer,                   intent(in)    :: mpirank
          integer,                   intent(in)    :: mpiroot
          ! Extended diagnostic output
-         logical,                   intent(in)    :: ext_diag
-         real(kind_phys), target,   intent(inout) :: diag3d(:,:,:)
+         real(kind_phys), target,   intent(inout), optional :: diag3d(:,:,:)
          logical,                   intent(in)    :: reset_diag3d
 
          ! CCPP error handling
@@ -667,7 +665,7 @@ module mp_tempo
          end if
 
          ! Set pointers for extended diagnostics
-         set_extended_diagnostic_pointers: if (ext_diag) then
+         set_extended_diagnostic_pointers: if (present(diag3d)) then
             if (reset_diag3d) then
                diag3d = 0.0
             end if
@@ -738,7 +736,7 @@ module mp_tempo
                               fullradar_diag=fullradar_diag, istep=istep, nsteps=nsteps,     &
                               first_time_step=first_time_step, errmsg=errmsg, errflg=errflg, &
                               ! Extended diagnostics
-                              ext_diag=ext_diag,                                             &
+                              ext_diag=present(diag3d),                                      &
                               ! vts1=vts1, txri=txri, txrc=txrc,                             &
                               prw_vcdc=prw_vcdc,                                             &
                               prw_vcde=prw_vcde, tpri_inu=tpri_inu, tpri_ide_d=tpri_ide_d,   &
@@ -780,7 +778,7 @@ module mp_tempo
                               fullradar_diag=fullradar_diag, istep=istep, nsteps=nsteps,     &
                               first_time_step=first_time_step, errmsg=errmsg, errflg=errflg, &
                               ! Extended diagnostics
-                              ext_diag=ext_diag,                                             &
+                              ext_diag=present(diag3d),                                      &
                               ! vts1=vts1, txri=txri, txrc=txrc,                             &
                               prw_vcdc=prw_vcdc,                                             &
                               prw_vcde=prw_vcde, tpri_inu=tpri_inu, tpri_ide_d=tpri_ide_d,   &
@@ -821,7 +819,7 @@ module mp_tempo
                               fullradar_diag=fullradar_diag, istep=istep, nsteps=nsteps,     &
                               first_time_step=first_time_step, errmsg=errmsg, errflg=errflg, &
                               ! Extended diagnostics
-                              ext_diag=ext_diag,                                             &
+                              ext_diag=present(diag3d),                                      &
                               ! vts1=vts1, txri=txri, txrc=txrc,                             &
                               prw_vcdc=prw_vcdc,                                             &
                               prw_vcde=prw_vcde, tpri_inu=tpri_inu, tpri_ide_d=tpri_ide_d,   &
@@ -888,7 +886,7 @@ module mp_tempo
            pfl_lsan(:,:) = pflls(:,:,1)
          end if
 
-         unset_extended_diagnostic_pointers: if (ext_diag) then
+         unset_extended_diagnostic_pointers: if (present(diag3d)) then
            !vts1       => null()
            !txri       => null()
            !txrc       => null()
