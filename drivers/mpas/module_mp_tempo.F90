@@ -25,8 +25,8 @@ contains
     subroutine tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
 
         ! Input arguments:
-        logical, intent(in) :: l_mp_tables, hail_aware_flag
-        logical, intent(in), optional :: aerosol_aware_flag
+        logical, intent(in) :: l_mp_tables
+        logical, intent(in), optional :: aerosol_aware_flag, hail_aware_flag
 
         integer, parameter :: open_OK = 0
         integer, parameter :: num_records = 5
@@ -38,9 +38,16 @@ contains
         integer :: mp_unit
         character(len=132) :: message
 
+        if (present(hail_aware_flag)) then
+           call physics_message('--- tempo_init() called without hail_aware_flag... setting value to .false.')
+           configs%hail_aware = hail_aware_flag
+        else
+           configs%hail_aware = .false.
+        endif
+
         ! If lookup tables are already built
         if (l_mp_tables) then
-            configs%hail_aware = hail_aware_flag
+            ! configs%hail_aware = hail_aware_flag
             write(message, '(L1)') configs%hail_aware
             call physics_message('--- tempo_init() called with hail_aware_flag = ' // trim(message))
 
