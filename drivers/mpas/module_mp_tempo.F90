@@ -39,9 +39,9 @@ contains
         character(len=132) :: message
 
         if (present(hail_aware_flag)) then
-           call physics_message('--- tempo_init() called without hail_aware_flag... setting value to .false.')
            configs%hail_aware = hail_aware_flag
         else
+           call physics_message('--- tempo_init() called without hail_aware_flag... setting value to .false.')
            configs%hail_aware = .false.
         endif
 
