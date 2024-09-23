@@ -8,7 +8,6 @@ module module_mp_thompson_params
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #else
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
-#define ccpp_default 1
 #endif
 
 #if defined(ccpp_default) && defined(MPI)
@@ -28,13 +27,18 @@ module module_mp_thompson_params
     logical, parameter :: original_thompson = .false.
 #endif
 
-    ! Derived data type for configuration flags
-    type config_flags
+! #########################################################################################
+!> \section arg_table_ty_tempo_cfg Argument Table
+!! \htmlinclude ty_tempo_cfg.html
+!!
+! #########################################################################################
+    ! Derived data type for configuration flags.
+    type ty_tempo_cfg
         logical :: aerosol_aware
         logical :: hail_aware
-    end type config_flags
+    end type ty_tempo_cfg
 
-    type(config_flags) configs
+    type(ty_tempo_cfg) configs
 
     ! Constants that can be defined by the model ===========================
     ! Needed by thompson_init()
