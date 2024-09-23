@@ -1391,7 +1391,7 @@ contains
         REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
         &                    t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d
         REAL, DIMENSION(kts:kte), INTENT(INOUT):: re_qc1d, re_qi1d, re_qs1d
-        type(config_flags), intent(in) :: configs
+        type(ty_tempo_cfg), intent(in) :: configs
         integer, intent(in), optional :: lsml
 
         !..Local variables
@@ -1519,7 +1519,7 @@ contains
         REAL, DIMENSION(kts:kte), OPTIONAL, INTENT(INOUT):: vt_dBZ
         LOGICAL, OPTIONAL, INTENT(IN) :: first_time_step
 
-        type(config_flags), intent(in) :: configs
+        type(ty_tempo_cfg), intent(in) :: configs
 
         !..Local variables
         LOGICAL :: do_vt_dBZ
