@@ -31,7 +31,7 @@ contains
         integer, parameter :: open_OK = 0
         integer, parameter :: num_records = 5
         integer :: qr_acr_qg_filesize, qr_acr_qg_check, qr_acr_qg_dim1size, qr_acr_qg_dim9size
-        logical :: qr_acr_qg_exists
+        logical :: qr_acr_qg_exists, qr_acr_qg_hailaware_exists
         integer :: i, j, k, l, m, n
         integer :: istat
         logical :: micro_init
@@ -72,41 +72,41 @@ contains
         ! Check the qr_acr_qg lookup table to make sure it is compatible with runtime options
 
         ! If lookup tables are already built
-        if (l_mp_tables) then
+        ! if (l_mp_tables) then
 
-            inquire(file='MP_THOMPSON_QRacrQG_DATA.DBL', exist=qr_acr_qg_exists)
-            if (qr_acr_qg_exists) then ! Check again that file exists
+        !     inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', exist=qr_acr_qg_exists)
+        !     if (qr_acr_qg_exists) then ! Check again that file exists
 
-                ! Add check on qr_ac_qg filesize to determine if table includes hail-awareness (dimNRHG=9)
-                qr_acr_qg_check = dp * num_records * (dimNRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
-                qr_acr_qg_dim1size = dp * num_records * (NRHG1 * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
-                qr_acr_qg_dim9size = dp * num_records * (NRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
+        !         ! Add check on qr_ac_qg filesize to determine if table includes hail-awareness (dimNRHG=9)
+        !         qr_acr_qg_check = dp * num_records * (dimNRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
+        !         qr_acr_qg_dim1size = dp * num_records * (NRHG1 * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
+        !         qr_acr_qg_dim9size = dp * num_records * (NRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
 
-                inquire(file='MP_THOMPSON_QRacrQG_DATA.DBL', size=qr_acr_qg_filesize)
+        !         inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', size=qr_acr_qg_filesize)
 
-                if (qr_acr_qg_filesize == qr_acr_qg_dim1size) then
-                    using_hail_aware_table = .false.
-                    call physics_message('--- tempo_init() ' // &
-                        'Lookup table for qr_acr_qg is not hail aware.')
-                    dimNRHG = NRHG1
-                    if (hail_aware_flag) then
-                        call physics_error_fatal('--- tempo_init() Cannot use hail-aware microphysics ' // &
-                            'with non hail-aware qr_acr_qg lookup table. ' // &
-                            'Please rebuild table with parameter build_hail_aware_table set to true.')
-                    endif
-                elseif (qr_acr_qg_filesize == qr_acr_qg_dim9size) then
-                    using_hail_aware_table = .true.
-                    call physics_message('--- tempo_init() ' // &
-                        'Lookup table for qr_acr_qg is hail aware.')
-                    dimNRHG = NRHG
-                else
-                    using_hail_aware_table = .false.
-                    if (hail_aware_flag) using_hail_aware_table = .true.
-                    call physics_message('--- tempo_init() ' // &
-                        'Could not determine if lookup table for qr_acr_qg is hail aware based on file size.')
-                endif
-            endif
-        endif
+        !         if (qr_acr_qg_filesize == qr_acr_qg_dim1size) then
+        !             using_hail_aware_table = .false.
+        !             call physics_message('--- tempo_init() ' // &
+        !                 'Lookup table for qr_acr_qg is not hail aware.')
+        !             dimNRHG = NRHG1
+        !             if (hail_aware_flag) then
+        !                 call physics_error_fatal('--- tempo_init() Cannot use hail-aware microphysics ' // &
+        !                     'with non hail-aware qr_acr_qg lookup table. ' // &
+        !                     'Please rebuild table with parameter build_hail_aware_table set to true.')
+        !             endif
+        !         elseif (qr_acr_qg_filesize == qr_acr_qg_dim9size) then
+        !             using_hail_aware_table = .true.
+        !             call physics_message('--- tempo_init() ' // &
+        !                 'Lookup table for qr_acr_qg is hail aware.')
+        !             dimNRHG = NRHG
+        !         else
+        !             using_hail_aware_table = .false.
+        !             if (hail_aware_flag) using_hail_aware_table = .true.
+        !             call physics_message('--- tempo_init() ' // &
+        !                 'Could not determine if lookup table for qr_acr_qg is hail aware based on file size.')
+        !         endif
+        !     endif
+        ! endif
 
         !=================================================================================================================
         ! Allocate space for lookup tables (J. Michalakes 2009Jun08).
@@ -491,32 +491,61 @@ contains
             ! by Feingold & Heymsfield with further changes by Eidhammer and Kriedenweis.
             call mpas_new_unit(mp_unit, unformatted = .true.)
 
-            open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat)
-            if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening CCN_ACTIVATE.BIN')
-            endif
-            read(mp_unit) tnccn_act
-            close(unit=mp_unit)
+            ! open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat)
+            ! if (istat /= open_OK) then
+            !     call physics_error_fatal('--- tempo_init() failure opening CCN_ACTIVATE.BIN')
+            ! endif
+            ! read(mp_unit) tnccn_act
+            ! close(unit=mp_unit)
 
             ! Rain collecting graupel & graupel collecting rain.
+            if (configs%hail_aware) then
+               using_hail_aware_table = .true.
+               open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
+                    iostat=istat)
+               if (istat /= open_OK) then
+                  call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
+               endif
+               read(mp_unit) tcg_racg
+               read(mp_unit) tmr_racg
+               read(mp_unit) tcr_gacr
+               read(mp_unit) tnr_racg
+               read(mp_unit) tnr_gacr
+               close(unit=mp_unit)
+            else
+               inquire(file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL', exist=qr_acr_qg_hailaware_exists)
+               inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', exist=qr_acr_qg_exists)
 
-            open(unit=mp_unit,file='MP_THOMPSON_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat)
-            if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_QRacrQG.DBL')
+               if (qr_acr_qg_hailaware_exists) then
+                  using_hail_aware_table = .true.
+                  open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old', &
+                       action='read',iostat=istat)
+                  if (istat /= open_OK) then
+                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
+                  endif
+               elseif (qr_acr_qg_exists) then
+                  using_hail_aware_table = .false.
+                  open(unit=mp_unit,file='MP_TEMPO_QRacrQG_DATA.DBL',form='unformatted',status='old', &
+                       action='read',iostat=istat)
+                  if (istat /= open_OK) then
+                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQG.DBL')
+                  endif
+               else
+                  call physics_error_fatal('--- tempo_init() could not find file to read QRacrQG data.')
+               endif
+               read(mp_unit) tcg_racg
+               read(mp_unit) tmr_racg
+               read(mp_unit) tcr_gacr
+               read(mp_unit) tnr_racg
+               read(mp_unit) tnr_gacr
+               close(unit=mp_unit)
             endif
-            read(mp_unit) tcg_racg
-            read(mp_unit) tmr_racg
-            read(mp_unit) tcr_gacr
-            read(mp_unit) tnr_racg
-            read(mp_unit) tnr_gacr
-            close(unit=mp_unit)
 
             ! Rain collecting snow & snow collecting rain.
-            open(unit=mp_unit,file='MP_THOMPSON_QRacrQS_DATA.DBL',form='unformatted',status='old',action='read', &
+            open(unit=mp_unit,file='MP_TEMPO_QRacrQS_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_QRacrQS.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQS.DBL')
             endif
             read(mp_unit) tcs_racs1
             read(mp_unit) tmr_racs1
@@ -533,10 +562,10 @@ contains
             close(unit=mp_unit)
 
             ! Cloud water and rain freezing (Bigg, 1953).
-            open(unit=mp_unit,file='MP_THOMPSON_freezeH2O_DATA.DBL',form='unformatted',status='old',action='read', &
+            open(unit=mp_unit,file='MP_TEMPO_freezeH2O_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_freezeH2O.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_freezeH2O.DBL')
             endif
             read(mp_unit) tpi_qrfz
             read(mp_unit) tni_qrfz
@@ -547,10 +576,10 @@ contains
             close(unit=mp_unit)
 
             ! Conversion of some ice mass into snow category.
-            open(unit=mp_unit,file='MP_THOMPSON_QIautQS_DATA.DBL',form='unformatted',status='old',action='read', &
+            open(unit=mp_unit,file='MP_TEMPO_QIautQS_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
             if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_THOMPSON_QIautQS.DBL')
+                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QIautQS.DBL')
             endif
             read(mp_unit) tpi_ide
             read(mp_unit) tps_iaus

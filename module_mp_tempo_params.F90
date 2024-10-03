@@ -68,7 +68,7 @@ module module_mp_tempo_params
     logical :: sedi_semi = .false.
 
     ! Hail-aware microphysics options
-    logical, parameter :: build_hail_aware_table = .false.
+    logical, parameter :: build_hail_aware_table = .true.
     logical :: using_hail_aware_table = .false.
     integer, parameter :: NRHG = 9
     integer, parameter :: NRHG1 = 1
