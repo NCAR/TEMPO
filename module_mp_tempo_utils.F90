@@ -1,8 +1,8 @@
-! Utilities for Thompson-Eidhammer Microphysics
+! Utilities for TEMPO Microphysics
 !=================================================================================================================
-module module_mp_thompson_utils
+module module_mp_tempo_utils
 
-    use module_mp_thompson_params
+    use module_mp_tempo_params
 
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
@@ -734,12 +734,12 @@ contains
         ENDDO
 2010    CONTINUE
         IF ( iunit_mp_th1 < 0 ) THEN
-            write(0,*) 'module_mp_thompson: table_ccnAct: '//   &
+            write(0,*) 'module_mp_tempo: table_ccnAct: '//   &
                 'Can not find unused fortran unit to read in lookup table.'
             return
         ENDIF
 
-        !WRITE(*, '(A,I2)') 'module_mp_thompson: opening CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
+        !WRITE(*, '(A,I2)') 'module_mp_tempo: opening CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
         OPEN(iunit_mp_th1,FILE='CCN_ACTIVATE.BIN',                      &
             FORM='UNFORMATTED',STATUS='OLD',CONVERT='BIG_ENDIAN',ERR=9009)
 
@@ -749,11 +749,11 @@ contains
 
         RETURN
 9009    CONTINUE
-        WRITE( errmess , '(A,I2)' ) 'module_mp_thompson: error opening CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
+        WRITE( errmess , '(A,I2)' ) 'module_mp_tempo: error opening CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
         errflag = 1
         RETURN
 9010    CONTINUE
-        WRITE( errmess , '(A,I2)' ) 'module_mp_thompson: error reading CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
+        WRITE( errmess , '(A,I2)' ) 'module_mp_tempo: error reading CCN_ACTIVATE.BIN on unit ',iunit_mp_th1
         errflag = 1
         RETURN
 
@@ -926,7 +926,7 @@ contains
                 enddo
             enddo
             IF ( write_thompson_tables ) THEN
-                write(0,*) "Writing "//qr_acr_qg_file//" in Thompson MP init"
+                write(0,*) "Writing "//qr_acr_qg_file//" in Tempo MP init"
                 OPEN(63,file=qr_acr_qg_file,form="unformatted",err=9234)
                 WRITE(63,err=9234) tcg_racg
                 WRITE(63,err=9234) tmr_racg
@@ -1176,7 +1176,7 @@ contains
             enddo
 
             IF ( write_thompson_tables ) THEN
-                write(0,*) "Writing "//qr_acr_qs_file//" in Thompson MP init"
+                write(0,*) "Writing "//qr_acr_qs_file//" in Tempo MP init"
                 OPEN(63,file=qr_acr_qs_file,form="unformatted",err=9234)
                 WRITE(63,err=9234)tcs_racs1
                 WRITE(63,err=9234)tmr_racs1
@@ -1353,7 +1353,7 @@ contains
             enddo
 
             IF ( write_thompson_tables ) THEN
-                write(0,*) "Writing "//freeze_h2o_file//" in Thompson MP init"
+                write(0,*) "Writing "//freeze_h2o_file//" in Tempo MP init"
                 OPEN(63,file=freeze_h2o_file,form="unformatted",err=9234)
                 WRITE(63,err=9234)tpi_qrfz
                 WRITE(63,err=9234)tni_qrfz
@@ -2098,4 +2098,4 @@ contains
     END FUNCTION RSIF
     !=================================================================================================================
     
-end module module_mp_thompson_utils
+end module module_mp_tempo_utils

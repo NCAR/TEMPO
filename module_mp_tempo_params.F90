@@ -1,6 +1,6 @@
-! Parameters file for Thompson-Eidhammer Microphysics
+! Parameters file for TEMPO Microphysics
 !=================================================================================================================
-module module_mp_thompson_params
+module module_mp_tempo_params
 
 #if defined(mpas)
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
@@ -20,7 +20,7 @@ module module_mp_thompson_params
     implicit none
 
     !=================================================================================================================
-    ! Parameters needed first by thompson_init()
+    ! Parameters needed first by tempo_init()
 
 #if defined(OLD_MPTBLS)
     logical, parameter :: original_thompson = .true.
@@ -37,7 +37,7 @@ module module_mp_thompson_params
     type(config_flags) configs
 
     ! Constants that can be defined by the model ===========================
-    ! Needed by thompson_init()
+    ! Needed by tempo_init()
     real(wp), parameter :: PI = 3.1415926536
 
     ! Enthalpy of sublimation, vaporization, and fusion at 0C.
@@ -68,7 +68,7 @@ module module_mp_thompson_params
     logical :: sedi_semi = .false.
 
     ! Hail-aware microphysics options
-    logical, parameter :: build_hail_aware_table = .false.
+    logical, parameter :: build_hail_aware_table = .true.
     logical :: using_hail_aware_table = .false.
     integer, parameter :: NRHG = 9
     integer, parameter :: NRHG1 = 1
@@ -480,8 +480,8 @@ module module_mp_thompson_params
     ! MPI communicator
     type(MPI_Comm) :: mpi_communicator
 
-    ! Write tables with master MPI task after computing them in thompson_init
+    ! Write tables with master MPI task after computing them in tempo_init
     logical :: thompson_table_writer
 #endif
 
-end module module_mp_thompson_params
+end module module_mp_tempo_params
