@@ -19,7 +19,7 @@ contains
     ! allocating arrays for the microphysics scheme, and defining gamma function variables.
 
     ! Input:
-    !   l_mp_tables = .false. to build lookup tables. If l_mp_tables = .true., lookup tables are not built.
+    !   l_mp_tables = .false. to build lookup tables. If l_mp_tables = .true., lookup tables are built.
 
     ! AAJ No support yet for hail_aware in microphysics driver
     subroutine tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
@@ -786,14 +786,14 @@ contains
                     enddo
                 endif
                 
-                if (itimestep == 1) then
-                   call physics_message('--- tempo_3d_to_1d_driver() configuration...')
-                   write(message, '(L1)') configs%hail_aware
-                   call physics_message('       hail_aware_flag = ' // trim(message))
-                   write(message, '(L1)') configs%aerosol_aware
-                   call physics_message('       aerosol_aware_flag = ' // trim(message))
-                   call physics_message('calling mp_tempo_main() at itimestep = 1')
-                endif
+                !if (itimestep == 1) then
+                !   call physics_message('--- tempo_3d_to_1d_driver() configuration...')
+                !   write(message, '(L1)') configs%hail_aware
+                !   call physics_message('       hail_aware_flag = ' // trim(message))
+                !   write(message, '(L1)') configs%aerosol_aware
+                !   call physics_message('       aerosol_aware_flag = ' // trim(message))
+                !   call physics_message('calling mp_tempo_main() at itimestep = 1')
+                !endif
 
                 !=================================================================================================================
                 ! Main call to the 1D microphysics
