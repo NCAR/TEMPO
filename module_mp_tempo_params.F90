@@ -22,7 +22,7 @@ module module_mp_tempo_params
     !=================================================================================================================
     ! Parameters needed first by tempo_init()
 
-#if defined(original_mp)
+#if defined(OLD_MPTBLS)
     logical, parameter :: original_thompson = .true.
 #else
     logical, parameter :: original_thompson = .false.
@@ -165,7 +165,7 @@ module module_mp_tempo_params
     integer, parameter :: ntb_t = 9
     integer, parameter :: ntb_g1 = 37
 
-#if defined(ccpp_default) && defined(original_mp)
+#if defined(ccpp_default) && defined(OLD_MPTBLS)
     integer, parameter :: ntb_s = 28
     integer, parameter :: ntb_g = 28
 #else
@@ -228,7 +228,7 @@ module module_mp_tempo_params
         1.e5,2.e5,3.e5,4.e5,5.e5,6.e5,7.e5,8.e5,9.e5, &
         1.e6/)
 
-#if defined(ccpp_default) && defined(original_mp)
+#if defined(ccpp_default) && defined(OLD_MPTBLS)
     ! Lookup tables for graupel content (kg/m**3).
     real(wp), dimension(ntb_g), parameter :: &
         r_g = (/1.e-5,2.e-5,3.e-5,4.e-5,5.e-5,6.e-5,7.e-5,8.e-5,9.e-5, &
@@ -314,7 +314,7 @@ module module_mp_tempo_params
     real(wp) :: oams, obms, ocms
     real(wp), dimension(12,NRHG) :: cge, cgg
     real(wp), dimension(NRHG) :: oamg, ocmg
-#if defined(ccpp_default) && defined(original_mp)
+#if defined(ccpp_default) && defined(OLD_MPTBLS)
     real, dimension(18) :: cse, csg
 #else
     real(wp), dimension(17) :: cse, csg
