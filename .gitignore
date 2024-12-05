@@ -1,0 +1,13 @@
+# Ignore Files in the TEMPO Direcory
+
+# All object files
+*.o
+
+# All mod files
+*.mod
+
+# All f90 files
+*.f90
+
+# Driver file
+module_mp_tempo.F90
