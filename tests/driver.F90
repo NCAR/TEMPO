@@ -1,12 +1,12 @@
-! gfortran -c machine.F90 ../module_mp_thompson_params.F90 ../module_mp_thompson_utils.F90 ../drivers/standalone/module_mp_thompson.F90 driver.F90              
-! gfortran machine.o module_mp_thompson_params.o module_mp_thompson_utils.o module_mp_thompson.o driver.o                                                       
+! gfortran -c machine.F90 ../module_mp_tempo_params.F90 ../module_mp_tempo_utils.F90 ../drivers/standalone/module_mp_tempo.F90 driver.F90
+! gfortran machine.o module_mp_tempo_params.o module_mp_tempo_utils.o module_mp_tempo.o driver.o
 ! ./a.out                                                                                                                                                       
 !=================================================================================================================                                              
 
 program driver
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
-  use module_mp_thompson_params
-  use module_mp_thompson, only : thompson_init, thompson_3d_to_1d_driver
+  use module_mp_tempo_params
+  use module_mp_tempo, only : tempo_init, tempo_3d_to_1d_driver
 
   implicit none
 
@@ -45,8 +45,8 @@ subroutine run_profile
     l_mp_tables = .true.
     hail_aware_flag = .false.
     aerosol_aware_flag = .true.
-    write(*,*) '--- calling thompson_init()'
-    call thompson_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
+    write(*,*) '--- calling tempo_init()'
+    call tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
 
     i_start = its
     j_start = jts
@@ -91,7 +91,7 @@ subroutine run_profile
       itimestep = t
       write(*,*) 'Timestep: ', t
 
-      call thompson_3d_to_1d_driver(qv=qv, qc=qc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, nc=nc, &
+      call tempo_3d_to_1d_driver(qv=qv, qc=qc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, nc=nc, &
           nwfa=nwfa, nifa=nifa, nwfa2d=nwfa2d, nifa2d=nwfa2d, th=th, pii=pii, p=p, w=w, dz=dz, dt_in=dt_in, &
           itimestep=itimestep, rainnc=rainnc, rainncv=rainncv, sr=sr, refl_10cm=refl_10cm, &
           re_cloud=re_cloud, re_ice=re_ice, re_snow=re_snow, has_reqc=has_reqc, has_reqi=has_reqi, has_reqs=has_reqs, &

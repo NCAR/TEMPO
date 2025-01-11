@@ -28,13 +28,18 @@ module module_mp_tempo_params
     logical, parameter :: original_thompson = .false.
 #endif
 
-    ! Derived data type for configuration flags
-    type config_flags
+! #########################################################################################
+!> \section arg_table_ty_tempo_cfg Argument Table
+!! \htmlinclude ty_tempo_cfg.html
+!!
+! #########################################################################################
+    ! Derived data type for configuration flags.
+    type ty_tempo_cfg
         logical :: aerosol_aware
         logical :: hail_aware
-    end type config_flags
+    end type ty_tempo_cfg
 
-    type(config_flags) configs
+    type(ty_tempo_cfg) configs
 
     ! Constants that can be defined by the model ===========================
     ! Needed by tempo_init()

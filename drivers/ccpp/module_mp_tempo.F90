@@ -3,10 +3,10 @@
 module module_mp_tempo
 
     use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
-    use module_mp_thompson_params
-    use module_mp_thompson_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
+    use module_mp_tempo_params
+    use module_mp_tempo_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
         table_ccnAct, qi_aut_qs, qr_acr_qg_par, qr_acr_qs_par, freezeH2O_par, calc_refl10cm, calc_effectRad
-    use module_mp_thompson_main, only : mp_thompson_main
+    use module_mp_tempo_main, only : mp_tempo_main
     use module_mp_radar
 
     implicit none
@@ -1030,7 +1030,7 @@ contains
                     endif
 
                     !> - Call mp_thompson()
-                    call mp_thompson_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
+                    call mp_tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
                         ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
                         w1d=w1d, dzq=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, &
                         rand1=rand1, rand2=rand3, rand3=rand3, &

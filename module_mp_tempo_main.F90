@@ -62,7 +62,7 @@ contains
         real(wp), intent(inout) :: pptrain, pptsnow, pptgraul, pptice
         real(wp), intent(in) :: dt
 
-        type(config_flags), intent(in) :: configs
+        type(ty_tempo_cfg), intent(in) :: configs
 
         integer, intent(in), optional :: lsml
         real(wp), intent(in), optional :: rand1, rand2, rand3
