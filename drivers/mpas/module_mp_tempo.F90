@@ -819,7 +819,6 @@ contains
                     graupelncv(i,j) = pptgraul
                     graupelnc(i,j) = graupelnc(i,j) + pptgraul
                 endif
-
                 if (present(frainnc)) then
                    frain(i,j) = 0.
                    if(t1d(1) <= 273.) then
@@ -827,7 +826,6 @@ contains
                    endif
                    frainnc(i,j) = frainnc(i,j) + frain(i,j)
                 endif
-
                 sr(i,j) = (pptsnow + pptgraul + pptice) / (rainncv(i,j) + R1)
 
                 if ((present(ng)) .and. (present(qb))) then
