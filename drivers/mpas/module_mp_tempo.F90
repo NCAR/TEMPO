@@ -826,6 +826,7 @@ contains
                    endif
                    frainnc(i,j) = frainnc(i,j) + frain(i,j)
                 endif
+
                 sr(i,j) = (pptsnow + pptgraul + pptice) / (rainncv(i,j) + R1)
 
                 if ((present(ng)) .and. (present(qb))) then
