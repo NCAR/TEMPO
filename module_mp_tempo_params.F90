@@ -15,7 +15,7 @@ module module_mp_tempo_params
     use mpi_f08
 #endif
 
-!!!! #define original_mp 1
+#undef OLD_MPTBLS
 
     implicit none
 
