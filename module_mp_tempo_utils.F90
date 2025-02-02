@@ -1409,6 +1409,10 @@ contains
         has_qi = .false.
         has_qs = .false.
 
+        re_qc1d = 0.
+        re_qi1d = 0.
+        re_qs1d = 0.
+
         do k = kts, kte
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
             rc(k) = MAX(R1, qc1d(k)*rho(k))
