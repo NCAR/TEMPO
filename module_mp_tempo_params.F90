@@ -470,6 +470,7 @@ module module_mp_tempo_params
     ! Thompson tables.
     character(len=*), parameter :: thomp_table_file = 'thompson_tables_precomp_v2.sl'
     character(len=*), parameter :: qr_acr_qg_file = 'MP_TEMPO_QRacrQG.dat'
+    character(len=*), parameter :: qr_acr_qg_hailaware_file = 'MP_TEMPO_HAILAWARE_QRacrQG.dat'
     character(len=*), parameter :: qr_acr_qs_file = 'MP_TEMPO_QRacrQS.dat'
     character(len=*), parameter :: freeze_h2o_file = 'MP_TEMPO_freezeH2O.dat'
 
