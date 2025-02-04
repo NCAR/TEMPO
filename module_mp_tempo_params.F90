@@ -15,7 +15,7 @@ module module_mp_tempo_params
     use mpi_f08
 #endif
 
-!!!! #define original_mp 1
+#undef OLD_MPTBLS
 
     implicit none
 
@@ -469,9 +469,10 @@ module module_mp_tempo_params
     ! specify a name of external file(s) including version number for pre-computed
     ! Thompson tables.
     character(len=*), parameter :: thomp_table_file = 'thompson_tables_precomp_v2.sl'
-    character(len=*), parameter :: qr_acr_qg_file = 'qr_acr_qgV2.dat'
-    character(len=*), parameter :: qr_acr_qs_file = 'qr_acr_qsV2.dat'
-    character(len=*), parameter :: freeze_h2o_file = 'freezeH2O.dat'
+    character(len=*), parameter :: qr_acr_qg_file = 'MP_TEMPO_QRacrQG.dat'
+    character(len=*), parameter :: qr_acr_qg_hailaware_file = 'MP_TEMPO_HAILAWARE_QRacrQG.dat'
+    character(len=*), parameter :: qr_acr_qs_file = 'MP_TEMPO_QRacrQS.dat'
+    character(len=*), parameter :: freeze_h2o_file = 'MP_TEMPO_freezeH2O.dat'
 
     ! Min and max radiative effective radius of cloud water, cloud ice, and snow;
     ! performed by subroutine calc_effectRad. On purpose, these should stay PUBLIC.
