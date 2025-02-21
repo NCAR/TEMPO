@@ -610,7 +610,7 @@ contains
 
     subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
-        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, &
+        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
         has_reqc, has_reqi, has_reqs, ntc, muc, rainprod, evapprod, &
         ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte)
@@ -622,6 +622,7 @@ contains
         integer, intent(in) :: has_reqc, has_reqi, has_reqs
         real, dimension(ims:ime, kms:kme, jms:jme), intent(in) :: pii, p, w, dz
         real, dimension(ims:ime, jms:jme), intent(inout) :: rainnc, rainncv, sr
+        real, optional, dimension(:,:), intent(inout) :: frainnc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: rainprod, evapprod
         real, dimension(ims:ime, jms:jme), intent(in), optional :: ntc, muc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng
@@ -636,7 +637,7 @@ contains
             nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
         real, dimension(kts:kte):: rainprod1d, evapprod1d
-        real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic
+        real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
         real :: dt, pptrain, pptsnow, pptgraul, pptice
         real :: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
         real :: nwfa1
@@ -818,12 +819,39 @@ contains
                     graupelncv(i,j) = pptgraul
                     graupelnc(i,j) = graupelnc(i,j) + pptgraul
                 endif
+                if (present(frainnc)) then
+                   frain(i,j) = 0.
+                   if(t1d(1) <= 273.) then
+                      frain(i,j) = pcp_ra(i,j)
+                   endif
+                   frainnc(i,j) = frainnc(i,j) + frain(i,j)
+                endif
+
                 sr(i,j) = (pptsnow + pptgraul + pptice) / (rainncv(i,j) + R1)
 
+                ! ng and qb are optional hail-aware variables
                 if ((present(ng)) .and. (present(qb))) then
                     do k = kts, kte
                         ng(i,k,j) = ng1d(k)
                         qb(i,k,j) = qb1d(k)
+                    enddo
+                else
+                    do k = kte, kts, -1
+                        ! This is the one-moment graupel formulation
+                        if (qg1d(k) > R1) then
+                            ygra1 = log10(max(1.e-9, qg1d(k)*rho(k)))
+                            zans1 = 3.0 + 2.0/7.0*(ygra1+8.0)
+                            zans1 = max(2.0, min(zans1, 6.0))
+                            n0_exp = 10.0**(zans1)
+                            lam_exp = (n0_exp*am_g(idx_bg1)*cgg(1,1) / (rho(k)*qg1d(k)))**oge1
+                            lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
+                            ng1d(k) = cgg(2,1) * ogg3*rho(k) * qg1d(k) * lamg**bm_g / am_g(idx_bg1)
+                            ng1d(k) = max(R2, (ng1d(k)/rho(k)))
+                            qb1d(k) = qg1d(k) / rho_g(idx_bg1)
+                        else
+                            ng1d(k) = 0
+                            qb1d(k) = 0
+                        endif
                     enddo
                 endif
 
