@@ -610,7 +610,7 @@ contains
 
     subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qh, qb, ni, nr, nc, ng, nh, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
-        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, &
+        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
         has_reqc, has_reqi, has_reqs, ntc, muc, rainprod, evapprod, &
         ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte)
@@ -622,6 +622,7 @@ contains
         integer, intent(in) :: has_reqc, has_reqi, has_reqs
         real, dimension(ims:ime, kms:kme, jms:jme), intent(in) :: pii, p, w, dz
         real, dimension(ims:ime, jms:jme), intent(inout) :: rainnc, rainncv, sr
+        real, optional, dimension(:,:), intent(inout) :: frainnc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: rainprod, evapprod
         real, dimension(ims:ime, jms:jme), intent(in), optional :: ntc, muc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng, qh, nh
@@ -636,7 +637,7 @@ contains
             nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
         real, dimension(kts:kte):: rainprod1d, evapprod1d
-        real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic
+        real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
         real :: dt, pptrain, pptsnow, pptgraul, pptice, ppthail
         real :: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
         real :: nwfa1
@@ -846,6 +847,14 @@ contains
                     graupelncv(i,j) = pptgraul + ppthail
                     graupelnc(i,j) = graupelnc(i,j) + pptgraul + ppthail
                 endif
+                if (present(frainnc)) then
+                   frain(i,j) = 0.
+                   if(t1d(1) <= 273.) then
+                      frain(i,j) = pcp_ra(i,j)
+                   endif
+                   frainnc(i,j) = frainnc(i,j) + frain(i,j)
+                endif
+
                 sr(i,j) = (pptsnow + pptgraul + ppthail + pptice) / (rainncv(i,j) + R1)
 
                 ! ng and qb are optional hail-aware variables

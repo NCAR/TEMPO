@@ -761,7 +761,7 @@ contains
 
     !=================================================================================================================
     ! Rain collecting graupel (and inverse).  Explicit CE integration.
-    subroutine qr_acr_qg_par(NRHGtable)
+    subroutine qr_acr_qg_par(NRHGtable, qrqg_file)
 
         implicit none
 
@@ -778,19 +778,19 @@ contains
         LOGICAL force_read_thompson, write_thompson_tables
         LOGICAL lexist,lopen
         INTEGER good,ierr
+        character(len=*), intent(in) :: qrqg_file
 
         force_read_thompson = .false.
         write_thompson_tables = .false.
         !+---+
 
-
         good = 0
-        INQUIRE(FILE=qr_acr_qg_file, EXIST=lexist)
+        INQUIRE(FILE=qrqg_file, EXIST=lexist)
 #ifdef MPI
         call MPI_BARRIER(mpi_communicator,ierr)
 #endif
         IF ( lexist ) THEN
-            OPEN(63,file=qr_acr_qg_file,form="unformatted",err=1234)
+            OPEN(63,file=qrqg_file,form="unformatted",err=1234)
             !sms$serial begin
             READ(63,err=1234) tcg_racg
             READ(63,err=1234) tmr_racg
@@ -805,13 +805,13 @@ contains
                 INQUIRE(63,opened=lopen)
                 IF (lopen) THEN
                     IF( force_read_thompson ) THEN
-                        write(0,*) "Error reading "//qr_acr_qg_file//" Aborting because force_read_thompson is .true."
+                        write(0,*) "Error reading "//qrqg_file//" Aborting because force_read_thompson is .true."
                         return
                     ENDIF
                     CLOSE(63)
                 ELSE
                     IF( force_read_thompson ) THEN
-                        write(0,*) "Error opening "//qr_acr_qg_file//" Aborting because force_read_thompson is .true."
+                        write(0,*) "Error opening "//qrqg_file//" Aborting because force_read_thompson is .true."
                         return
                     ENDIF
                 ENDIF
@@ -823,7 +823,7 @@ contains
             ENDIF
         ELSE
             IF( force_read_thompson ) THEN
-                write(0,*) "Non-existent "//qr_acr_qg_file//" Aborting because force_read_thompson is .true."
+                write(0,*) "Non-existent "//qrqg_file//" Aborting because force_read_thompson is .true."
                 return
             ENDIF
         ENDIF
@@ -926,8 +926,8 @@ contains
                 enddo
             enddo
             IF ( write_thompson_tables ) THEN
-                write(0,*) "Writing "//qr_acr_qg_file//" in Tempo MP init"
-                OPEN(63,file=qr_acr_qg_file,form="unformatted",err=9234)
+                write(0,*) "Writing "//qrqg_file//" in Tempo MP init"
+                OPEN(63,file=qrqg_file,form="unformatted",err=9234)
                 WRITE(63,err=9234) tcg_racg
                 WRITE(63,err=9234) tmr_racg
                 WRITE(63,err=9234) tcr_gacr
@@ -936,7 +936,7 @@ contains
                 CLOSE(63)
                 RETURN    ! ----- RETURN
 9234            CONTINUE
-                write(0,*) "Error writing "//qr_acr_qg_file
+                write(0,*) "Error writing "//qrqg_file
                 return
             ENDIF
         ENDIF
@@ -1408,6 +1408,10 @@ contains
         has_qc = .false.
         has_qi = .false.
         has_qs = .false.
+
+        re_qc1d = 0.
+        re_qi1d = 0.
+        re_qs1d = 0.
 
         do k = kts, kte
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
