@@ -820,10 +820,29 @@ contains
                 endif
                 sr(i,j) = (pptsnow + pptgraul + pptice) / (rainncv(i,j) + R1)
 
+                ! ng and qb are optional hail-aware variables
                 if ((present(ng)) .and. (present(qb))) then
                     do k = kts, kte
                         ng(i,k,j) = ng1d(k)
                         qb(i,k,j) = qb1d(k)
+                    enddo
+                else
+                    do k = kte, kts, -1
+                        ! This is the one-moment graupel formulation
+                        if (qg1d(k) > R1) then
+                            ygra1 = log10(max(1.e-9, qg1d(k)*rho(k)))
+                            zans1 = 3.0 + 2.0/7.0*(ygra1+8.0)
+                            zans1 = max(2.0, min(zans1, 6.0))
+                            n0_exp = 10.0**(zans1)
+                            lam_exp = (n0_exp*am_g(idx_bg1)*cgg(1,1) / (rho(k)*qg1d(k)))**oge1
+                            lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
+                            ng1d(k) = cgg(2,1) * ogg3*rho(k) * qg1d(k) * lamg**bm_g / am_g(idx_bg1)
+                            ng1d(k) = max(R2, (ng1d(k)/rho(k)))
+                            qb1d(k) = qg1d(k) / rho_g(idx_bg1)
+                        else
+                            ng1d(k) = 0
+                            qb1d(k) = 0
+                        endif
                     enddo
                 endif
 
