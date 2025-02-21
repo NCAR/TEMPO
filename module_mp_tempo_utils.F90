@@ -1504,7 +1504,7 @@ contains
     !.. of frozen species remaining from what initially existed at the
     !.. melting level interface.
 
-    subroutine calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, &
+    subroutine calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, qh1d, nh1d, &
         t1d, p1d, dBZ, kts, kte, ii, jj, configs, rand1, melti, &
         vt_dBZ, first_time_step)
 
@@ -1514,7 +1514,7 @@ contains
         INTEGER, INTENT(IN):: kts, kte, ii, jj
         REAL, OPTIONAL, INTENT(IN):: rand1
         REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
-            qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, t1d, p1d
+             qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, qh1d, nh1d, t1d, p1d
         REAL, DIMENSION(kts:kte), INTENT(INOUT):: dBZ
         REAL, DIMENSION(kts:kte), OPTIONAL, INTENT(INOUT):: vt_dBZ
         LOGICAL, OPTIONAL, INTENT(IN) :: first_time_step
@@ -1526,25 +1526,25 @@ contains
         LOGICAL :: allow_wet_graupel
         LOGICAL :: allow_wet_snow
         REAL, DIMENSION(kts:kte):: temp, pres, qv, rho, rhof
-        REAL, DIMENSION(kts:kte):: rc, rr, nr, rs, rg, ng, rb
+        REAL, DIMENSION(kts:kte):: rc, rr, nr, rs, rg, ng, rb, rh, nh
         INTEGER, DIMENSION(kts:kte):: idx_bg
 
-        DOUBLE PRECISION, DIMENSION(kts:kte):: ilamr, ilamg, N0_r, N0_g
+        DOUBLE PRECISION, DIMENSION(kts:kte):: ilamr, ilamg, N0_r, N0_g, ilamh
         REAL, DIMENSION(kts:kte):: mvd_r
         REAL, DIMENSION(kts:kte):: smob, smo2, smoc, smoz
         REAL:: oM3, M0, Mrat, slam1, slam2, xDs
         REAL:: ils1, ils2, t1_vts, t2_vts, t3_vts, t4_vts
         REAL:: vtr_dbz_wt, vts_dbz_wt, vtg_dbz_wt
 
-        REAL, DIMENSION(kts:kte):: ze_rain, ze_snow, ze_graupel
+        REAL, DIMENSION(kts:kte):: ze_rain, ze_snow, ze_graupel, ze_hail
 
-        DOUBLE PRECISION:: N0_exp, N0_min, lam_exp, lamr, lamg
+        DOUBLE PRECISION:: N0_exp, N0_min, lam_exp, lamr, lamg, lamh
         REAL:: a_, b_, loga_, tc0, SR
         DOUBLE PRECISION:: fmelt_s, fmelt_g
 
         INTEGER:: i, k, k_0, kbot, n
         LOGICAL, OPTIONAL, INTENT(IN):: melti
-        LOGICAL, DIMENSION(kts:kte):: L_qr, L_qs, L_qg
+        LOGICAL, DIMENSION(kts:kte):: L_qr, L_qs, L_qg, L_qh
 
         DOUBLE PRECISION:: cback, x, eta, f_d
         REAL:: xslw1, ygra1, zans1
@@ -1613,6 +1613,21 @@ contains
                 ng(k) = R2
                 idx_bg(k) = idx_bg1
                 L_qg(k) = .false.
+            endif
+            if(present(qh1d) .and. present(nh1d)) then
+               if (qh1d(k) .gt. R2) then
+                  rh(k) = qh1d(k)*rho(k)
+                  nh(k) = MAX(R2, nh1d(k)*rho(k))
+                  L_qh(k) = .true.
+               else
+                  rh(k) = R1
+                  nh(k) = R2
+                  L_qh(k) = .false.
+               endif
+            else
+               rh(k) = R1
+               nh(k) = R2
+               L_qh(k) = .false.
             endif
         enddo
 
@@ -1693,6 +1708,18 @@ contains
         endif
 
         !+---+-----------------------------------------------------------------+
+        !..Calculate y-intercept, slope values for hail.
+        !+---+-----------------------------------------------------------------+
+        if (ANY(L_qh .eqv. .true.)) then
+            do k = kte, kts, -1
+                lamh = (am_h*cgg(3,1)*ogg2*nh(k)/rh(k))**obmg
+                ilamh(k) = 1./lamh
+            enddo
+        else
+            ilamh(:) = 0.
+        endif
+
+        !+---+-----------------------------------------------------------------+
         !..Locate K-level of start of melting (k_0 is level above).
         !+---+-----------------------------------------------------------------+
         k_0 = kts
@@ -1717,12 +1744,16 @@ contains
             ze_rain(k) = 1.e-22
             ze_snow(k) = 1.e-22
             ze_graupel(k) = 1.e-22
+            ze_hail(k) = 1.e-22
             if (L_qr(k)) ze_rain(k) = N0_r(k)*crg(4)*ilamr(k)**cre(4)
             if (L_qs(k)) ze_snow(k) = (0.176/0.93) * (6.0/PI)*(6.0/PI)     &
             &                           * (am_s/900.0)*(am_s/900.0)*smoz(k)
             if (L_qg(k)) ze_graupel(k) = (0.176/0.93) * (6.0/PI)*(6.0/PI)  &
             &               * (am_g(idx_bg(k))/900.0)*(am_g(idx_bg(k))/900.0)  &
             &               * N0_g(k)*cgg(4,1)*ilamg(k)**cge(4,1)
+            if (L_qh(k)) ze_hail(k) = (0.176/0.93) * (6.0/PI)*(6.0/PI)  &
+            &               * (am_h/900.0)*(am_h/900.0)  &
+            &               * N0_h*cgg(4,1)*ilamh(k)**cge(4,1)
         enddo
 
         !+---+-----------------------------------------------------------------+
@@ -1784,7 +1815,7 @@ contains
         endif
 
         do k = kte, kts, -1
-            dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.d18)
+            dBZ(k) = 10.*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k)+ze_hail(k))*1.d18)
         enddo
 
         !..Reflectivity-weighted terminal velocity (snow, rain, graupel, mix).
