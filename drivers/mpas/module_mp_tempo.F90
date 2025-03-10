@@ -839,6 +839,7 @@ contains
                     do k = kte, kts, -1
                         ! This is the one-moment graupel formulation
                         if (qg1d(k) > R1) then
+                            rho(k) = RoverRv * p1d(k) / (R * t1d(k) * (qv1d(k)+RoverRv))
                             ygra1 = log10(max(1.e-9, qg1d(k)*rho(k)))
                             zans1 = 3.0 + 2.0/7.0*(ygra1+8.0)
                             zans1 = max(2.0, min(zans1, 6.0))
