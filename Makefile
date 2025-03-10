@@ -8,6 +8,7 @@ dummy:
 OBJS = \
 	module_mp_tempo_params.o    \
 	module_mp_tempo_utils.o     \
+	module_mp_tempo_ml.o        \
 	module_mp_tempo_main.o      \
 	module_mp_tempo.o
 
@@ -18,6 +19,7 @@ microphysics: $(OBJS)
 module_mp_tempo.o: \
 	module_mp_tempo_params.o \
 	module_mp_tempo_utils.o \
+	module_mp_tempo_ml.o \
 	module_mp_tempo_main.o
 
 clean:
