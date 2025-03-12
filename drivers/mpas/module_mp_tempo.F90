@@ -7,6 +7,7 @@ module module_mp_tempo
     use module_mp_tempo_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
          calc_refl10cm, calc_effectRad
     use module_mp_tempo_main, only : mp_tempo_main
+    use module_mp_tempo_ml, only : predict_number
     use mpas_atmphys_utilities, only : physics_message, physics_error_fatal
     use mpas_io_units, only : mpas_new_unit, mpas_release_unit
     use mp_radar
@@ -611,7 +612,7 @@ contains
     subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
         rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
-        refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
+        refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, qcbl, cldfrac, &
         has_reqc, has_reqi, has_reqs, ntc, muc, rainprod, evapprod, &
         ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte)
 
@@ -628,6 +629,7 @@ contains
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng
         real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: refl_10cm
+        real, dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qcbl, cldfrac
         real, dimension(ims:ime, jms:jme), intent(inout), optional :: snownc, snowncv, graupelnc, graupelncv
         real, intent(in) :: dt_in
         integer, intent(in) :: itimestep
@@ -637,13 +639,16 @@ contains
             nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
         real, dimension(kts:kte):: rainprod1d, evapprod1d
+        real, dimension(kts:kte) :: ncbl
         real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
         real :: dt, pptrain, pptsnow, pptgraul, pptice
         real :: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
         real :: nwfa1
         real :: ygra1, zans1
         real :: graupel_vol
-        double precision :: lamg, lam_exp, lamr, n0_min, n0_exp
+        real :: tmprc, tmpnc, xDc
+        integer :: nu_c
+        double precision :: lamg, lam_exp, lamr, n0_min, n0_exp, lamc
         integer :: i, j, k
         integer :: imax_qc, imax_qr, imax_qi, imax_qs, imax_qg, imax_ni, imax_nr
         integer :: jmax_qc, jmax_qr, jmax_qi, jmax_qs, jmax_qg, jmax_ni, jmax_nr
@@ -871,6 +876,37 @@ contains
                     th(i,k,j) = t1d(k) / pii(i,k,j)
                     rainprod(i,k,j) = rainprod1d(k)
                     evapprod(i,k,j) = evapprod1d(k)
+                    ncbl(k) = 0.
+
+                    if (present(qcbl) .and. present(cldfrac)) then
+                       if ((qc1d(k) <= R1) .and. (qcbl(i,k,j) > 1.e-9) .and. (cldfrac(i,k,j) > 0.)) then
+                          qc1d(k) = qc1d(k) + qcbl(i,k,j)/cldfrac(i,k,j) ! Uses in-cloud PBL mass
+                          ! ML prediction of number concentration (Don't add in qibl for now)
+                          ncbl(k) = predict_number(qc1d(k), qr1d(k), qi1d(k), qs1d(k), &
+                               p1d(k), t1d(k), w1d(k), predict_nc=.true.)
+                          nc1d(k) = nc1d(k) + ncbl(k)
+                          rho(k) = RoverRv * p1d(k) / (R * t1d(k) * (qv1d(k)+RoverRv))
+                          tmprc = qc1d(k)*rho(k)
+                          tmpnc = max(2., min(nc1d(k)*rho(k), nt_c_max))
+                          if (tmpnc.gt.10000.e6) then
+                             nu_c = 2
+                          elseif (tmpnc.lt.100.) then
+                             nu_c = 15
+                          else
+                             nu_c = nint(nu_c_scale/tmpnc) + 2
+                             nu_c = max(2, min(nu_c, 15))
+                          endif
+                          lamc = (tmpnc*am_r*ccg(2,nu_c)*ocg1(nu_c)/tmprc)**obmr
+                          xDc = (bm_r + nu_c + 1.) / lamc
+                          if (xDc .lt. D0c) then
+                             lamc = cce(2,nu_c)/D0c
+                          elseif (xDc.gt. D0r*2.) then
+                             lamc = cce(2,nu_c)/(D0r*2.)
+                          endif
+                          tmpnc = min(real(nt_c_max, kind=dp), ccg(1,nu_c)*ocg2(nu_c)*tmprc / am_r*lamc**bm_r)
+                          nc1d(k) = tmpnc/rho(k) ! Update nc1d for calc_effectRad
+                       endif
+                    endif
                 enddo
 
                 !=================================================================================================================
