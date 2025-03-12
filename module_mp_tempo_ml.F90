@@ -23,7 +23,7 @@ contains
   ! Saves nueral network data information if a neural network is not
   ! initialized. If output data is requested, the initialized and saved
   ! neural network will be used.
-  subroutine tempo_read_or_save_ml_data(ml_data_in, ml_data_out)
+  subroutine tempo_save_or_read_ml_data(ml_data_in, ml_data_out)
 
     logical, save :: not_initialized = .true.
     type(MLdata), dimension(2), intent(in), optional :: ml_data_in
@@ -39,7 +39,7 @@ contains
        ml_data_out = tempo_ml_data_save
     endif
 
-  end subroutine tempo_read_or_save_ml_data
+  end subroutine tempo_save_or_read_ml_data
 
 !------------------------------------------------------------------------------------------------------
   ! Predicts number concentration
@@ -58,7 +58,7 @@ contains
     double precision :: predictExp
     
     ! Get neural network data
-    call tempo_create_nn(tempo_ml_data_out=get_ml_data)
+    call tempo_save_or_read_ml_data(ml_data_out=get_ml_data)
 
     if (predict_nc) then
        ml_data = get_ml_data(1)
