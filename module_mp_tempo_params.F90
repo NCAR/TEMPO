@@ -495,8 +495,8 @@ module module_mp_tempo_params
     integer, parameter :: nc_ml_nodes = 24
     integer, parameter :: nc_ml_output = 1
 
-    integer, parameter :: nr_ml_input = 1
-    integer, parameter :: nr_ml_nodes = 1
+    integer, parameter :: nr_ml_input = 7
+    integer, parameter :: nr_ml_nodes = 24
     integer, parameter :: nr_ml_output = 1
 
     real(wp), dimension(nc_ml_input), parameter :: &
