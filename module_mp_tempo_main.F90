@@ -124,7 +124,8 @@ contains
             pbg_scw, pbg_rfz, pbg_gcw, pbg_rci, pbg_rcs, pbg_rcg, &
             pbg_sml, pbg_gml
 
-        real(dp), dimension(kts:kte) :: prh_hde, prh_rcg, prr_hml, prh_hcw, pnr_hml
+        real(dp), dimension(kts:kte) :: prh_hde, prh_rcg, prr_hml, prh_hcw, pnr_hml, &
+             prh_rch, prr_rch, pnr_rch
 
         real(dp), parameter :: zerod0 = 0.0d0
 
@@ -180,9 +181,9 @@ contains
         real(wp) :: melt_f, rand
         integer :: i, k, k2, n, nn, nstep, k_0, kbot, IT, iexfrq, k_melting
         integer, dimension(6) :: ksed1
-        integer :: nir, nis, nig, nii, nic, niin
+        integer :: nir, nis, nig, nih, nii, nic, niin
         integer :: idx_tc, idx_t, idx_s, idx_g1, idx_g, idx_r1, idx_r,     &
-            idx_i1, idx_i, idx_c, idx, idx_d, idx_n, idx_in
+            idx_i1, idx_i, idx_c, idx, idx_d, idx_n, idx_in, idx_h, idx_h1
         integer, dimension(kts:kte) :: idx_bg, idx_table
 
         logical :: melti, no_micro
@@ -322,6 +323,10 @@ contains
             prh_hcw(k) = 0.
             prr_hml(k) = 0.
             pnr_hml(k) = 0.
+
+            prh_rch(k) = 0.
+            prr_rch(k) = 0.
+            pnr_rch(k) = 0.
 
             pna_rca(k) = 0.
             pna_sca(k) = 0.
@@ -999,6 +1004,31 @@ contains
                     idx_g1 = ntb_g1
                 endif
 
+                !>  - Hail lookup table index.
+                if (rh(k).gt. r_g(1)) then
+                    nih = nint(log10(rh(k)))
+                    do_loop_rh: do nn = nih-1, nih+1
+                        n = nn
+                        if ( (rh(k)/10.**nn).ge.1.0 .and. (rh(k)/10.**nn).lt.10.0 ) exit do_loop_rh
+                    enddo do_loop_rh
+                    idx_h = int(rh(k)/10.**n) + 10*(n-nig2) - (n-nig2)
+                    idx_h = max(1, min(idx_h, ntb_g))
+
+                    lamh = 1./ilamh(k)
+                    lam_exp = lamh * (cgg(3,1)*ogg2*ogg1)**bm_g
+                    N0_exp = ogg1*rh(k)/am_h * lam_exp**cge(1,1)
+                    nih = nint(log10(real(N0_exp, kind=dp)))
+                    do_loop_nh: do nn = nih-1, nih+1
+                        n = nn
+                        if ( (N0_exp/10.**nn).ge.1.0 .and. (N0_exp/10.**nn).lt.10.0 ) exit do_loop_nh
+                    enddo do_loop_nh
+                    idx_h1 = int(N0_exp/10.**n) + 10*(n-nig3) - (n-nig3)
+                    idx_h1 = max(1, min(idx_h1, ntb_g1))
+                else
+                    idx_h = 1
+                    idx_h1 = ntb_g1
+                endif
+
                 !..Deposition/sublimation prefactor (from Srivastava & Coen 1992).
                 otemp = 1./temp(k)
                 rvs = rho(k)*qvsi(k)
@@ -1134,9 +1164,9 @@ contains
                                 + tnr_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
                                 + tnr_sacr2(idx_s,idx_t,idx_r1,idx_r)
                             pnr_rcs(k) = min(real(nr(k)*odts, kind=dp), pnr_rcs(k))
-                            png_rcs(k) = pnr_rcs(k)
+!AAJ send to hail instead                            png_rcs(k) = pnr_rcs(k)
                             !-GT        pbg_rcs(k) = prg_rcs(k)/(0.5*(rho_i+rho_s))
-                            pbg_rcs(k) = prg_rcs(k)/rho_i
+!AAJ send to hail instead                            pbg_rcs(k) = prg_rcs(k)/rho_i
                         else
                             prs_rcs(k) = -tcs_racs1(idx_s,idx_t,idx_r1,idx_r)           &
                                 - tms_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
@@ -1203,9 +1233,21 @@ contains
                             !..Put in explicit drop break-up due to collisions.
                             pnr_rcg(k) = -1.5*tnr_gacr(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)  ! RAIN2M
                         endif
-                    endif
-                endif
+                     endif
 
+                     !..Rain collecting hail.
+                     if (rh(k).ge. r_g(1)) then
+                        if (temp(k).lt.T_0) then
+                            prh_rch(k) = tmr_racg(idx_h1,idx_h,NRHG,idx_r1,idx_r)  &
+                                + tcr_gacr(idx_h1,idx_h,NRHG,idx_r1,idx_r)
+                            prh_rch(k) = min(real(rr(k)*odts, kind=dp), prh_rch(k))
+                            prr_rch(k) = -prh_rch(k)
+                            pnr_rch(k) = tnr_racg(idx_h1,idx_h,NRHG,idx_r1,idx_r)  &   ! RAIN2M
+                                + tnr_gacr(idx_h1,idx_h,NRHG,idx_r1,idx_r)
+                            pnr_rch(k) = min(real(nr(k)*odts, kind=dp), pnr_rch(k))
+                        endif
+                     endif
+                endif
                 !+---+-----------------------------------------------------------------+
                 !..Next IF block handles only those processes below 0C.
                 !+---+-----------------------------------------------------------------+
@@ -1602,7 +1644,7 @@ contains
 
             !..Rain conservation.
             sump = -prg_rfz(k) - pri_rfz(k) - prr_rci(k) &
-                + prr_rcs(k) + prr_rcg(k)
+                + prr_rcs(k) + prr_rcg(k) + prr_rch(k)
             rate_max = -rr(k)*odts
             if (sump.lt. rate_max .and. L_qr(k)) then
                 ratio = rate_max/sump
@@ -1611,6 +1653,7 @@ contains
                 prr_rci(k) = prr_rci(k) * ratio
                 prr_rcs(k) = prr_rcs(k) * ratio
                 prr_rcg(k) = prr_rcg(k) * ratio
+                prr_rch(k) = prr_rch(k) * ratio
             endif
 
             !..Snow conservation.
@@ -1652,6 +1695,9 @@ contains
             ratio = min(abs(prr_rcg(k)), abs(prg_rcg(k)) )
             prr_rcg(k) = ratio * sign(1.0, sngl(prr_rcg(k)))
             prg_rcg(k) = ratio * sign(1.0, sngl(prg_rcg(k)))
+            ratio = min(abs(prr_rch(k)), abs(prh_rch(k)) )
+            prr_rch(k) = ratio * sign(1.0, sngl(prr_rch(k)))
+            prh_rch(k) = ratio * sign(1.0, sngl(prh_rch(k)))
             ! prg_rcg(k) = -prr_rcg(k)
             if (temp(k).gt.t_0) then
                 ratio = min(abs(prr_rcs(k)), abs(prs_rcs(k)) )
@@ -1772,13 +1818,13 @@ contains
             !..Rain tendency
             qrten(k) = qrten(k) + (prr_wau(k) + prr_rcw(k) &
                 + prr_sml(k) + prr_gml(k) + prr_hml(k) + prr_rcs(k) &
-                + prr_rcg(k) - prg_rfz(k) &
+                + prr_rcg(k) + prr_rch(k) - prg_rfz(k) &
                 - pri_rfz(k) - prr_rci(k)) &
                 * orho
 
             !..Rain number tendency
             nrten(k) = nrten(k) + (pnr_wau(k) + pnr_sml(k) + pnr_gml(k) + pnr_hml(k) &
-                - (pnr_rfz(k) + pnr_rcr(k) + pnr_rcg(k) &
+                - (pnr_rfz(k) + pnr_rcr(k) + pnr_rcg(k) + pnr_rch(k) &
                 + pnr_rcs(k) + pnr_rci(k) + pni_rfz(k)) ) &
                 * orho
 
@@ -1814,13 +1860,13 @@ contains
             !..Graupel tendency
             qgten(k) = qgten(k) + (prg_scw(k) &
                 + prg_gde(k) + prg_rcg(k) + prg_gcw(k) &
-                + prg_rci(k) + prg_rcs(k) - prg_ihm(k) &
+                + prg_rci(k) - prg_ihm(k) &
                 - prr_gml(k)) &
                 * orho
 
             !..Hail tendency
             qhten(k) = qhten(k) + (prh_hde(k) &
-                + prg_rfz(k) + prh_rcg(k) + prh_hcw(k) &
+                + prg_rfz(k) + prg_rcs(k) + prh_rcg(k) + prh_rch(k) + prh_hcw(k) &
                 - prr_hml(k)) &
                 * orho
 
@@ -1875,7 +1921,7 @@ contains
                     + prg_rfz(k) + prs_scw(k) &
                     + prg_scw(k) + prg_gcw(k) + prh_hcw(k) &
                     + prg_rcs(k) + prs_rcs(k) &
-                    + prr_rci(k) - prr_rcg(k)) &
+                    + prr_rci(k) - prr_rcg(k) - prr_rch(k)) &
                     )*orho * (1-IFDRY)
             else
                 tten(k) = tten(k) &
