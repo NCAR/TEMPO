@@ -1618,16 +1618,10 @@ contains
                 idx_bg(k) = idx_bg1
                 L_qg(k) = .false.
             endif
-            if(present(qh1d) .and. present(nh1d)) then
-               if (qh1d(k) .gt. R2) then
-                  rh(k) = qh1d(k)*rho(k)
-                  nh(k) = MAX(R2, nh1d(k)*rho(k))
-                  L_qh(k) = .true.
-               else
-                  rh(k) = R1
-                  nh(k) = R2
-                  L_qh(k) = .false.
-               endif
+            if (qh1d(k) .gt. R2) then
+               rh(k) = qh1d(k)*rho(k)
+               nh(k) = MAX(R2, nh1d(k)*rho(k))
+               L_qh(k) = .true.
             else
                rh(k) = R1
                nh(k) = R2

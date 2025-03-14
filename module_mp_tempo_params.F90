@@ -137,8 +137,9 @@ module module_mp_tempo_params
     real(wp), dimension(NRHG) :: bv_g = (/0.640961647, 0.640961647, 0.640961647, 0.640961647, &
         0.640961647, 0.640961647, 0.640961647, 0.640961647, 0.640961647/)
 
-    real(wp), parameter :: av_h = av_g(NRHG)
-    real(wp), parameter :: bv_h = bv_g(NRHG)
+    ! Use the last graupel value for these
+    real(wp), parameter :: av_h = 209.225876
+    real(wp), parameter :: bv_h = 0.640961647
 
     ! Capacitance of sphere and plates/aggregates: D**3, D**2
     real(wp), parameter :: C_cube = 0.5
