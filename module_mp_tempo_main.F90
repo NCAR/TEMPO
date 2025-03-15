@@ -125,7 +125,7 @@ contains
             pbg_sml, pbg_gml
 
         real(dp), dimension(kts:kte) :: prh_hde, prh_rcg, prr_hml, prh_hcw, pnr_hml, &
-             prh_rch, prr_rch, pnr_rch
+             prh_rch, prr_rch, pnr_rch, prh_rfz
 
         real(dp), parameter :: zerod0 = 0.0d0
 
@@ -323,7 +323,7 @@ contains
             prh_hcw(k) = 0.
             prr_hml(k) = 0.
             pnr_hml(k) = 0.
-
+            prh_rfz(k) = 0.
             prh_rch(k) = 0.
             prr_rch(k) = 0.
             pnr_rch(k) = 0.
@@ -1164,9 +1164,9 @@ contains
                                 + tnr_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
                                 + tnr_sacr2(idx_s,idx_t,idx_r1,idx_r)
                             pnr_rcs(k) = min(real(nr(k)*odts, kind=dp), pnr_rcs(k))
-!AAJ send to hail instead                            png_rcs(k) = pnr_rcs(k)
+                            if (.not. configs%true_qh) png_rcs(k) = pnr_rcs(k)
                             !-GT        pbg_rcs(k) = prg_rcs(k)/(0.5*(rho_i+rho_s))
-!AAJ send to hail instead                            pbg_rcs(k) = prg_rcs(k)/rho_i
+                            if (.not. configs%true_qh) pbg_rcs(k) = prg_rcs(k)/rho_i
                         else
                             prs_rcs(k) = -tcs_racs1(idx_s,idx_t,idx_r1,idx_r)           &
                                 - tms_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
@@ -1184,7 +1184,8 @@ contains
                     !.. or Mizuno (1990) approach so we solve the CE explicitly and store
                     !.. results in lookup table.
                     if (rg(k).ge. r_g(1)) then
-                        if (temp(k).lt.T_0) then
+                       if (temp(k).lt.T_0) then
+                          if (configs%true_qh) then
                             ! Hail mass source
                             prh_rcg(k) = tmr_racg(idx_g1,idx_g,idx_table(k),idx_r1,idx_r) &
                                  + tcr_gacr(idx_g1,idx_g,idx_table(k),idx_r1,idx_r) &
@@ -1211,17 +1212,18 @@ contains
 
                             ! Graupel volume loss
                             pbg_rcg(k) = prg_rcg(k)/rho_i
-
+                         else
                             ! Original code for rain + graupel -> graupel
-                            !prg_rcg(k) = tmr_racg(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)  &
-                            !    + tcr_gacr(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)
-                            !prg_rcg(k) = min(real(rr(k)*odts, kind=dp), prg_rcg(k))
-                            !prr_rcg(k) = -prg_rcg(k)
-                            !pnr_rcg(k) = tnr_racg(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)  &   ! RAIN2M
-                            !    + tnr_gacr(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)
-                            !pnr_rcg(k) = min(real(nr(k)*odts, kind=dp), pnr_rcg(k))
-                            !!-GT        pbg_rcg(k) = prg_rcg(k)/(0.5*(rho_i+rho_g(idx_bg(k))))
-                            !pbg_rcg(k) = prg_rcg(k)/rho_i
+                            prg_rcg(k) = tmr_racg(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)  &
+                                + tcr_gacr(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)
+                            prg_rcg(k) = min(real(rr(k)*odts, kind=dp), prg_rcg(k))
+                            prr_rcg(k) = -prg_rcg(k)
+                            pnr_rcg(k) = tnr_racg(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)  &   ! RAIN2M
+                                + tnr_gacr(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)
+                            pnr_rcg(k) = min(real(nr(k)*odts, kind=dp), pnr_rcg(k))
+                            !-GT        pbg_rcg(k) = prg_rcg(k)/(0.5*(rho_i+rho_g(idx_bg(k))))
+                            pbg_rcg(k) = prg_rcg(k)/rho_i
+                         endif
                         else
                             prr_rcg(k) = tcg_racg(idx_g1,idx_g,idx_table(k),idx_r1,idx_r)
                             prr_rcg(k) = min(real(rg(k)*odts, kind=dp), prr_rcg(k))
@@ -1303,7 +1305,12 @@ contains
                         pni_rfz(k) = nr(k)*odts
                     endif
                     !..AAJ Frozen rain to hail
-                    ! pbg_rfz(k) = prg_rfz(k)/rho_i
+                    if (.not. configs%true_qh) then
+                       pbg_rfz(k) = prg_rfz(k)/rho_i
+                    else
+                       prh_rfz(k) = prg_rfz(k)
+                       prg_rfz(k) = 0.
+                    endif
 
                     if (rc(k).gt. r_c(1)) then
                         pri_wfz(k) = tpi_qcfz(idx_c,idx_n,idx_tc,idx_IN)*odts
@@ -1643,12 +1650,13 @@ contains
             endif
 
             !..Rain conservation.
-            sump = -prg_rfz(k) - pri_rfz(k) - prr_rci(k) &
+            sump = -prg_rfz(k) - prh_rfz(k) - pri_rfz(k) - prr_rci(k) &
                 + prr_rcs(k) + prr_rcg(k) + prr_rch(k)
             rate_max = -rr(k)*odts
             if (sump.lt. rate_max .and. L_qr(k)) then
                 ratio = rate_max/sump
                 prg_rfz(k) = prg_rfz(k) * ratio
+                prh_rfz(k) = prh_rfz(k) * ratio
                 pri_rfz(k) = pri_rfz(k) * ratio
                 prr_rci(k) = prr_rci(k) * ratio
                 prr_rcs(k) = prr_rcs(k) * ratio
@@ -1694,11 +1702,14 @@ contains
             pri_ihm(k) = prs_ihm(k) + prg_ihm(k)
             ratio = min(abs(prr_rcg(k)), abs(prg_rcg(k)) )
             prr_rcg(k) = ratio * sign(1.0, sngl(prr_rcg(k)))
-            prg_rcg(k) = ratio * sign(1.0, sngl(prg_rcg(k)))
+            if (.not. configs%true_qh) then
+               prg_rcg(k) = -prr_rcg(k)
+            else
+               prg_rcg(k) = ratio * sign(1.0, sngl(prg_rcg(k)))
+            endif
             ratio = min(abs(prr_rch(k)), abs(prh_rch(k)) )
             prr_rch(k) = ratio * sign(1.0, sngl(prr_rch(k)))
             prh_rch(k) = ratio * sign(1.0, sngl(prh_rch(k)))
-            ! prg_rcg(k) = -prr_rcg(k)
             if (temp(k).gt.t_0) then
                 ratio = min(abs(prr_rcs(k)), abs(prs_rcs(k)) )
                 prr_rcs(k) = ratio * sign(1.0, sngl(prr_rcs(k)))
@@ -1818,7 +1829,7 @@ contains
             !..Rain tendency
             qrten(k) = qrten(k) + (prr_wau(k) + prr_rcw(k) &
                 + prr_sml(k) + prr_gml(k) + prr_hml(k) + prr_rcs(k) &
-                + prr_rcg(k) + prr_rch(k) - prg_rfz(k) &
+                + prr_rcg(k) + prr_rch(k) - prg_rfz(k) - prh_rfz(k) &
                 - pri_rfz(k) - prr_rci(k)) &
                 * orho
 
@@ -1858,7 +1869,7 @@ contains
                 * orho
 
             !..Graupel tendency
-            qgten(k) = qgten(k) + (prg_scw(k) &
+            qgten(k) = qgten(k) + (prg_scw(k) + prg_rfz(k) &
                 + prg_gde(k) + prg_rcg(k) + prg_gcw(k) &
                 + prg_rci(k) - prg_ihm(k) &
                 - prr_gml(k)) &
@@ -1866,7 +1877,7 @@ contains
 
             !..Hail tendency
             qhten(k) = qhten(k) + (prh_hde(k) &
-                + prg_rfz(k) + prg_rcs(k) + prh_rcg(k) + prh_rch(k) + prh_hcw(k) &
+                + prh_rfz(k) + prg_rcs(k) + prh_rcg(k) + prh_rch(k) + prh_hcw(k) &
                 - prr_hml(k)) &
                 * orho
 
@@ -1918,7 +1929,7 @@ contains
                     + prs_ide(k) + prs_sde(k) &
                     + prg_gde(k) + prh_hde(k) + pri_iha(k)) &
                     + lfus2*ocp(k)*(pri_wfz(k) + pri_rfz(k) &
-                    + prg_rfz(k) + prs_scw(k) &
+                    + prg_rfz(k) + prh_rfz(k) + prs_scw(k) &
                     + prg_scw(k) + prg_gcw(k) + prh_hcw(k) &
                     + prg_rcs(k) + prs_rcs(k) &
                     + prr_rci(k) - prr_rcg(k) - prr_rch(k)) &
