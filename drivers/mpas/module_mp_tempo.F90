@@ -947,14 +947,14 @@ contains
                 ! Hail size
                 if(present(qh)) then
                    call hail_diagnostics(qh1d=qh1d, nh1d=nh1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
-                        t1d=t1d, p1d=p1d, qh_diam1d=qh_diam1d, qg_diam1d=qg_diam1d, kts=kts, kte=kte, configs=configs)
+                        t1d=t1d, p1d=p1d, qv1d=qv1d, qh_diam1d=qh_diam1d, qg_diam1d=qg_diam1d, kts=kts, kte=kte, configs=configs)
                    do k = kts, kte
                       qh_diam(i,k,j) = max(0.0_wp, qh_diam1d(k))
                       qg_diam(i,k,j) = max(0.0_wp, qg_diam1d(k))
                    enddo
                 else
                    call hail_diagnostics(qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
-                        t1d=t1d, p1d=p1d, qh_diam1d=qh_diam1d, qg_diam1d=qg_diam1d, kts=kts, kte=kte, configs=configs)
+                        t1d=t1d, p1d=p1d, qv1d=qv1d, qh_diam1d=qh_diam1d, qg_diam1d=qg_diam1d, kts=kts, kte=kte, configs=configs)
                    do k = kts, kte
                       qh_diam(i,k,j) = max(0.0_wp, qh_diam1d(k))
                       qg_diam(i,k,j) = max(0.0_wp, qg_diam1d(k))

@@ -1889,6 +1889,7 @@ contains
       real, dimension(kts:kte) :: rho, rg, ng, rb, rh, nh
       integer, dimension(kts:kte) :: idx_bg
       real(dp) :: lamg, lamh
+      integer :: k
 
       do k = kts, kte
          qh_diam1d(k) = 0.
