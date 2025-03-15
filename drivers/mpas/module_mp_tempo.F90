@@ -790,6 +790,7 @@ contains
 
                 ! Hail is optional
                 if (present(qh)) then
+                   configs%true_qh = .true.
                    do k = kts, kte
                       qh1d(k) = qh(i,k,j)
                    enddo
@@ -809,6 +810,7 @@ contains
                       enddo
                    endif
                 else
+                   configs%true_qh = .false.
                    do k = kts, kte
                       qh1d(k) = 0.
                       nh1d(k) = 0.
