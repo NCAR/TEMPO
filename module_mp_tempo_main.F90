@@ -120,7 +120,7 @@ contains
 
         real(dp), dimension(kts:kte) :: prg_scw, prg_rfz, prg_gde, &
             prg_gcw, prg_rci, prg_rcs, prg_rcg, prg_ihm, &
-            png_rcs, png_rcg, png_scw, png_gde, &
+            png_rcs, png_rcg, png_scw, png_gde, png_rfz, &
             pbg_scw, pbg_rfz, pbg_gcw, pbg_rci, pbg_rcs, pbg_rcg, &
             pbg_sml, pbg_gml
 
@@ -307,6 +307,7 @@ contains
             png_rcs(k) = 0.
             png_rcg(k) = 0.
             png_gde(k) = 0.
+            png_rfz(k) = 0.
 
             pbg_scw(k) = 0.
             pbg_rfz(k) = 0.
@@ -1314,6 +1315,7 @@ contains
                     !..AAJ Frozen rain to hail
                     if (.not. configs%true_qh) then
                        pbg_rfz(k) = prg_rfz(k)/rho_i
+                       png_rfz(k) = pnr_rfz(k)
                     else
                        prh_rfz(k) = prg_rfz(k)
                        prg_rfz(k) = 0.
@@ -1889,7 +1891,7 @@ contains
                 * orho
 
             !..Graupel number tendency
-            ngten(k) = ngten(k) + (png_scw(k) - png_rcg(k) &
+            ngten(k) = ngten(k) + (png_scw(k) + png_rfz(k) - png_rcg(k) &
                 + pnr_rci(k) + png_rcs(k) + png_gde(k) &
                 - pnr_gml(k)) * orho
 
