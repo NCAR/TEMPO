@@ -125,7 +125,7 @@ contains
             pbg_sml, pbg_gml
 
         real(dp), dimension(kts:kte) :: prh_hde, prh_rcg, prr_hml, prh_hcw, pnr_hml, &
-             prh_rch, prr_rch, pnr_rch, prh_rfz
+             prh_rch, prr_rch, pnr_rch, prh_rfz, prh_rcs
 
         real(dp), parameter :: zerod0 = 0.0d0
 
@@ -324,6 +324,7 @@ contains
             prr_hml(k) = 0.
             pnr_hml(k) = 0.
             prh_rfz(k) = 0.
+            prh_rcs(k) = 0.
             prh_rch(k) = 0.
             prr_rch(k) = 0.
             pnr_rch(k) = 0.
@@ -1164,9 +1165,15 @@ contains
                                 + tnr_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
                                 + tnr_sacr2(idx_s,idx_t,idx_r1,idx_r)
                             pnr_rcs(k) = min(real(nr(k)*odts, kind=dp), pnr_rcs(k))
-                            if (.not. configs%true_qh) png_rcs(k) = pnr_rcs(k)
+
+                            if (.not. configs%true_qh) then
+                               png_rcs(k) = pnr_rcs(k)
+                               pbg_rcs(k) = prg_rcs(k)/rho_i
+                            else
+                               prh_rcs(k) = prg_rcs(k)
+                               prg_rcs(k) = 0.
+                            endif
                             !-GT        pbg_rcs(k) = prg_rcs(k)/(0.5*(rho_i+rho_s))
-                            if (.not. configs%true_qh) pbg_rcs(k) = prg_rcs(k)/rho_i
                         else
                             prs_rcs(k) = -tcs_racs1(idx_s,idx_t,idx_r1,idx_r)           &
                                 - tms_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
@@ -1871,13 +1878,13 @@ contains
             !..Graupel tendency
             qgten(k) = qgten(k) + (prg_scw(k) + prg_rfz(k) &
                 + prg_gde(k) + prg_rcg(k) + prg_gcw(k) &
-                + prg_rci(k) - prg_ihm(k) &
+                + prg_rci(k) + prg_rcs(k) - prg_ihm(k) &
                 - prr_gml(k)) &
                 * orho
 
             !..Hail tendency
             qhten(k) = qhten(k) + (prh_hde(k) &
-                + prh_rfz(k) + prg_rcs(k) + prh_rcg(k) + prh_rch(k) + prh_hcw(k) &
+                + prh_rfz(k) + prh_rcs(k) + prh_rcg(k) + prh_rch(k) + prh_hcw(k) &
                 - prr_hml(k)) &
                 * orho
 
@@ -1931,7 +1938,7 @@ contains
                     + lfus2*ocp(k)*(pri_wfz(k) + pri_rfz(k) &
                     + prg_rfz(k) + prh_rfz(k) + prs_scw(k) &
                     + prg_scw(k) + prg_gcw(k) + prh_hcw(k) &
-                    + prg_rcs(k) + prs_rcs(k) &
+                    - prr_rcs(k) + prs_rcs(k) &
                     + prr_rci(k) - prr_rcg(k) - prr_rch(k)) &
                     )*orho * (1-IFDRY)
             else
