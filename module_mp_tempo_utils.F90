@@ -1873,6 +1873,53 @@ contains
     end subroutine calc_refl10cm
 
     !=================================================================================================================
+    !..Compute max hail size aloft and at the ground (both 2D fields)
+
+    subroutine hail_diagnostics(qh1d, nh1d, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qh_diam1d, qg_diam1d, kts, kte, configs)
+
+      implicit none
+
+      integer, intent(in) :: kts, kte
+      real, dimension(kts:kte), intent(in) :: qg1d, ng1d, qb1d, t1d, p1d, qv1d
+      real, dimension(kts:kte), intent(in), optional :: qh1d, nh1d
+      real, dimension(kts:kte), intent(out) :: qg_diam1d, qh_diam1d
+      type(ty_tempo_cfg), intent(in) :: configs
+
+      ! local variables
+      real, dimension(kts:kte) :: rho, rg, ng, rb, rh, nh
+      integer, dimension(kts:kte) :: idx_bg
+      real(dp) :: lamg, lamh
+
+      do k = kts, kte
+         qh_diam1d(k) = 0.
+         qg_diam1d(k) = 0.
+!!         hail_diag_size(k) = 0.
+         if(qg1d(k) > 1.e-6) then
+            rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+            rg(k) = qg1d(k)*rho(k)
+            ng(k) = max(R2, ng1d(k)*rho(k))
+            rb(k) = max(qg1d(k)/rho_g(nrhg), qb1d(k))
+            rb(k) = min(qg1d(k)/rho_g(1), rb(k))
+            idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
+            if (.not. configs%hail_aware) idx_bg(k) = idx_bg1
+            lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
+            qg_diam1d(k) = 1000. * 10.05 / lamg ! For graupel, use the 99th percent of mass distribution
+         endif
+
+         if((present(qh1d)) .and. (present(nh1d))) then
+            if(qh1d(k) > 1.e-6) then
+               rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+               rh(k) = qh1d(k)*rho(k)
+               nh(k) = max(r2, nh1d(k)*rho(k))
+               lamh = (am_h*cgg(3,1)*ogg2*nh(k)/rh(k))**obmg
+               qh_diam1d(k) = 1000. * 3.672 / lamh ! For hail, use the 50th percent of mass distribution
+            endif
+         endif
+      enddo
+
+    end subroutine hail_diagnostics
+
+    !=================================================================================================================
 
     elemental subroutine make_hydrometeor_number_concentrations(qc, qr, qi, nwfa, temp, rhoa, nc, nr, ni)
         implicit none
