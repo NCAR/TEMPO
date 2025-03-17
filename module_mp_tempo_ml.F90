@@ -2,7 +2,7 @@ module module_mp_tempo_ml
 
   implicit none
   private
-  public :: MLdata, tempo_save_or_read_ml_data, predict_number
+  public :: MLdata, tempo_save_or_read_ml_data, predict_number, predict_number_sub
 
   type MLdata
      integer :: input_size
@@ -118,6 +118,98 @@ contains
     
   end function predict_number
 
+!------------------------------------------------------------------------------------------------------
+  ! Predicts number concentration
+  subroutine predict_number_sub(kts, kte, qc, qr, qi, qs, pres, temp, w, predict_number, predict_nc)
+
+    integer, intent(in) :: kts, kte
+    real, dimension(kts:kte), intent(in) :: qc, qr, qi, qs, pres, temp, w
+    double precision, dimension(kts:kte), intent(inout) :: predict_number
+    logical, intent(in) :: predict_nc
+    type(MLdata), dimension(2) :: get_ml_data
+    type(MLdata) :: ml_data
+    integer, parameter :: input_rows = 1
+    real, allocatable, dimension(:,:) :: input, input_transformed
+    real, allocatable, dimension(:,:) :: output00, output00Activ, reshaped_bias00
+    real, allocatable, dimension(:,:) :: output01, output01Activ, reshaped_bias01
+    real, parameter :: logMin = -6.0 ! R2
+    real, parameter :: logMax = 9.3010299957 ! 2000 cm^-3
+    double precision :: predictExp
+    integer :: k
+
+    ! Get neural network data
+    call tempo_save_or_read_ml_data(ml_data_out=get_ml_data)
+
+    if (predict_nc) then
+       ml_data = get_ml_data(1)
+    else
+       ml_data = get_ml_data(2)
+    endif
+
+    ! Allocate arrays for input data and transformation
+    if (.not. allocated(input)) then
+       allocate(input(ml_data%input_size, kte))
+    endif
+    if (.not. allocated(input_transformed)) then
+       allocate(input_transformed(ml_data%input_size, kte))
+    endif
+
+    ! Collect input data
+    input(1,:) = qc
+    input(2,:) = qr
+    input(3,:) = qi
+    input(4,:) = qs
+    input(5,:) = pres
+    input(6,:) = temp
+    input(7,:) = w
+
+    ! Transform input data
+    call standard_scaler_transform(mean=ml_data%transform_mean, var=ml_data%transform_var, &
+         raw_data=input, transformed_data=input_transformed)
+
+    ! Allocate arrays
+    if (.not. allocated(output00)) then
+       allocate(output00(ml_data%node_size, kte))
+    endif
+    if (.not. allocated(output00Activ)) then
+       allocate(output00Activ(ml_data%node_size, kte))
+    endif
+    if (.not. allocated(reshaped_bias00)) then
+       allocate(reshaped_bias00(ml_data%node_size, kte))
+    endif
+
+    if (.not. allocated(output01)) then
+       allocate(output01(ml_data%output_size, kte))
+    endif
+    if (.not. allocated(output01Activ)) then
+       allocate(output01Activ(ml_data%output_size, kte))
+    endif
+    if (.not. allocated(reshaped_bias01)) then
+       allocate(reshaped_bias01(ml_data%output_size, kte))
+    endif
+
+    do k = kts, kte
+       reshaped_bias00(:,k) = ml_data%bias00
+       reshaped_bias01(1,k) = ml_data%bias01(1)
+    enddo
+
+    ! Reconstruct neural network
+    ! First layer
+    output00 = matmul(ml_data%weights00, input_transformed) + reshaped_bias00
+    call relu_activation(input=output00, output=output00Activ)
+
+    ! Second layer
+    output01 = matmul(ml_data%weights01, output00Activ) + reshaped_bias01
+    call relu_activation(input=output01, output=output01Activ)
+
+    do k = kts, kte
+       ! Prediction
+       predictExp = min(logMax, max(logMin, output01Activ(1,k)))
+       predict_number(k) = 10.**predictExp
+    enddo
+
+  end subroutine predict_number_sub
+
 !------------------------------------------------------------------------------------------------------  
   ! Standard transformer
   subroutine standard_scaler_transform(mean, var, raw_data, transformed_data)
@@ -126,8 +218,8 @@ contains
     real, intent(out) :: transformed_data(size(raw_data, 1), size(raw_data, 2))
     integer :: i
     
-    do i = 1, size(raw_data, 2)
-       transformed_data(:,i) = (raw_data(:,i) - mean(i)) / sqrt(var(i))
+    do i = 1, size(raw_data, 1)
+       transformed_data(i,:) = (raw_data(i,:) - mean(i)) / sqrt(var(i))
     end do
     
   end subroutine standard_scaler_transform
