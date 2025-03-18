@@ -1848,6 +1848,42 @@ contains
     end subroutine calc_refl10cm
 
     !=================================================================================================================
+    !..Compute max hail size aloft and at the ground (both 2D fields)
+
+    subroutine hail_size_diagnostics(kts, kte, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qg_max_diam1d, configs)
+
+      implicit none
+
+      integer, intent(in) :: kts, kte
+      real, dimension(kts:kte), intent(in) :: qg1d, ng1d, qb1d, t1d, p1d, qv1d
+      real, dimension(kts:kte), intent(out) :: qg_max_diam1d
+      type(ty_tempo_cfg), intent(in) :: configs
+
+      ! local variables
+      real, dimension(kts:kte) :: rho, rg, ng, rb
+      integer, dimension(kts:kte) :: idx_bg
+      real(dp) :: lamg
+      integer :: k
+
+      do k = kts, kte
+         qg_max_diam1d(k) = 0.
+         if(qg1d(k) > 1.e-6) then
+            rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+            rg(k) = qg1d(k)*rho(k)
+            ng(k) = max(R2, ng1d(k)*rho(k))
+            rb(k) = max(qg1d(k)/rho_g(nrhg), qb1d(k))
+            rb(k) = min(qg1d(k)/rho_g(1), rb(k))
+            idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
+            if (.not. configs%hail_aware) idx_bg(k) = idx_bg1
+            if (rho_g(idx_bg(k)) < 550.) cycle
+            lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
+            qg_max_diam1d(k) = 1000. * 10.05 / lamg ! For graupel, use the 99th percent of mass distribution
+         endif
+      enddo
+
+    end subroutine hail_size_diagnostics
+
+    !=================================================================================================================
 
     elemental subroutine make_hydrometeor_number_concentrations(qc, qr, qi, nwfa, temp, rhoa, nc, nr, ni)
         implicit none
