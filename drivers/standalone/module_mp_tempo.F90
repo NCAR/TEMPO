@@ -497,7 +497,7 @@ contains
             if (configs%hail_aware) then
                using_hail_aware_table = .true.
                open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
-                    iostat=istat)
+                    iostat=istat, convert='big_endian')
 !               if (istat /= open_OK) then
 !                  call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
 !               endif
@@ -514,14 +514,14 @@ contains
                if (qr_acr_qg_hailaware_exists) then
                   using_hail_aware_table = .true.
                   open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old', &
-                       action='read',iostat=istat)
+                       action='read',iostat=istat, convert='big_endian')
 !                  if (istat /= open_OK) then
 !                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
 !                  endif
                elseif (qr_acr_qg_exists) then
                   using_hail_aware_table = .false.
                   open(unit=mp_unit,file='MP_TEMPO_QRacrQG_DATA.DBL',form='unformatted',status='old', &
-                       action='read',iostat=istat)
+                       action='read',iostat=istat, convert='big_endian')
 !                  if (istat /= open_OK) then
 !                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQG.DBL')
 !                  endif
@@ -538,7 +538,7 @@ contains
 
             ! Rain collecting snow & snow collecting rain.
             open(unit=mp_unit,file='MP_TEMPO_QRacrQS_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat)
+                iostat=istat, convert='big_endian')
 !            if (istat /= open_OK) then
 !                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQS.DBL')
 !            endif
@@ -558,7 +558,7 @@ contains
 
             ! Cloud water and rain freezing (Bigg, 1953).
             open(unit=mp_unit,file='MP_TEMPO_freezeH2O_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat)
+                iostat=istat, convert='big_endian')
 !            if (istat /= open_OK) then
 !                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_freezeH2O.DBL')
 !            endif
@@ -572,7 +572,7 @@ contains
 
             ! Conversion of some ice mass into snow category.
             open(unit=mp_unit,file='MP_TEMPO_QIautQS_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat)
+                iostat=istat, convert='big_endian')
 !            if (istat /= open_OK) then
 !                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QIautQS.DBL')
 !            endif
