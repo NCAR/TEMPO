@@ -25,15 +25,20 @@ jobs:
       run: |
         cd ${driver_ROOT}/tests
         make driver
-
+	pwd
+	ls
     - name: Get runtime tables
       run: |
+        cd ${driver_ROOT}/tests
         wget https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL
         wget https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_QIautQS_DATA.DBL
         wget https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_QRacrQS_DATA.DBL
         wget https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_freezeH2O_DATA.DBL
-
+	pwd
+	ls
     - name: Run unit tests
       run: |
         cd ${driver_ROOT}/tests
+	pwd
+	ls
         ./driver
