@@ -43,7 +43,7 @@ subroutine run_profile
     integer :: k, t, i_start, j_start, i_end, j_end, i, j, itimestep
 
     l_mp_tables = .true.
-    hail_aware_flag = .false.
+    hail_aware_flag = .true.
     aerosol_aware_flag = .true.
     write(*,*) '--- calling tempo_init()'
     call tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
