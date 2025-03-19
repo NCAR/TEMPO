@@ -481,13 +481,13 @@ contains
             ! by Feingold & Heymsfield with further changes by Eidhammer and Kriedenweis.
             mp_unit = 11
             
-            open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat, &
-                 convert='big_endian')
-            if (istat /= open_OK) then
-                write(*,*) '--- tempo_init() failure opening CCN_ACTIVATE.BIN'
-            endif
-            read(mp_unit) tnccn_act
-            close(unit=mp_unit)
+!            open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat, &
+!                 convert='big_endian')
+!            if (istat /= open_OK) then
+!                write(*,*) '--- tempo_init() failure opening CCN_ACTIVATE.BIN'
+!            endif
+!            read(mp_unit) tnccn_act
+!            close(unit=mp_unit)
 
             ! Rain collecting graupel & graupel collecting rain.
 
