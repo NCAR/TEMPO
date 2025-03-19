@@ -39,20 +39,17 @@ contains
         if (present(hail_aware_flag)) then
            configs%hail_aware = hail_aware_flag
         else
-           call physics_message('--- tempo_init() called without hail_aware_flag... setting value to .false.')
            configs%hail_aware = .false.
         endif
 
         ! If lookup tables are already built
         if (l_mp_tables) then
             ! configs%hail_aware = hail_aware_flag
-            write(message, '(L1)') configs%hail_aware
-            call physics_message('--- tempo_init() called with hail_aware_flag = ' // trim(message))
+            ! write(message, '(L1)') configs%hail_aware
 
             if (present(aerosol_aware_flag)) then
                 configs%aerosol_aware = aerosol_aware_flag
-                write(message, '(L1)') configs%aerosol_aware
-                call physics_message('--- tempo_init() called with aerosol_aware_flag = ' // trim(message))
+                ! write(message, '(L1)') configs%aerosol_aware
             endif
         endif
 
@@ -501,9 +498,9 @@ contains
                using_hail_aware_table = .true.
                open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
                     iostat=istat)
-               if (istat /= open_OK) then
-                  call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
-               endif
+!               if (istat /= open_OK) then
+!                  call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
+!               endif
                read(mp_unit) tcg_racg
                read(mp_unit) tmr_racg
                read(mp_unit) tcr_gacr
@@ -518,18 +515,18 @@ contains
                   using_hail_aware_table = .true.
                   open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old', &
                        action='read',iostat=istat)
-                  if (istat /= open_OK) then
-                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
-                  endif
+!                  if (istat /= open_OK) then
+!                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
+!                  endif
                elseif (qr_acr_qg_exists) then
                   using_hail_aware_table = .false.
                   open(unit=mp_unit,file='MP_TEMPO_QRacrQG_DATA.DBL',form='unformatted',status='old', &
                        action='read',iostat=istat)
-                  if (istat /= open_OK) then
-                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQG.DBL')
-                  endif
+!                  if (istat /= open_OK) then
+!                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQG.DBL')
+!                  endif
                else
-                  call physics_error_fatal('--- tempo_init() could not find file to read QRacrQG data.')
+!                  call physics_error_fatal('--- tempo_init() could not find file to read QRacrQG data.')
                endif
                read(mp_unit) tcg_racg
                read(mp_unit) tmr_racg
@@ -542,9 +539,9 @@ contains
             ! Rain collecting snow & snow collecting rain.
             open(unit=mp_unit,file='MP_TEMPO_QRacrQS_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
-            if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQS.DBL')
-            endif
+!            if (istat /= open_OK) then
+!                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQS.DBL')
+!            endif
             read(mp_unit) tcs_racs1
             read(mp_unit) tmr_racs1
             read(mp_unit) tcs_racs2
@@ -562,9 +559,9 @@ contains
             ! Cloud water and rain freezing (Bigg, 1953).
             open(unit=mp_unit,file='MP_TEMPO_freezeH2O_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
-            if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_freezeH2O.DBL')
-            endif
+!            if (istat /= open_OK) then
+!                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_freezeH2O.DBL')
+!            endif
             read(mp_unit) tpi_qrfz
             read(mp_unit) tni_qrfz
             read(mp_unit) tpg_qrfz
@@ -576,9 +573,9 @@ contains
             ! Conversion of some ice mass into snow category.
             open(unit=mp_unit,file='MP_TEMPO_QIautQS_DATA.DBL',form='unformatted',status='old',action='read', &
                 iostat=istat)
-            if (istat /= open_OK) then
-                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QIautQS.DBL')
-            endif
+!            if (istat /= open_OK) then
+!                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QIautQS.DBL')
+!            endif
             read(mp_unit) tpi_ide
             read(mp_unit) tps_iaus
             read(mp_unit) tni_iaus
