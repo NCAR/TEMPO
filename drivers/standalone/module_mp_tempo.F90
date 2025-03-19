@@ -586,16 +586,16 @@ contains
             ! call mpas_release_unit(mp_unit)
 
             ! Initialize various constants for computing radar reflectivity.
-            xam_r = am_r
-            xbm_r = bm_r
-            xmu_r = mu_r
-            xam_s = am_s
-            xbm_s = bm_s
-            xmu_s = mu_s
-            xam_g = am_g(idx_bg1)
-            xbm_g = bm_g
-            xmu_g = mu_g
-            call radar_init
+!            xam_r = am_r
+!            xbm_r = bm_r
+!            xmu_r = mu_r
+!            xam_s = am_s
+!            xbm_s = bm_s
+!            xmu_s = mu_s
+!            xam_g = am_g(idx_bg1)
+!            xbm_g = bm_g
+!            xmu_g = mu_g
+!            call radar_init
 
         endif ! micro_init
 
