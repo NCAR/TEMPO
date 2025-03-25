@@ -35,7 +35,10 @@ contains
         logical :: micro_init
         integer :: mp_unit
         character(len=132) :: message
-
+        
+        ! Initialize physical constants
+        call mp_tempo_params_init()
+        
         ! If lookup tables are already built
         if (l_mp_tables) then
             configs%hail_aware = hail_aware_flag
