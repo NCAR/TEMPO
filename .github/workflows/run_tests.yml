@@ -48,3 +48,8 @@ jobs:
         python --version
         pip install matplotlib
         python plot_profile.py
+    - name: Upload plot as GitHub Artifact.
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-plot
+        path: /home/runner/work/TEMPO/TEMPO/tests/mpas_59lev_test_results.pdf
