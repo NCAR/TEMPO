@@ -42,3 +42,9 @@ jobs:
         pwd
         ls
         ./driver
+    - name: plot output
+      run: |
+        cd ${driver_ROOT}/tests
+	python --version
+        python plot_profile.py
+	
