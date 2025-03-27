@@ -649,8 +649,8 @@ contains
         !=================================================================================================================
         i_start = its
         j_start = jts
-        i_end = min(ite, ide-1)
-        j_end = min(jte, jde-1)
+        i_end = min(ite, ide)
+        j_end = min(jte, jde)
         dt = dt_in
 
         qc_max = 0.0
@@ -788,7 +788,6 @@ contains
                 !   call physics_message('       aerosol_aware_flag = ' // trim(message))
                 !   call physics_message('calling mp_tempo_main() at itimestep = 1')
                 !endif
-
                 !=================================================================================================================
                 ! Main call to the 1D microphysics
                 call mp_tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
