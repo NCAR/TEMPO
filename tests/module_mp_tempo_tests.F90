@@ -138,11 +138,18 @@ module module_mp_tempo_tests
       ! Initialize TEMPO
       write(*,*) '--- calling tempo_init()'
       call tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
-      
+
       ! Time integration
       do t = 1, integration_length_sec
          itimestep = t
-         write(*,*) 'Timestep: ', t
+
+         if (t == 1) then
+            write(*,*) '--- calling tempo_3d_to_1d_driver()'
+         endif
+
+         if (t == integration_length_sec) then
+            write(*,*) 'Final timestep for TEMPO microphysics: ', t
+         endif
          
          call tempo_3d_to_1d_driver(qv=qv, qc=qc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, nc=nc, ng=ng, qb=qb, &
               nwfa=nwfa, nifa=nifa, nwfa2d=nwfa2d, nifa2d=nwfa2d, th=th, pii=pii, p=p, w=w, dz=dz, dt_in=dt_in, &
