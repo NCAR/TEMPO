@@ -1875,27 +1875,49 @@ contains
     !=================================================================================================================
     !..Compute max hail size aloft and at the ground (both 2D fields)
 
-    subroutine hail_diagnostics(qh1d, nh1d, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qh_diam1d, qg_diam1d, kts, kte, configs)
+    subroutine hail_size_diagnostics(kts, kte, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qg_max_diam1d, configs)
 
       implicit none
 
       integer, intent(in) :: kts, kte
-      real, dimension(kts:kte), intent(in) :: qg1d, ng1d, qb1d, t1d, p1d, qv1d
-      real, dimension(kts:kte), intent(in), optional :: qh1d, nh1d
-      real, dimension(kts:kte), intent(out) :: qg_diam1d, qh_diam1d
+      real(wp), dimension(kts:kte), intent(in) :: qg1d, ng1d, qb1d, t1d, p1d, qv1d
+      real(wp), dimension(kts:kte), intent(out) :: qg_max_diam1d
       type(ty_tempo_cfg), intent(in) :: configs
 
       ! local variables
-      real, dimension(kts:kte) :: rho, rg, ng, rb, rh, nh
+      real(wp), dimension(kts:kte) :: rho, rg, ng, rb
       integer, dimension(kts:kte) :: idx_bg
-      real(dp) :: lamg, lamh
-      integer :: k
+      real(dp) :: lamg, N0_g, f_d, sum_nh, sum_t, hail_max
+      integer :: k, n
+      integer, parameter :: nhbins = 50
+      real(dp), dimension(nhbins):: hbins, dhbins
+      real(dp), parameter :: lowbin = 500.e-6
+      real(dp), parameter :: highbin = 0.075
+      real(dp), parameter :: threshold_conc = 0.0005
+
+      ! Mass distribution (faster calculation, more spread, noisier field)
+      ! do k = kts, kte
+      !    qg_max_diam1d(k) = 0.
+      !    if(qg1d(k) >= 1.e-6) then
+      !       rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+      !       rg(k) = qg1d(k)*rho(k)
+      !       ng(k) = max(R2, ng1d(k)*rho(k))
+      !       rb(k) = max(qg1d(k)/rho_g(nrhg), qb1d(k))
+      !       rb(k) = min(qg1d(k)/rho_g(1), rb(k))
+      !       idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
+      !       if (.not. configs%hail_aware) idx_bg(k) = idx_bg1
+      !       if (rho_g(idx_bg(k)) < 550.) cycle
+      !       lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
+      !       qg_max_diam1d(k) = 1000. * 10.05 / lamg ! For graupel, use the 99th percent of mass distribution
+      !    endif
+      ! enddo
+
+      ! Binned number distribution method
+      call create_bins(numbins=nhbins, lowbin=lowbin, highbin=highbin, bins=hbins, deltabins=dhbins)
 
       do k = kts, kte
-         qh_diam1d(k) = 0.
-         qg_diam1d(k) = 0.
-!!         hail_diag_size(k) = 0.
-         if(qg1d(k) > 1.e-6) then
+         qg_max_diam1d(k) = 0.
+         if(qg1d(k) >= 1.e-6) then
             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
             rg(k) = qg1d(k)*rho(k)
             ng(k) = max(R2, ng1d(k)*rho(k))
@@ -1903,22 +1925,32 @@ contains
             rb(k) = min(qg1d(k)/rho_g(1), rb(k))
             idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
             if (.not. configs%hail_aware) idx_bg(k) = idx_bg1
-            lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
-            qg_diam1d(k) = 1000. * 10.05 / lamg ! For graupel, use the 99th percent of mass distribution
-         endif
+            if (rho_g(idx_bg(k)) < 350.) cycle
 
-         if((present(qh1d)) .and. (present(nh1d))) then
-            if(qh1d(k) > 1.e-6) then
-               rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
-               rh(k) = qh1d(k)*rho(k)
-               nh(k) = max(r2, nh1d(k)*rho(k))
-               lamh = (am_h*cgg(3,1)*ogg2*nh(k)/rh(k))**obmg
-               qh_diam1d(k) = 1000. * 3.672 / lamh ! For hail, use the 50th percent of mass distribution
+            lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
+            N0_g = ng(k)*ogg2*lamg**cge(2,1)
+
+            sum_nh = 0.
+            sum_t = 0.
+            do n = nhbins, 1, -1
+               f_d = N0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
+               sum_nh = sum_nh + f_d
+               if (sum_nh > threshold_conc) exit
+               sum_t = sum_nh
+            enddo
+
+            if (n >= nhbins) then
+               hail_max = hbins(nhbins)
+            elseif (hbins(n+1) .gt. 1.e-3) then
+               hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
+            else
+               hail_max = 1.e-4
             endif
+            qg_max_diam1d(k) = 1000. * hail_max ! convert to mm
          endif
       enddo
 
-    end subroutine hail_diagnostics
+    end subroutine hail_size_diagnostics
 
     !=================================================================================================================
 

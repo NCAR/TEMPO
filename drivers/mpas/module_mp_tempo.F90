@@ -5,7 +5,7 @@ module module_mp_tempo
     use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
     use module_mp_tempo_params
     use module_mp_tempo_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
-         calc_refl10cm, calc_effectRad, hail_diagnostics
+         calc_refl10cm, calc_effectRad, hail_size_diagnostics
     use module_mp_tempo_main, only : mp_tempo_main
     use mpas_atmphys_utilities, only : physics_message, physics_error_fatal
     use mpas_io_units, only : mpas_new_unit, mpas_release_unit
@@ -613,6 +613,7 @@ contains
         rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, qh_diam, qg_diam, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
         has_reqc, has_reqi, has_reqs, ntc, muc, rainprod, evapprod, &
+        max_hail_diameter_column, max_hail_diameter_sfc, &
         ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte)
 
         ! Subroutine (3D) arguments
@@ -622,7 +623,7 @@ contains
         integer, intent(in) :: has_reqc, has_reqi, has_reqs
         real, dimension(ims:ime, kms:kme, jms:jme), intent(in) :: pii, p, w, dz
         real, dimension(ims:ime, jms:jme), intent(inout) :: rainnc, rainncv, sr
-        real, optional, dimension(:,:), intent(inout) :: frainnc
+        real, optional, dimension(ims:ime,jms:jme), intent(inout) :: frainnc, max_hail_diameter_column, max_hail_diameter_sfc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: rainprod, evapprod
         real, dimension(ims:ime, jms:jme), intent(in), optional :: ntc, muc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng, qh, nh
@@ -633,8 +634,8 @@ contains
         integer, intent(in) :: itimestep
 
         ! Local (1d) variables
-        real, dimension(kts:kte) :: qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, qh1d, nh1d, &
-            nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz, qh_diam1d, qg_diam1d
+        real, dimension(kts:kte) :: qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
+            nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz, qg_max_diam1d
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
         real, dimension(kts:kte):: rainprod1d, evapprod1d
         real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
@@ -876,6 +877,7 @@ contains
                         ! This is the one-moment graupel formulation
                         ! ng1d and qb1d need to be updated for reflectivity calculation
                         if (qg1d(k) > R1) then
+                            rho(k) = RoverRv * p1d(k) / (R * t1d(k) * (qv1d(k)+RoverRv))
                             ygra1 = log10(max(1.e-9, qg1d(k)*rho(k)))
                             zans1 = 3.0 + 2.0/7.0*(ygra1+8.0)
                             zans1 = max(2.0, min(zans1, 6.0))
@@ -944,21 +946,13 @@ contains
                     refl_10cm(i,k,j) = max(-35.0_wp, dBZ(k))
                 enddo
 
-                ! Hail size
-                if(present(qh)) then
-                   call hail_diagnostics(qh1d=qh1d, nh1d=nh1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
-                        t1d=t1d, p1d=p1d, qv1d=qv1d, qh_diam1d=qh_diam1d, qg_diam1d=qg_diam1d, kts=kts, kte=kte, configs=configs)
-                   do k = kts, kte
-                      qh_diam(i,k,j) = max(0.0_wp, qh_diam1d(k))
-                      qg_diam(i,k,j) = max(0.0_wp, qg_diam1d(k))
-                   enddo
-                else
-                   call hail_diagnostics(qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
-                        t1d=t1d, p1d=p1d, qv1d=qv1d, qh_diam1d=qh_diam1d, qg_diam1d=qg_diam1d, kts=kts, kte=kte, configs=configs)
-                   do k = kts, kte
-                      qh_diam(i,k,j) = max(0.0_wp, qh_diam1d(k))
-                      qg_diam(i,k,j) = max(0.0_wp, qg_diam1d(k))
-                   enddo
+                if ((present(max_hail_diameter_sfc)) .and. (present(max_hail_diameter_column))) then
+                   ! Maximium hail size
+                   call hail_size_diagnostics(kts=kts, kte=kte, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, qv1d=qv1d, &
+                        qg_max_diam1d=qg_max_diam1d, configs=configs)
+
+                   max_hail_diameter_sfc(i,j) = max(0.0_wp, qg_max_diam1d(kts))
+                   max_hail_diameter_column(i,j) = max(0.0_wp, maxval(qg_max_diam1d))
                 endif
 
                 ! Cloud, ice, and snow effective radius
