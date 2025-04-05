@@ -108,7 +108,8 @@ contains
             prr_rci, prv_rev,          &
             pnr_wau, pnr_rcs, pnr_rcg, &
             pnr_rci, pnr_sml, pnr_gml, &
-            pnr_rev, pnr_rcr, pnr_rfz
+            pnr_rev, pnr_rcr, pnr_rfz, &
+            png_rci
 
         real(dp), dimension(kts:kte) :: pri_inu, pni_inu, pri_ihm, &
             pni_ihm, pri_wfz, pni_wfz, &
@@ -263,6 +264,7 @@ contains
             pnr_rcs(k) = 0.
             pnr_rcg(k) = 0.
             pnr_rci(k) = 0.
+            png_rci(k) = 0.
             pnr_sml(k) = 0.
             pnr_gml(k) = 0.
             pnr_rev(k) = 0.
@@ -1168,7 +1170,12 @@ contains
                             pnr_rcs(k) = min(real(nr(k)*odts, kind=dp), pnr_rcs(k))
 
                             if (.not. configs%true_qh) then
-                               png_rcs(k) = pnr_rcs(k)
+                               png_rcs(k) = tnr_racs1(idx_s,idx_t,idx_r1,idx_r)            &   ! RAIN2M
+                                ! + tnr_racs2(idx_s,idx_t,idx_r1,idx_r)          &
+                                + tnr_sacr1(idx_s,idx_t,idx_r1,idx_r)         !  &
+                                ! + tnr_sacr2(idx_s,idx_t,idx_r1,idx_r)
+                               png_rcs(k) = min(real(nr(k)*odts, kind=dp), png_rcs(k))
+                               !!png_rcs(k) = pnr_rcs(k)
                                pbg_rcs(k) = prg_rcs(k)/rho_i
                             else
                                prh_rcs(k) = prg_rcs(k)
@@ -1461,6 +1468,7 @@ contains
                             pnr_rci(k) = rhof(k)*t1_qr_qi*Ef_ri*ni(k)*N0_r(k)           &   ! RAIN2M
                                 *((lamr+fv_r)**(-cre(9)))
                             pnr_rci(k) = min(real(nr(k)*odts, kind=dp), pnr_rci(k))
+                            png_rci(k) = 0.1*pnr_rci(k)
                             pni_rci(k) = pri_rci(k) * oxmi
                             prr_rci(k) = rhof(k)*t2_qr_qi*Ef_ri*ni(k)*N0_r(k) &
                                 *((lamr+fv_r)**(-cre(8)))
@@ -1892,7 +1900,7 @@ contains
 
             !..Graupel number tendency
             ngten(k) = ngten(k) + (png_scw(k) + png_rfz(k) - png_rcg(k) &
-                + pnr_rci(k) + png_rcs(k) + png_gde(k) &
+                + png_rci(k) + png_rcs(k) + png_gde(k) &
                 - pnr_gml(k)) * orho
 
             !..Graupel volume mixing ratio tendency
