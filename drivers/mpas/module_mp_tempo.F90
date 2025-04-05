@@ -610,7 +610,7 @@ contains
 
     subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qh, qb, ni, nr, nc, ng, nh, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
-        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, qh_diam, qg_diam, &
+        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
         has_reqc, has_reqi, has_reqs, ntc, muc, rainprod, evapprod, &
         max_hail_diameter_column, max_hail_diameter_sfc, &
@@ -628,13 +628,13 @@ contains
         real, dimension(ims:ime, jms:jme), intent(in), optional :: ntc, muc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng, qh, nh
         real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d
-        real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: refl_10cm, qh_diam, qg_diam
+        real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: refl_10cm
         real, dimension(ims:ime, jms:jme), intent(inout), optional :: snownc, snowncv, graupelnc, graupelncv
         real, intent(in) :: dt_in
         integer, intent(in) :: itimestep
 
         ! Local (1d) variables
-        real, dimension(kts:kte) :: qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
+        real, dimension(kts:kte) :: qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, qh1d, nh1d, &
             nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz, qg_max_diam1d
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
         real, dimension(kts:kte):: rainprod1d, evapprod1d
@@ -948,8 +948,14 @@ contains
 
                 if ((present(max_hail_diameter_sfc)) .and. (present(max_hail_diameter_column))) then
                    ! Maximium hail size
-                   call hail_size_diagnostics(kts=kts, kte=kte, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, qv1d=qv1d, &
-                        qg_max_diam1d=qg_max_diam1d, configs=configs)
+
+                   if ((present(qh)) .and. (present(nh))) then
+                      call hail_size_diagnostics(kts=kts, kte=kte, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, qv1d=qv1d, &
+                           qg_max_diam1d=qg_max_diam1d, configs=configs, qh1d=qh1d, nh1d=nh1d)
+                   else
+                      call hail_size_diagnostics(kts=kts, kte=kte, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, qv1d=qv1d, &
+                           qg_max_diam1d=qg_max_diam1d, configs=configs)
+                   endif
 
                    max_hail_diameter_sfc(i,j) = max(0.0_wp, qg_max_diam1d(kts))
                    max_hail_diameter_column(i,j) = max(0.0_wp, maxval(qg_max_diam1d))
