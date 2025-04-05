@@ -1914,7 +1914,7 @@ contains
       ! enddo
 
       ! Binned number distribution method
-      call create_bins(numbins=nhbins, loewbin=lowbin, highbin=highbin, bins=hbins, deltabins=dhbins)
+      call create_bins(numbins=nhbins, lowbin=lowbin, highbin=highbin, bins=hbins, deltabins=dhbins)
 
       if ((present(qh1d)) .and. (present(nh1d))) then
          do k = kts, kte
