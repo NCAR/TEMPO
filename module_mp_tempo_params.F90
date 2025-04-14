@@ -43,21 +43,21 @@ module module_mp_tempo_params
 
     ! Constants that can be defined by the model ===========================
     ! Needed by tempo_init()
-    real(wp), parameter :: PI = 3.1415926536
+    real(wp)            :: PI = 3.1415926536
 
     ! Enthalpy of sublimation, vaporization, and fusion at 0C.
-    real(wp), parameter :: lsub = 2.834e6
-    real(wp), parameter :: lvap0 = 2.5e6
-    real(wp), parameter :: lfus = lsub - lvap0
-    real(wp), parameter :: olfus = 1./lfus
+    real(wp)            :: lsub = 2.834e6
+    real(wp)            :: lvap0 = 2.5e6
+    real(wp)            :: lfus !(set in mp_tempo_params_init)
+    real(wp)            :: olfus !(set in mp_tempo_params_init)
 
     ! Needed by the driver
     ! Water vapor and air gas constants at constant pressure
-    real(wp), parameter :: Rv = 461.5
-    real(wp), parameter :: oRv = 1.0 / Rv
-    real(wp), parameter :: R = 287.04
-    real(wp), parameter :: RoverRv = 0.622
-    real(wp), parameter :: Cp2 = 1004.0 ! AAJ change to Cp2
+    real(wp)            :: Rv = 461.5
+    real(wp)            :: oRv !(set in mp_tempo_params_init)
+    real(wp)            :: R = 287.04
+    real(wp)            :: RoverRv = 0.622
+    real(wp)            :: Cp2 = 1004.0 ! AAJ change to Cp2
 
     ! ======================================================================
     ! Minimum microphys values
@@ -99,21 +99,13 @@ module module_mp_tempo_params
 
     ! Mass power law relations:  mass = am*D**bm
     ! Snow from Field et al. (2005), others assume spherical form.
-    real(wp), parameter :: am_r = PI * rho_w2 / 6.0
+    real(wp)            :: am_r ! = PI * rho_w2 / 6.0 (set in mp_tempo_params_init)
     real(wp), parameter :: bm_r = 3.0
     real(wp), parameter :: am_s = 0.069
     real(wp), parameter :: bm_s = 2.0
-    real(wp), dimension (NRHG), parameter :: am_g = (/PI*rho_g(1)/6.0, &
-        PI*rho_g(2)/6.0, &
-        PI*rho_g(3)/6.0, &
-        PI*rho_g(4)/6.0, &
-        PI*rho_g(5)/6.0, &
-        PI*rho_g(6)/6.0, &
-        PI*rho_g(7)/6.0, &
-        PI*rho_g(8)/6.0, &
-        PI*rho_g(9)/6.0/)
+    real(wp), dimension (NRHG) :: am_g  !(set in mp_tempo_params_init)
     real(wp), parameter :: bm_g = 3.0
-    real(wp), parameter :: am_i = PI * rho_i / 6.0
+    real(wp)            :: am_i ! = PI * rho_i / 6.0 (set in mp_tempo_params_init)
     real(wp), parameter :: bm_i = 3.0
 
     ! Fallspeed power laws relations:  v = (av*D**bv)*exp(-fv*D)
@@ -375,7 +367,7 @@ module module_mp_tempo_params
     logical, parameter :: homogIce = .true.
 
     integer, parameter :: IFDRY = 0
-    real(wp), parameter :: T_0 = 273.15
+    real(wp)           :: T_0 = 273.15
 
     real(wp), parameter :: naIN0 = 1.5e6
     real(wp), parameter :: naCCN0 = 300.0e6
@@ -429,14 +421,14 @@ module module_mp_tempo_params
     real(wp), parameter :: HGFR = 235.16
 
 
-    real(wp), parameter :: R_uni = 8.314                           ! J (mol K)-1
+    real(wp)            :: R_uni = 8.314                           ! J (mol K)-1
 
-    real(dp), parameter :: k_b = 1.38065e-23                ! Boltzmann constant [J/K]
-    real(dp), parameter :: M_w = 18.01528e-3                ! molecular mass of water [kg/mol]
-    real(dp), parameter :: M_a = 28.96e-3                   ! molecular mass of air [kg/mol]
-    real(dp), parameter :: N_avo = 6.022e23                 ! Avogadro number [1/mol]
-    real(dp), parameter :: ma_w = M_w / N_avo               ! mass of water molecule [kg]
-    real(wp), parameter :: ar_volume = 4.0 / 3.0 * PI * (2.5e-6)**3 ! assume radius of 0.025 micrometer, 2.5e-6 cm
+    real(dp)            :: k_b = 1.38065e-23                ! Boltzmann constant [J/K]
+    real(dp)            :: M_w = 18.01528e-3                ! molecular mass of water [kg/mol]
+    real(dp)            :: M_a = 28.96e-3                   ! molecular mass of air [kg/mol]
+    real(dp)            :: N_avo = 6.022e23                 ! Avogadro number [1/mol]
+    real(dp)            :: ma_w                             ! mass of water molecule [kg] (= M_w / N_avo, set in mp_tempo_params_init)
+    real(wp)            :: ar_volume                        ! assume radius of 0.025 micrometer, 2.5e-6 cm (= 4.0 / 3.0 * PI * (2.5e-6)**3, set in mp_tempo_params_init)
 
 
     ! Aerosol table parameter: Number of available aerosols, vertical
@@ -550,4 +542,34 @@ module module_mp_tempo_params
     real(wp), dimension(nc_ml_output), parameter :: &
          nc_ml_b01 = (/1.966172/)
 
+  contains
+    
+    subroutine mp_tempo_params_init()
+      ! Any variables defined in the module that are not constants/parameters are set here; if any of the values are overwritten (i.e. by a host model),
+      ! then they must be reinitialized once the new values from the host are used
+      lfus = lsub - lvap0
+      olfus = 1./lfus
+      
+      oRv = 1.0 / Rv
+      
+      am_r = PI * rho_w2 / 6.0
+      
+      am_g = (/PI*rho_g(1)/6.0, &
+          PI*rho_g(2)/6.0, &
+          PI*rho_g(3)/6.0, &
+          PI*rho_g(4)/6.0, &
+          PI*rho_g(5)/6.0, &
+          PI*rho_g(6)/6.0, &
+          PI*rho_g(7)/6.0, &
+          PI*rho_g(8)/6.0, &
+          PI*rho_g(9)/6.0/)
+      
+      am_i = PI * rho_i / 6.0
+      
+      ma_w = M_w / N_avo
+      
+      ar_volume = 4.0 / 3.0 * PI * (2.5e-6)**3
+      
+    end subroutine mp_tempo_params_init
+    
 end module module_mp_tempo_params

@@ -38,7 +38,10 @@ contains
         logical :: micro_init
         integer :: mp_unit
         character(len=132) :: message
-
+        
+        ! Initialize physical constants
+        call mp_tempo_params_init()
+        
         if (present(hail_aware_flag)) then
            configs%hail_aware = hail_aware_flag
         else
