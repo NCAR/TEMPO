@@ -1,3 +1,8 @@
+! TEMPO neural network module designed for cloud droplet number concentration prediction
+! A big thanks to David John Gagne (NCAR) for very useful discussions
+! Please see https://github.com/NCAR/mlmicrophysics for a more detailed way to connect
+! ML models in python to Fortran microphysics code
+
 module module_mp_tempo_ml
 
   implicit none
