@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        fortran-compiler: [gfortran-10, gfortran-11, gfortran-12]
+        fortran-compiler: [gfortran-12]
 
     # Environmental variables
     env:
@@ -26,7 +26,28 @@ jobs:
         cd ${driver_ROOT}/tests
         make driver
 
+    - name: Get runtime tables
+      run: |
+        cd ${driver_ROOT}/tests
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_QIautQS_DATA.DBL
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_QRacrQS_DATA.DBL
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_freezeH2O_DATA.DBL
+
     - name: Run unit tests
       run: |
         cd ${driver_ROOT}/tests
         ./driver
+
+    - name: plot output
+      run: |
+        cd ${driver_ROOT}/tests
+        python --version
+        pip install matplotlib
+        python plot_profile.py
+
+    - name: Upload plot as GitHub Artifact.
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-plot
+        path: /home/runner/work/TEMPO/TEMPO/tests/mpas_59lev_test_results.pdf

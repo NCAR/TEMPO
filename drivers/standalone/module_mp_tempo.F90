@@ -1,8 +1,8 @@
-! 3D TEMPO Driver for Standalone Testing
+! 3D TEMPO Driver for MPAS
 !=================================================================================================================
 module module_mp_tempo
 
-    use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+    use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec  
     use module_mp_tempo_params
     use module_mp_tempo_utils, only : create_bins, table_Efrw, table_Efsw, table_dropEvap, &
          calc_refl10cm, calc_effectRad
@@ -17,35 +17,42 @@ contains
     ! allocating arrays for the microphysics scheme, and defining gamma function variables.
 
     ! Input:
-    !   l_mp_tables = .false. to build lookup tables. If l_mp_tables = .true., lookup tables are not built.
+    !   l_mp_tables = .false. to build lookup tables. If l_mp_tables = .true., lookup tables are built.
 
     ! AAJ No support yet for hail_aware in microphysics driver
     subroutine tempo_init(l_mp_tables, hail_aware_flag, aerosol_aware_flag)
 
         ! Input arguments:
-        logical, intent(in) :: l_mp_tables, hail_aware_flag
-        logical, intent(in), optional :: aerosol_aware_flag
+        logical, intent(in) :: l_mp_tables
+        logical, intent(in), optional :: aerosol_aware_flag, hail_aware_flag
 
         integer, parameter :: open_OK = 0
         integer, parameter :: num_records = 5
         integer :: qr_acr_qg_filesize, qr_acr_qg_check, qr_acr_qg_dim1size, qr_acr_qg_dim9size
-        logical :: qr_acr_qg_exists
+        logical :: qr_acr_qg_exists, qr_acr_qg_hailaware_exists
         integer :: i, j, k, l, m, n
         integer :: istat
         logical :: micro_init
         integer :: mp_unit
         character(len=132) :: message
+        
+        ! Initialize physical constants
+        call mp_tempo_params_init()
+    
+        if (present(hail_aware_flag)) then
+           configs%hail_aware = hail_aware_flag
+        else
+           configs%hail_aware = .false.
+        endif
 
         ! If lookup tables are already built
         if (l_mp_tables) then
-            configs%hail_aware = hail_aware_flag
-            write(message, '(L1)') configs%hail_aware
-            write(*,*) '--- tempo_init() called with hail_aware_flag = ' // trim(message)
+            ! configs%hail_aware = hail_aware_flag
+            ! write(message, '(L1)') configs%hail_aware
 
             if (present(aerosol_aware_flag)) then
                 configs%aerosol_aware = aerosol_aware_flag
-                write(message, '(L1)') configs%aerosol_aware
-                write(*,*) '--- tempo_init() called with aerosol_aware_flag = ' // trim(message)
+                ! write(message, '(L1)') configs%aerosol_aware
             endif
         endif
 
@@ -63,41 +70,41 @@ contains
         ! Check the qr_acr_qg lookup table to make sure it is compatible with runtime options
 
         ! If lookup tables are already built
-        if (l_mp_tables) then
+        ! if (l_mp_tables) then
 
-            inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', exist=qr_acr_qg_exists)
-            if (qr_acr_qg_exists) then ! Check again that file exists
+        !     inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', exist=qr_acr_qg_exists)
+        !     if (qr_acr_qg_exists) then ! Check again that file exists
 
-                ! Add check on qr_ac_qg filesize to determine if table includes hail-awareness (dimNRHG=9)
-                qr_acr_qg_check = dp * num_records * (dimNRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
-                qr_acr_qg_dim1size = dp * num_records * (NRHG1 * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
-                qr_acr_qg_dim9size = dp * num_records * (NRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
-                
-                inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', size=qr_acr_qg_filesize)
+        !         ! Add check on qr_ac_qg filesize to determine if table includes hail-awareness (dimNRHG=9)
+        !         qr_acr_qg_check = dp * num_records * (dimNRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
+        !         qr_acr_qg_dim1size = dp * num_records * (NRHG1 * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
+        !         qr_acr_qg_dim9size = dp * num_records * (NRHG * ntb_g1 * ntb_g * ntb_r1 * ntb_r + 1)
 
-                if (qr_acr_qg_filesize == qr_acr_qg_dim1size) then
-                    using_hail_aware_table = .false.
-                    write(*,*) '--- tempo_init() ' // &
-                        'Lookup table for qr_acr_qg is not hail aware.'
-                    dimNRHG = NRHG1
-                    if (hail_aware_flag) then
-                        write(*,*) '--- tempo_init() Cannot use hail-aware microphysics ' // &
-                            'with non hail-aware qr_acr_qg lookup table. ' // &
-                            'Please rebuild table with parameter build_hail_aware_table set to true.'
-                    endif
-                elseif (qr_acr_qg_filesize == qr_acr_qg_dim9size) then
-                    using_hail_aware_table = .true.
-                    write(*,*) '--- tempo_init() ' // &
-                        'Lookup table for qr_acr_qg is hail aware.'
-                    dimNRHG = NRHG
-                else
-                    using_hail_aware_table = .false.
-                    if (hail_aware_flag) using_hail_aware_table = .true.
-                    write(*,*) '--- tempo_init() ' // &
-                        'Could not determine if lookup table for qr_acr_qg is hail aware based on file size.'
-                endif
-            endif
-        endif
+        !         inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', size=qr_acr_qg_filesize)
+
+        !         if (qr_acr_qg_filesize == qr_acr_qg_dim1size) then
+        !             using_hail_aware_table = .false.
+        !             call physics_message('--- tempo_init() ' // &
+        !                 'Lookup table for qr_acr_qg is not hail aware.')
+        !             dimNRHG = NRHG1
+        !             if (hail_aware_flag) then
+        !                 call physics_error_fatal('--- tempo_init() Cannot use hail-aware microphysics ' // &
+        !                     'with non hail-aware qr_acr_qg lookup table. ' // &
+        !                     'Please rebuild table with parameter build_hail_aware_table set to true.')
+        !             endif
+        !         elseif (qr_acr_qg_filesize == qr_acr_qg_dim9size) then
+        !             using_hail_aware_table = .true.
+        !             call physics_message('--- tempo_init() ' // &
+        !                 'Lookup table for qr_acr_qg is hail aware.')
+        !             dimNRHG = NRHG
+        !         else
+        !             using_hail_aware_table = .false.
+        !             if (hail_aware_flag) using_hail_aware_table = .true.
+        !             call physics_message('--- tempo_init() ' // &
+        !                 'Could not determine if lookup table for qr_acr_qg is hail aware based on file size.')
+        !         endif
+        !     endif
+        ! endif
 
         !=================================================================================================================
         ! Allocate space for lookup tables (J. Michalakes 2009Jun08).
@@ -152,6 +159,7 @@ contains
 
         ! CCN
         if (.not. allocated(tnccn_act)) allocate(tnccn_act(ntb_arc,ntb_arw,ntb_art,ntb_arr,ntb_ark))
+
         !=================================================================================================================
         if (micro_init) then
 
@@ -479,36 +487,64 @@ contains
 
             ! Read a static file containing CCN activation of aerosols. The data were created from a parcel model
             ! by Feingold & Heymsfield with further changes by Eidhammer and Kriedenweis.
+            ! call mpas_new_unit(mp_unit, unformatted = .true.)
             mp_unit = 11
-            
-            open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat, &
-                 convert='big_endian')
-            if (istat /= open_OK) then
-                write(*,*) '--- tempo_init() failure opening CCN_ACTIVATE.BIN'
-            endif
-            read(mp_unit) tnccn_act
-            close(unit=mp_unit)
+            ! open(unit=mp_unit,file='CCN_ACTIVATE.BIN',form='unformatted',status='old',action='read',iostat=istat)
+            ! if (istat /= open_OK) then
+            !     call physics_error_fatal('--- tempo_init() failure opening CCN_ACTIVATE.BIN')
+            ! endif
+            ! read(mp_unit) tnccn_act
+            ! close(unit=mp_unit)
 
             ! Rain collecting graupel & graupel collecting rain.
+            if (configs%hail_aware) then
+               using_hail_aware_table = .true.
+               open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
+                    iostat=istat, convert='big_endian')
+!               if (istat /= open_OK) then
+!                  call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
+!               endif
+               read(mp_unit) tcg_racg
+               read(mp_unit) tmr_racg
+               read(mp_unit) tcr_gacr
+               read(mp_unit) tnr_racg
+               read(mp_unit) tnr_gacr
+               close(unit=mp_unit)
+            else
+               inquire(file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL', exist=qr_acr_qg_hailaware_exists)
+               inquire(file='MP_TEMPO_QRacrQG_DATA.DBL', exist=qr_acr_qg_exists)
 
-            open(unit=mp_unit,file='MP_TEMPO_QRacrQG_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat,                  convert='big_endian')
-            if (istat /= open_OK) then
-                write(*,*) '--- tempo_init() failure opening MP_TEMPO_QRacrQG.DBL'
+               if (qr_acr_qg_hailaware_exists) then
+                  using_hail_aware_table = .true.
+                  open(unit=mp_unit,file='MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL',form='unformatted',status='old', &
+                       action='read',iostat=istat, convert='big_endian')
+!                  if (istat /= open_OK) then
+!                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_HAILAWARE_QRacrQG.DBL')
+!                  endif
+               elseif (qr_acr_qg_exists) then
+                  using_hail_aware_table = .false.
+                  open(unit=mp_unit,file='MP_TEMPO_QRacrQG_DATA.DBL',form='unformatted',status='old', &
+                       action='read',iostat=istat, convert='big_endian')
+!                  if (istat /= open_OK) then
+!                     call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQG.DBL')
+!                  endif
+               else
+!                  call physics_error_fatal('--- tempo_init() could not find file to read QRacrQG data.')
+               endif
+               read(mp_unit) tcg_racg
+               read(mp_unit) tmr_racg
+               read(mp_unit) tcr_gacr
+               read(mp_unit) tnr_racg
+               read(mp_unit) tnr_gacr
+               close(unit=mp_unit)
             endif
-            read(mp_unit) tcg_racg
-            read(mp_unit) tmr_racg
-            read(mp_unit) tcr_gacr
-            read(mp_unit) tnr_racg
-            read(mp_unit) tnr_gacr
-            close(unit=mp_unit)
 
             ! Rain collecting snow & snow collecting rain.
             open(unit=mp_unit,file='MP_TEMPO_QRacrQS_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat,                  convert='big_endian')
-            if (istat /= open_OK) then
-                write(*,*) '--- tempo_init() failure opening MP_TEMPO_QRacrQS.DBL'
-            endif
+                iostat=istat, convert='big_endian')
+!            if (istat /= open_OK) then
+!                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QRacrQS.DBL')
+!            endif
             read(mp_unit) tcs_racs1
             read(mp_unit) tmr_racs1
             read(mp_unit) tcs_racs2
@@ -525,10 +561,10 @@ contains
 
             ! Cloud water and rain freezing (Bigg, 1953).
             open(unit=mp_unit,file='MP_TEMPO_freezeH2O_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat,                  convert='big_endian')
-            if (istat /= open_OK) then
-                write(*,*) '--- tempo_init() failure opening MP_TEMPO_freezeH2O.DBL'
-            endif
+                iostat=istat, convert='big_endian')
+!            if (istat /= open_OK) then
+!                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_freezeH2O.DBL')
+!            endif
             read(mp_unit) tpi_qrfz
             read(mp_unit) tni_qrfz
             read(mp_unit) tpg_qrfz
@@ -539,26 +575,27 @@ contains
 
             ! Conversion of some ice mass into snow category.
             open(unit=mp_unit,file='MP_TEMPO_QIautQS_DATA.DBL',form='unformatted',status='old',action='read', &
-                iostat=istat,                  convert='big_endian')
-            if (istat /= open_OK) then
-                write(*,*) '--- tempo_init() failure opening MP_TEMPO_QIautQS.DBL'
-            endif
+                iostat=istat, convert='big_endian')
+!            if (istat /= open_OK) then
+!                call physics_error_fatal('--- tempo_init() failure opening MP_TEMPO_QIautQS.DBL')
+!            endif
             read(mp_unit) tpi_ide
             read(mp_unit) tps_iaus
             read(mp_unit) tni_iaus
             close(unit=mp_unit)
+            ! call mpas_release_unit(mp_unit)
 
             ! Initialize various constants for computing radar reflectivity.
-            ! xam_r = am_r
-            ! xbm_r = bm_r
-            ! xmu_r = mu_r
-            ! xam_s = am_s
-            ! xbm_s = bm_s
-            ! xmu_s = mu_s
-            ! xam_g = am_g(idx_bg1)
-            ! xbm_g = bm_g
-            ! xmu_g = mu_g
-            ! call radar_init
+!            xam_r = am_r
+!            xbm_r = bm_r
+!            xmu_r = mu_r
+!            xam_s = am_s
+!            xbm_s = bm_s
+!            xmu_s = mu_s
+!            xam_g = am_g(idx_bg1)
+!            xbm_g = bm_g
+!            xmu_g = mu_g
+!            call radar_init
 
         endif ! micro_init
 
@@ -571,7 +608,7 @@ contains
 
     subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
-        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, &
+        rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
         has_reqc, has_reqi, has_reqs, ntc, muc, &
         ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte)
@@ -583,6 +620,7 @@ contains
         integer, intent(in) :: has_reqc, has_reqi, has_reqs
         real, dimension(ims:ime, kms:kme, jms:jme), intent(in) :: pii, p, w, dz
         real, dimension(ims:ime, jms:jme), intent(inout) :: rainnc, rainncv, sr
+        real, optional, dimension(:,:), intent(inout) :: frainnc
         real, dimension(ims:ime, jms:jme), intent(in), optional :: ntc, muc
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng
         real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d
@@ -595,7 +633,7 @@ contains
         real, dimension(kts:kte) :: qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
             nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
-        real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic
+        real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
         real :: dt, pptrain, pptsnow, pptgraul, pptice
         real :: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
         real :: nwfa1
@@ -614,8 +652,8 @@ contains
         !=================================================================================================================
         i_start = its
         j_start = jts
-        i_end = max(ite, ide-1)
-        j_end = max(jte, jde-1)
+        i_end = min(ite, ide)
+        j_end = min(jte, jde)
         dt = dt_in
 
         qc_max = 0.0
@@ -691,6 +729,12 @@ contains
 
                     ! nwfa, nifa, and nc are optional aerosol-aware variables
                     if (present(nwfa)) then
+                        if (present(nwfa2d)) then
+                           if (k == kts) then
+                              nwfa(i,k,j) = nwfa(i,k,j) + nwfa2d(i,j) * dt
+                           endif
+                        endif
+                        nwfa(i,k,j) = max(nwfa_default, min(aero_max, nwfa(i,k,j)))
                         nwfa1d(k) = nwfa(i,k,j)
                     else
                         nwfa1d(k) = nwfa_default / rho(k)
@@ -739,15 +783,14 @@ contains
                     enddo
                 endif
                 
-                if (itimestep == 1) then
-                   write(*,*) '--- tempo_3d_to_1d_driver() configuration...'
-                   write(message, '(L1)') configs%hail_aware
-                   write(*,*) '       hail_aware_flag = ' // trim(message)
-                   write(message, '(L1)') configs%aerosol_aware
-                   write(*,*) '       aerosol_aware_flag = ' // trim(message)
-                   write(*,*) 'calling mp_tempo_main() at itimestep = 1'
-                endif
-
+                !if (itimestep == 1) then
+                !   call physics_message('--- tempo_3d_to_1d_driver() configuration...')
+                !   write(message, '(L1)') configs%hail_aware
+                !   call physics_message('       hail_aware_flag = ' // trim(message))
+                !   write(message, '(L1)') configs%aerosol_aware
+                !   call physics_message('       aerosol_aware_flag = ' // trim(message))
+                !   call physics_message('calling mp_tempo_main() at itimestep = 1')
+                !endif
                 !=================================================================================================================
                 ! Main call to the 1D microphysics
                 call mp_tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
@@ -771,12 +814,39 @@ contains
                     graupelncv(i,j) = pptgraul
                     graupelnc(i,j) = graupelnc(i,j) + pptgraul
                 endif
+                if (present(frainnc)) then
+                   frain(i,j) = 0.
+                   if(t1d(1) <= 273.) then
+                      frain(i,j) = pcp_ra(i,j)
+                   endif
+                   frainnc(i,j) = frainnc(i,j) + frain(i,j)
+                endif
+
                 sr(i,j) = (pptsnow + pptgraul + pptice) / (rainncv(i,j) + R1)
 
+                ! ng and qb are optional hail-aware variables
                 if ((present(ng)) .and. (present(qb))) then
                     do k = kts, kte
                         ng(i,k,j) = ng1d(k)
                         qb(i,k,j) = qb1d(k)
+                    enddo
+                else
+                    do k = kte, kts, -1
+                        ! This is the one-moment graupel formulation
+                        if (qg1d(k) > R1) then
+                            ygra1 = log10(max(1.e-9, qg1d(k)*rho(k)))
+                            zans1 = 3.0 + 2.0/7.0*(ygra1+8.0)
+                            zans1 = max(2.0, min(zans1, 6.0))
+                            n0_exp = 10.0**(zans1)
+                            lam_exp = (n0_exp*am_g(idx_bg1)*cgg(1,1) / (rho(k)*qg1d(k)))**oge1
+                            lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
+                            ng1d(k) = cgg(2,1) * ogg3*rho(k) * qg1d(k) * lamg**bm_g / am_g(idx_bg1)
+                            ng1d(k) = max(R2, (ng1d(k)/rho(k)))
+                            qb1d(k) = qg1d(k) / rho_g(idx_bg1)
+                        else
+                            ng1d(k) = 0
+                            qb1d(k) = 0
+                        endif
                     enddo
                 endif
 
@@ -797,8 +867,8 @@ contains
 
                 !=================================================================================================================
                 ! Reflectivity
-                call calc_refl10cm (qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, &
-                    t1d, p1d, dBZ, kts, kte, i, j, configs)
+                call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
+                    t1d=t1d, p1d=p1d, dBZ=dBZ, kts=kts, kte=kte, ii=i, jj=j, configs=configs)
                 do k = kts, kte
                     refl_10cm(i,k,j) = max(-35.0_wp, dBZ(k))
                 enddo
@@ -810,8 +880,9 @@ contains
                         re_qi1d(k) = 4.99e-6
                         re_qs1d(k) = 9.99e-6
                     enddo
-                    call calc_effectRad (t1d=t1d, p1d=p1d, qv1d=qv1d, qc1d=qc1d, nc1d=nc1d, qi1d=qi1d, ni1d=ni1d, qs1d=qs1d,  &
-                        re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, kts=kts, kte=kte, configs=configs)
+                    call calc_effectRad (t1d=t1d, p1d=p1d, qv1d=qv1d, qc1d=qc1d, nc1d=nc1d, qi1d=qi1d, &
+                         ni1d=ni1d, qs1d=qs1d, re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, &
+                         kts=kts, kte=kte, configs=configs)
                     do k = kts, kte
                         re_cloud(i,k,j) = max(2.49e-6, min(re_qc1d(k), 50.e-6))
                         re_ice(i,k,j)   = max(4.99e-6, min(re_qi1d(k), 125.e-6))

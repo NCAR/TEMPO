@@ -43,21 +43,21 @@ module module_mp_tempo_params
 
     ! Constants that can be defined by the model ===========================
     ! Needed by tempo_init()
-    real(wp), parameter :: PI = 3.1415926536
+    real(wp)            :: PI = 3.1415926536
 
     ! Enthalpy of sublimation, vaporization, and fusion at 0C.
-    real(wp), parameter :: lsub = 2.834e6
-    real(wp), parameter :: lvap0 = 2.5e6
-    real(wp), parameter :: lfus = lsub - lvap0
-    real(wp), parameter :: olfus = 1./lfus
+    real(wp)            :: lsub = 2.834e6
+    real(wp)            :: lvap0 = 2.5e6
+    real(wp)            :: lfus !(set in mp_tempo_params_init)
+    real(wp)            :: olfus !(set in mp_tempo_params_init)
 
     ! Needed by the driver
     ! Water vapor and air gas constants at constant pressure
-    real(wp), parameter :: Rv = 461.5
-    real(wp), parameter :: oRv = 1.0 / Rv
-    real(wp), parameter :: R = 287.04
-    real(wp), parameter :: RoverRv = 0.622
-    real(wp), parameter :: Cp2 = 1004.0 ! AAJ change to Cp2
+    real(wp)            :: Rv = 461.5
+    real(wp)            :: oRv !(set in mp_tempo_params_init)
+    real(wp)            :: R = 287.04
+    real(wp)            :: RoverRv = 0.622
+    real(wp)            :: Cp2 = 1004.0 ! AAJ change to Cp2
 
     ! ======================================================================
     ! Minimum microphys values
@@ -99,21 +99,13 @@ module module_mp_tempo_params
 
     ! Mass power law relations:  mass = am*D**bm
     ! Snow from Field et al. (2005), others assume spherical form.
-    real(wp), parameter :: am_r = PI * rho_w2 / 6.0
+    real(wp)            :: am_r ! = PI * rho_w2 / 6.0 (set in mp_tempo_params_init)
     real(wp), parameter :: bm_r = 3.0
     real(wp), parameter :: am_s = 0.069
     real(wp), parameter :: bm_s = 2.0
-    real(wp), dimension (NRHG), parameter :: am_g = (/PI*rho_g(1)/6.0, &
-        PI*rho_g(2)/6.0, &
-        PI*rho_g(3)/6.0, &
-        PI*rho_g(4)/6.0, &
-        PI*rho_g(5)/6.0, &
-        PI*rho_g(6)/6.0, &
-        PI*rho_g(7)/6.0, &
-        PI*rho_g(8)/6.0, &
-        PI*rho_g(9)/6.0/)
+    real(wp), dimension (NRHG) :: am_g  !(set in mp_tempo_params_init)
     real(wp), parameter :: bm_g = 3.0
-    real(wp), parameter :: am_i = PI * rho_i / 6.0
+    real(wp)            :: am_i ! = PI * rho_i / 6.0 (set in mp_tempo_params_init)
     real(wp), parameter :: bm_i = 3.0
 
     ! Fallspeed power laws relations:  v = (av*D**bv)*exp(-fv*D)
@@ -375,7 +367,7 @@ module module_mp_tempo_params
     logical, parameter :: homogIce = .true.
 
     integer, parameter :: IFDRY = 0
-    real(wp), parameter :: T_0 = 273.15
+    real(wp)           :: T_0 = 273.15
 
     real(wp), parameter :: naIN0 = 1.5e6
     real(wp), parameter :: naCCN0 = 300.0e6
@@ -429,14 +421,14 @@ module module_mp_tempo_params
     real(wp), parameter :: HGFR = 235.16
 
 
-    real(wp), parameter :: R_uni = 8.314                           ! J (mol K)-1
+    real(wp)            :: R_uni = 8.314                           ! J (mol K)-1
 
-    real(dp), parameter :: k_b = 1.38065e-23                ! Boltzmann constant [J/K]
-    real(dp), parameter :: M_w = 18.01528e-3                ! molecular mass of water [kg/mol]
-    real(dp), parameter :: M_a = 28.96e-3                   ! molecular mass of air [kg/mol]
-    real(dp), parameter :: N_avo = 6.022e23                 ! Avogadro number [1/mol]
-    real(dp), parameter :: ma_w = M_w / N_avo               ! mass of water molecule [kg]
-    real(wp), parameter :: ar_volume = 4.0 / 3.0 * PI * (2.5e-6)**3 ! assume radius of 0.025 micrometer, 2.5e-6 cm
+    real(dp)            :: k_b = 1.38065e-23                ! Boltzmann constant [J/K]
+    real(dp)            :: M_w = 18.01528e-3                ! molecular mass of water [kg/mol]
+    real(dp)            :: M_a = 28.96e-3                   ! molecular mass of air [kg/mol]
+    real(dp)            :: N_avo = 6.022e23                 ! Avogadro number [1/mol]
+    real(dp)            :: ma_w                             ! mass of water molecule [kg] (= M_w / N_avo, set in mp_tempo_params_init)
+    real(wp)            :: ar_volume                        ! assume radius of 0.025 micrometer, 2.5e-6 cm (= 4.0 / 3.0 * PI * (2.5e-6)**3, set in mp_tempo_params_init)
 
 
     ! Aerosol table parameter: Number of available aerosols, vertical
@@ -490,4 +482,94 @@ module module_mp_tempo_params
     logical :: thompson_table_writer
 #endif
 
+    ! ML data
+    integer, parameter :: nc_ml_input = 7
+    integer, parameter :: nc_ml_nodes = 24
+    integer, parameter :: nc_ml_output = 1
+
+    integer, parameter :: nr_ml_input = 7
+    integer, parameter :: nr_ml_nodes = 24
+    integer, parameter :: nr_ml_output = 1
+
+    real(wp), dimension(nc_ml_input), parameter :: &
+         nc_ml_trans_mean = (/0.000184549468444656, 2.82753321185558e-05, &
+         2.28805854616895e-07, 6.58700882098648e-05, 84142.0407488623, &
+         275.273903970569, 0.104461576672394/)
+    real(wp), dimension(nc_ml_input), parameter :: &
+         nc_ml_trans_var = (/5.05620015304623e-08, 1.45515502768552e-08, &
+         1.94012756342739e-11, 4.30246362061344e-08, 140316880.172549, &
+         71.5124250320993, 0.265261175700759/)
+
+    real(wp), dimension(nc_ml_input * nc_ml_nodes), parameter :: &
+         nc_ml_w00 = (/2.224199, -1.393835e-32, 2.528453, -0.2449199, 2.625664, 0.107049, &
+         2.239675, -0.441944, 0.5798664, -3.495472, -0.09473098, 1.767392, &
+         -0.722639, -0.6872597, 0.7640355, 0.2941241, 1.413414e-32, -4.027426, &
+         -0.0885509, -0.1930209, 2.027927, 2.729985, 3.869902, -0.7086006, &
+         0.3556898, -1.545999e-32, 0.002439348, 0.07797334, 0.3065982, 0.1250733, &
+         -0.003919218, 0.02658273, 0.04677797, 0.001224378, -0.0450751, 0.54966, &
+         -0.09625612, -0.06435507, -0.06188935, 0.6316406, 1.438075e-32, 0.001260835, &
+         -0.6693181, -0.0726619, 0.313943, 0.08460538, 0.4238361, -0.1105529, &
+         -0.02594946, -1.571175e-32, 0.02000831, 0.0254104, 0.1613512, -0.1140745, &
+         0.07543574, 0.06550872, -0.00693186, -0.02249624, -0.1207949, 0.087761, &
+         0.003812449, -0.002278045, 0.0314725, 0.0824788, -1.607022e-32, -1.805405, &
+         0.1899621, -0.07471617, 0.1923102, 0.3078783, 0.1380734, -0.9808061, &
+         0.07569794, -1.458374e-32, 0.2184116, 0.09525398, -0.009037461, -1.004012, &
+         -0.4529723, -0.03389523, -0.5127279, 0.001164416, -0.3503374, -0.5206463, &
+         -0.6791449, -3.765049, -0.1630133, 0.2867654, -1.423354e-32, -0.000892627, &
+         -0.2104853, -0.9603029, 0.003026641, -0.02990868, 0.006338483, -0.1191584, &
+         0.01307624, 1.314499e-32, -0.1628825, -0.08426163, 0.01635959, 0.0214172, &
+         0.05406244, -0.07126028, 0.3039913, 0.005295561, -0.3454399, -0.005133086, &
+         0.0850361, 0.03916358, -0.07233618, -0.6070899, 1.435512e-32, -0.003379478, &
+         0.2966512, -0.1559436, 0.09629949, -0.0112761, -0.09785055, -0.02918944, &
+         -3.064122, 1.534848e-32, -0.0893663, 0.07659288, -1.701944, 0.9777426, &
+         0.794859, 0.07797011, 1.247827, -0.01696694, 0.0106477, 1.002509, &
+         1.440111, 0.3025449, -0.7814463, -0.3589398, 1.450329e-32, 0.006022078, &
+         -0.75178, -0.04612495, -2.27526, 0.2128798, -1.837864, 0.1171825, &
+         0.05044287, 1.60034e-32, -0.0266461, 1.557734, 0.06955704, -0.01070863, &
+         -0.05760999, 1.493531, -0.08257127, -0.0246272, -0.7703797, -0.04289152, &
+         -0.1313693, 0.02611825, 0.5722927, 0.2976797, -1.465193e-32, 0.006705693, &
+         -0.1825065, 0.09151408, 0.001714205, -0.0241104, -0.03077858, 0.119318/)
+    real(wp), dimension(nc_ml_nodes), parameter :: &
+         nc_ml_w01 = (/2.05212,-1.614832e-05,1.0335,-0.7872604,1.696272,0.8682101,-1.100169, &
+         0.5193954,-0.5440724,-23.27656,0.4010488,1.077693,-1.816235,8.917124,0.4402028, &
+         -0.2852043,-0.01313276,-70.52726,0.3490098,0.4163963,-1.772994,1.331957,-2.861476,0.7307689/)
+
+    real(wp), dimension(nc_ml_nodes), parameter :: &
+         nc_ml_b00 = (/1.411423, -0.009188521, 2.194735, -0.1570402, 2.083004, -0.02242614, &
+         1.345345, 0.3308931, -0.2128314, -2.824152, 0.06516771, 1.614252, &
+         -1.168782, -1.600044, 2.485356, -0.02002283, -0.6876131, -3.362524, &
+         1.999535, -0.1876818, 0.8209553, 2.305562, 2.347924, -0.2078552/)
+    real(wp), dimension(nc_ml_output), parameter :: &
+         nc_ml_b01 = (/1.966172/)
+
+  contains
+    
+    subroutine mp_tempo_params_init()
+      ! Any variables defined in the module that are not constants/parameters are set here; if any of the values are overwritten (i.e. by a host model),
+      ! then they must be reinitialized once the new values from the host are used
+      lfus = lsub - lvap0
+      olfus = 1./lfus
+      
+      oRv = 1.0 / Rv
+      
+      am_r = PI * rho_w2 / 6.0
+      
+      am_g = (/PI*rho_g(1)/6.0, &
+          PI*rho_g(2)/6.0, &
+          PI*rho_g(3)/6.0, &
+          PI*rho_g(4)/6.0, &
+          PI*rho_g(5)/6.0, &
+          PI*rho_g(6)/6.0, &
+          PI*rho_g(7)/6.0, &
+          PI*rho_g(8)/6.0, &
+          PI*rho_g(9)/6.0/)
+      
+      am_i = PI * rho_i / 6.0
+      
+      ma_w = M_w / N_avo
+      
+      ar_volume = 4.0 / 3.0 * PI * (2.5e-6)**3
+      
+    end subroutine mp_tempo_params_init
+    
 end module module_mp_tempo_params
