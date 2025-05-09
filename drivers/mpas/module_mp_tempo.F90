@@ -915,6 +915,7 @@ contains
                    else
                       do k = kts, kte
                          if (qh1d(k) > R1) then
+                            rho(k) = RoverRv * p1d(k) / (R * t1d(k) * (qv1d(k)+RoverRv))
                             lamh = (am_h*N0_h*cgg(3,1)/(rho(k)*qh1d(k)))**(1./cge(3,1))
                             nh1d(k) = N0_h / lamh
                             nh1d(k) = max(R2, (nh1d(k)/rho(k)))
