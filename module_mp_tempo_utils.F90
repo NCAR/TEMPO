@@ -1875,7 +1875,7 @@ contains
     !=================================================================================================================
     !..Compute max hail size aloft and at the ground (both 2D fields)
 
-    subroutine hail_size_diagnostics(kts, kte, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qg_max_diam1d, configs, qh1d, nh1d)
+    subroutine hail_size_diagnostics(kts, kte, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qg_max_diam1d, configs)
 
       implicit none
 
@@ -1883,7 +1883,6 @@ contains
       real(wp), dimension(kts:kte), intent(in) :: qg1d, ng1d, qb1d, t1d, p1d, qv1d
       real(wp), dimension(kts:kte), intent(out) :: qg_max_diam1d
       type(ty_tempo_cfg), intent(in) :: configs
-      real(wp), dimension(kts:kte), intent(in), optional :: qh1d, nh1d
 
       ! local variables
       real(wp), dimension(kts:kte) :: rho, rg, ng, rb
@@ -1916,73 +1915,40 @@ contains
       ! Binned number distribution method
       call create_bins(numbins=nhbins, lowbin=lowbin, highbin=highbin, bins=hbins, deltabins=dhbins)
 
-      if ((present(qh1d)) .and. (present(nh1d))) then
-         do k = kts, kte
-            qg_max_diam1d(k) = 0.
-            if(qh1d(k) >= 1.e-6) then
-               rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
-               rg(k) = qh1d(k)*rho(k)
-               ng(k) = max(R2, nh1d(k)*rho(k))
+      do k = kts, kte
+         qg_max_diam1d(k) = 0.
+         if(qg1d(k) >= 1.e-6) then
+            rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+            rg(k) = qg1d(k)*rho(k)
+            ng(k) = max(R2, ng1d(k)*rho(k))
+            rb(k) = max(qg1d(k)/rho_g(nrhg), qb1d(k))
+            rb(k) = min(qg1d(k)/rho_g(1), rb(k))
+            idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
+            if (.not. configs%hail_aware) idx_bg(k) = idx_bg1
+            if (rho_g(idx_bg(k)) < 350.) cycle
 
-               lamg = (am_h*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
-               !! lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
-               N0_g = ng(k)*ogg2*lamg**cge(2,1)
+            lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
+            N0_g = ng(k)*ogg2*lamg**cge(2,1)
 
-               sum_nh = 0.
-               sum_t = 0.
-               do n = nhbins, 1, -1
-                  f_d = N0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
-                  sum_nh = sum_nh + f_d
-                  if (sum_nh > threshold_conc) exit
-                  sum_t = sum_nh
-               enddo
+            sum_nh = 0.
+            sum_t = 0.
+            do n = nhbins, 1, -1
+               f_d = N0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
+               sum_nh = sum_nh + f_d
+               if (sum_nh > threshold_conc) exit
+               sum_t = sum_nh
+            enddo
 
-               if (n >= nhbins) then
-                  hail_max = hbins(nhbins)
-               elseif (hbins(n+1) .gt. 1.e-3) then
-                  hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
-               else
-                  hail_max = 1.e-4
-               endif
-               qg_max_diam1d(k) = 1000. * hail_max ! convert to mm
+            if (n >= nhbins) then
+               hail_max = hbins(nhbins)
+            elseif (hbins(n+1) .gt. 1.e-3) then
+               hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
+            else
+               hail_max = 1.e-4
             endif
-         enddo
-      else
-         do k = kts, kte
-            qg_max_diam1d(k) = 0.
-            if(qg1d(k) >= 1.e-6) then
-               rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
-               rg(k) = qg1d(k)*rho(k)
-               ng(k) = max(R2, ng1d(k)*rho(k))
-               rb(k) = max(qg1d(k)/rho_g(nrhg), qb1d(k))
-               rb(k) = min(qg1d(k)/rho_g(1), rb(k))
-               idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
-               if (.not. configs%hail_aware) idx_bg(k) = idx_bg1
-               if (rho_g(idx_bg(k)) < 350.) cycle
-
-               lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
-               N0_g = ng(k)*ogg2*lamg**cge(2,1)
-
-               sum_nh = 0.
-               sum_t = 0.
-               do n = nhbins, 1, -1
-                  f_d = N0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
-                  sum_nh = sum_nh + f_d
-                  if (sum_nh > threshold_conc) exit
-                  sum_t = sum_nh
-               enddo
-
-               if (n >= nhbins) then
-                  hail_max = hbins(nhbins)
-               elseif (hbins(n+1) .gt. 1.e-3) then
-                  hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
-               else
-                  hail_max = 1.e-4
-               endif
-               qg_max_diam1d(k) = 1000. * hail_max ! convert to mm
-            endif
-         enddo
-      endif
+            qg_max_diam1d(k) = 1000. * hail_max ! convert to mm
+         endif
+      enddo
 
     end subroutine hail_size_diagnostics
 
