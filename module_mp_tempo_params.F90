@@ -109,7 +109,7 @@ module module_mp_tempo_params
     real(wp), parameter :: bm_g = 3.0
     real(wp)            :: am_i ! = PI * rho_i / 6.0 (set in mp_tempo_params_init)
     real(wp), parameter :: bm_i = 3.0
-    real(wp), parameter :: am_h = PI * rho_h / 6.0
+    real(wp)            :: am_h ! = PI * rho_h / 6.0
     real(wp), parameter :: N0_h = 1.e4
 
     ! Fallspeed power laws relations:  v = (av*D**bv)*exp(-fv*D)
@@ -573,6 +573,8 @@ module module_mp_tempo_params
           PI*rho_g(9)/6.0/)
       
       am_i = PI * rho_i / 6.0
+
+      am_h = PI * rho_h / 6.0
       
       ma_w = M_w / N_avo
       
