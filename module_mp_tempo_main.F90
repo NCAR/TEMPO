@@ -1170,18 +1170,13 @@ contains
                             pnr_rcs(k) = min(real(nr(k)*odts, kind=dp), pnr_rcs(k))
 
                             if (.not. configs%true_qh) then
-                               png_rcs(k) = tnr_racs1(idx_s,idx_t,idx_r1,idx_r)            &   ! RAIN2M
-                                ! + tnr_racs2(idx_s,idx_t,idx_r1,idx_r)          &
-                                + tnr_sacr1(idx_s,idx_t,idx_r1,idx_r)         !  &
-                                ! + tnr_sacr2(idx_s,idx_t,idx_r1,idx_r)
-                               png_rcs(k) = min(real(nr(k)*odts, kind=dp), png_rcs(k))
-                               !!png_rcs(k) = pnr_rcs(k)
+                               png_rcs(k) = pnr_rcs(k)
+                               !-GT        pbg_rcs(k) = prg_rcs(k)/(0.5*(rho_i+rho_s))
                                pbg_rcs(k) = prg_rcs(k)/rho_i
                             else
                                prh_rcs(k) = prg_rcs(k)
                                prg_rcs(k) = 0.
                             endif
-                            !-GT        pbg_rcs(k) = prg_rcs(k)/(0.5*(rho_i+rho_s))
                         else
                             prs_rcs(k) = -tcs_racs1(idx_s,idx_t,idx_r1,idx_r)           &
                                 - tms_sacr1(idx_s,idx_t,idx_r1,idx_r)          &
@@ -1468,7 +1463,7 @@ contains
                             pnr_rci(k) = rhof(k)*t1_qr_qi*Ef_ri*ni(k)*N0_r(k)           &   ! RAIN2M
                                 *((lamr+fv_r)**(-cre(9)))
                             pnr_rci(k) = min(real(nr(k)*odts, kind=dp), pnr_rci(k))
-                            png_rci(k) = 0.1*pnr_rci(k)
+                            png_rci(k) = 1.0*pnr_rci(k)
                             pni_rci(k) = pri_rci(k) * oxmi
                             prr_rci(k) = rhof(k)*t2_qr_qi*Ef_ri*ni(k)*N0_r(k) &
                                 *((lamr+fv_r)**(-cre(8)))
@@ -3053,7 +3048,6 @@ contains
             endif
             qs1d(k) = qs1d(k) + qsten(k)*DT
             if (qs1d(k) .le. R1) qs1d(k) = 0.0
-
             qg1d(k) = qg1d(k) + qgten(k)*DT
             ng1d(k) = MAX(R2/rho(k), ng1d(k) + ngten(k)*DT)
             if (qg1d(k) .le. R1) then
