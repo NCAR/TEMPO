@@ -873,13 +873,6 @@ contains
                    endif
                    frainnc(i,j) = frainnc(i,j) + frain(i,j)
                 endif
-                if (present(frainnc)) then
-                   frain(i,j) = 0.
-                   if(t1d(1) <= 273.) then
-                      frain(i,j) = pcp_ra(i,j)
-                   endif
-                   frainnc(i,j) = frainnc(i,j) + frain(i,j)
-                endif
                 sr(i,j) = (pptsnow + pptgraul + ppthail + pptice) / (rainncv(i,j) + R1)
 
                 ! ng and qb are optional hail-aware variables
