@@ -355,8 +355,8 @@ module module_mp_tempo_params
     real(dp), parameter :: max_ni = 4999.e3
     real(wp), parameter :: icenuc_max = 1000.e3
     
-    real(wp), parameter :: rime_threshold = 5.0 ! For MPAS
-    real(wp), parameter :: rime_conversion = 0.75 ! For MPAS
+    real(wp), parameter :: rime_threshold = 2.0 ! For MPAS
+    real(wp), parameter :: rime_conversion = 0.95 ! For MPAS
 
     real(wp), parameter :: fv_r = 195.0
     real(wp) :: rho_s2 = 100.0 ! AAJ change to rho_s2 to solve MPAS same var name conflict
