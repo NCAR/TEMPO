@@ -37,6 +37,7 @@ module module_mp_tempo_params
     type ty_tempo_cfg
         logical :: aerosol_aware
         logical :: hail_aware
+        logical :: true_qh
     end type ty_tempo_cfg
 
     type(ty_tempo_cfg) configs
@@ -84,6 +85,7 @@ module module_mp_tempo_params
     real(wp), parameter :: rho_w2 = 1000.0 ! Change to rho_w2 to solve MPAS same var name conflict
     real(wp), parameter :: rho_i = 890.0
     real(wp), dimension(NRHG), parameter :: rho_g = (/50., 100., 200., 300., 400., 500., 600., 700., 800./)
+    real(wp), parameter :: rho_h = rho_g(NRHG)
 
     ! Cloud droplet distribution dispersion parameters
     integer, parameter :: nu_c_max = 15
@@ -107,6 +109,8 @@ module module_mp_tempo_params
     real(wp), parameter :: bm_g = 3.0
     real(wp)            :: am_i ! = PI * rho_i / 6.0 (set in mp_tempo_params_init)
     real(wp), parameter :: bm_i = 3.0
+    real(wp)            :: am_h ! = PI * rho_h / 6.0
+    real(wp), parameter :: N0_h = 1.e4
 
     ! Fallspeed power laws relations:  v = (av*D**bv)*exp(-fv*D)
     ! Rain from Ferrier (1994), ice, snow, and graupel from
@@ -125,6 +129,10 @@ module module_mp_tempo_params
         143.204224, 161.794724, 178.762115, 194.488785, 209.225876/)
     real(wp), dimension(NRHG) :: bv_g = (/0.640961647, 0.640961647, 0.640961647, 0.640961647, &
         0.640961647, 0.640961647, 0.640961647, 0.640961647, 0.640961647/)
+
+    ! Use the last graupel value for these
+    real(wp), parameter :: av_h = 209.225876
+    real(wp), parameter :: bv_h = 0.640961647
 
     ! Capacitance of sphere and plates/aggregates: D**3, D**2
     real(wp), parameter :: C_cube = 0.5
@@ -565,6 +573,8 @@ module module_mp_tempo_params
           PI*rho_g(9)/6.0/)
       
       am_i = PI * rho_i / 6.0
+
+      am_h = PI * rho_h / 6.0
       
       ma_w = M_w / N_avo
       

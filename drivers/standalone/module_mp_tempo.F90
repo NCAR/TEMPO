@@ -606,7 +606,7 @@ contains
     ! Required microphysics variables are qv, qc, qr, nr, qi, ni, qs, qg
     ! Optional microphysics variables are aerosol aware (nc, nwfa, nifa, nwfa2d, nifa2d), and hail aware (ng, qg)
 
-    subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
+    subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qh, qb, ni, nr, nc, ng, nh, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
         rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, &
@@ -622,7 +622,7 @@ contains
         real, dimension(ims:ime, jms:jme), intent(inout) :: rainnc, rainncv, sr
         real, optional, dimension(:,:), intent(inout) :: frainnc
         real, dimension(ims:ime, jms:jme), intent(in), optional :: ntc, muc
-        real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng
+        real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nc, nwfa, nifa, qb, ng, qh, nh
         real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d
         real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: refl_10cm
         real, dimension(ims:ime, jms:jme), intent(inout), optional :: snownc, snowncv, graupelnc, graupelncv
@@ -631,15 +631,15 @@ contains
 
         ! Local (1d) variables
         real, dimension(kts:kte) :: qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
-            nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz
+            qh1d, nh1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, rho, dbz
         real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
         real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
-        real :: dt, pptrain, pptsnow, pptgraul, pptice
+        real :: dt, pptrain, pptsnow, pptgraul, pptice, ppthail
         real :: qc_max, qr_max, qs_max, qi_max, qg_max, ni_max, nr_max
         real :: nwfa1
         real :: ygra1, zans1
         real :: graupel_vol
-        double precision :: lamg, lam_exp, lamr, n0_min, n0_exp
+        double precision :: lamg, lam_exp, lamr, n0_min, n0_exp, lamh
         integer :: i, j, k
         integer :: imax_qc, imax_qr, imax_qi, imax_qs, imax_qg, imax_ni, imax_nr
         integer :: jmax_qc, jmax_qr, jmax_qi, jmax_qs, jmax_qg, jmax_ni, jmax_nr
@@ -692,6 +692,7 @@ contains
                 pptsnow = 0.0
                 pptgraul = 0.0
                 pptice = 0.0
+                ppthail = 0.0
                 rainncv(i,j) = 0.0
                 if (present(snowncv)) then
                     snowncv(i,j) = 0.0
@@ -782,7 +783,36 @@ contains
                         endif
                     enddo
                 endif
-                
+
+                ! Hail is optional
+                if (present(qh)) then
+                   configs%true_qh = .true.
+                   do k = kts, kte
+                      qh1d(k) = qh(i,k,j)
+                   enddo
+                   if(present(nh)) then
+                      do k = kts, kte
+                         nh1d(k) = nh(i,k,j)
+                      enddo
+                   else
+                      do k = kts, kte
+                         if (qh1d(k) > R1) then
+                            lamh = (am_h*N0_h*cgg(3,1)/(rho(k)*qh1d(k)))**(1./cge(3,1))
+                            nh1d(k) = N0_h / lamh
+                            nh1d(k) = max(R2, (nh1d(k)/rho(k)))
+                         else
+                            nh1d(k) = 0.
+                         endif
+                      enddo
+                   endif
+                else
+                   configs%true_qh = .false.
+                   do k = kts, kte
+                      qh1d(k) = 0.
+                      nh1d(k) = 0.
+                   enddo
+                endif
+
                 !if (itimestep == 1) then
                 !   call physics_message('--- tempo_3d_to_1d_driver() configuration...')
                 !   write(message, '(L1)') configs%hail_aware
@@ -793,26 +823,26 @@ contains
                 !endif
                 !=================================================================================================================
                 ! Main call to the 1D microphysics
-                call mp_tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
-                           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
-                           w1d=w1d, dzq=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, &
+                call mp_tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qh1d=qh1d, qb1d=qb1d, &
+                           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nh1d=nh1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
+                           w1d=w1d, dzq=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, ppthail=ppthail, &
                            kts=kts, kte=kte, dt=dt, ii=i, jj=j, configs=configs)
 
                 !=================================================================================================================
                 ! Compute diagnostics and return output to 3D
                 pcp_ra(i,j) = pptrain
                 pcp_sn(i,j) = pptsnow
-                pcp_gr(i,j) = pptgraul
+                pcp_gr(i,j) = pptgraul + ppthail
                 pcp_ic(i,j) = pptice
-                rainncv(i,j) = pptrain + pptsnow + pptgraul + pptice
-                rainnc(i,j) = rainnc(i,j) + pptrain + pptsnow + pptgraul + pptice
+                rainncv(i,j) = pptrain + pptsnow + pptgraul + pptice + ppthail
+                rainnc(i,j) = rainnc(i,j) + pptrain + pptsnow + pptgraul + pptice + ppthail
                 if (present(snowncv) .and. present(snownc)) then
                     snowncv(i,j) = pptsnow + pptice
                     snownc(i,j) = snownc(i,j) + pptsnow + pptice
                 endif
                 if (present(graupelncv) .and. present(graupelnc)) then
-                    graupelncv(i,j) = pptgraul
-                    graupelnc(i,j) = graupelnc(i,j) + pptgraul
+                    graupelncv(i,j) = pptgraul + ppthail
+                    graupelnc(i,j) = graupelnc(i,j) + pptgraul + ppthail
                 endif
                 if (present(frainnc)) then
                    frain(i,j) = 0.
@@ -822,7 +852,7 @@ contains
                    frainnc(i,j) = frainnc(i,j) + frain(i,j)
                 endif
 
-                sr(i,j) = (pptsnow + pptgraul + pptice) / (rainncv(i,j) + R1)
+                sr(i,j) = (pptsnow + pptgraul + pptice + ppthail) / (rainncv(i,j) + R1)
 
                 ! ng and qb are optional hail-aware variables
                 if ((present(ng)) .and. (present(qb))) then
@@ -850,6 +880,34 @@ contains
                     enddo
                 endif
 
+                ! Hail is optional
+                if (present(qh)) then
+                   do k = kts, kte
+                      qh(i,k,j) = qh1d(k)
+                   enddo
+                   if(present(nh)) then
+                      do k = kts, kte
+                         nh(i,k,j) = nh1d(k)
+                      enddo
+                   else
+                      do k = kts, kte
+                         if (qh1d(k) > R1) then
+                            rho(k) = RoverRv * p1d(k) / (R * t1d(k) * (qv1d(k)+RoverRv))
+                            lamh = (am_h*N0_h*cgg(3,1)/(rho(k)*qh1d(k)))**(1./cge(3,1))
+                            nh1d(k) = N0_h / lamh
+                            nh1d(k) = max(R2, (nh1d(k)/rho(k)))
+                         else
+                            nh1d(k) = 0.
+                         endif
+                      enddo
+                   endif
+                else
+                   do k = kts, kte
+                      qh1d(k) = 0.
+                      nh1d(k) = 0.
+                   enddo
+                endif
+
                 do k = kts, kte
                     if (present(nc)) nc(i,k,j) = nc1d(k)
                     if (present(nwfa)) nwfa(i,k,j) = nwfa1d(k)
@@ -868,7 +926,7 @@ contains
                 !=================================================================================================================
                 ! Reflectivity
                 call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
-                    t1d=t1d, p1d=p1d, dBZ=dBZ, kts=kts, kte=kte, ii=i, jj=j, configs=configs)
+                    qh1d=qh1d, nh1d=nh1d, t1d=t1d, p1d=p1d, dBZ=dBZ, kts=kts, kte=kte, ii=i, jj=j, configs=configs)
                 do k = kts, kte
                     refl_10cm(i,k,j) = max(-35.0_wp, dBZ(k))
                 enddo
