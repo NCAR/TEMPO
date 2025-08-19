@@ -139,7 +139,7 @@ contains
     real, allocatable, dimension(:,:) :: output01, output01Activ, reshaped_bias01
     real, parameter :: logMin = -6.0 ! R2
     real, parameter :: logMax = 9.3010299957 ! 2000 cm^-3
-    double precision :: predictExp
+    double precision :: predictExp, bias_corr
     integer :: k
 
     ! Get neural network data
@@ -210,7 +210,15 @@ contains
     do k = kts, kte
        ! Prediction
        predictExp = min(logMax, max(logMin, output01Activ(1,k)))
-       predict_number(k) = 10.**predictExp
+
+       ! Bias correction
+       bias_corr = 1.0
+       if ((predictExp >= 0.) .and. (predictExp < 3.)) then
+          bias_corr = -0.2704*predictExp**5 + 1.838*predictExp**4 - 5.127*predictExp**3 + &
+               8.547*predictExp**2 - 8.439*predictExp + 4.297
+       endif
+
+       predict_number(k) = bias_corr * (10.**predictExp)
     enddo
 
   end subroutine predict_number_sub
