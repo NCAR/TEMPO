@@ -1,0 +1,615 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="Documentation for TEMPO Microphysics">
+    <meta name="author" content="Anders A. Jensen" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>machine &ndash; TEMPO Microphysics</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">TEMPO Microphysics </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>machine
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.2% of total for modules and submodules.">9 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/machine.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/machine.f90.html'>machine.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">machine</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/machine.html#variable-kind_sngl_prec">kind_sngl_prec</a>
+            <a class="list-group-item" href="../module/machine.html#variable-kind_dbl_prec">kind_dbl_prec</a>
+            <a class="list-group-item" href="../module/machine.html#variable-kind_phys">kind_phys</a>
+            <a class="list-group-item" href="../module/machine.html#variable-kind_io8">kind_io8</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      <p>This module sets the precision used for TEMPO microphysics</p>
+<br>      
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: module~~machine~~UsedByGraph Pages: 1 -->
+<svg id="modulemachineUsedByGraph" width="641pt" height="370pt"
+ viewBox="0.00 0.00 641.00 370.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~machine~~UsedByGraph" class="graph" transform="scale(0.85202 0.85202) rotate(0) translate(4 429.77)">
+<title>module~~machine~~UsedByGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-429.77 748.33,-429.77 748.33,4 -4,4"/>
+<!-- module~machine -->
+<g id="module~~machine~~UsedByGraph_node1" class="node">
+<title>module~machine</title>
+<polygon fill="none" stroke="black" points="54,-186.77 0,-186.77 0,-164 54,-164 54,-186.77"/>
+<text xml:space="preserve" text-anchor="middle" x="27" y="-171.03" font-family="Helvetica,sans-Serif" font-size="10.50">machine</text>
+</g>
+<!-- module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_node2" class="node">
+<title>module~module_mp_tempo_params</title>
+<g id="a_module~~machine~~UsedByGraph_node2"><a xlink:href="../module/module_mp_tempo_params.html" xlink:title="module_mp_tempo_params">
+<polygon fill="#337ab7" stroke="#337ab7" points="235.77,-186.77 90,-186.77 90,-164 235.77,-164 235.77,-186.77"/>
+<text xml:space="preserve" text-anchor="middle" x="162.88" y="-171.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_params</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_params&#45;&gt;module~machine -->
+<g id="module~~machine~~UsedByGraph_edge1" class="edge">
+<title>module~module_mp_tempo_params&#45;&gt;module~machine</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M89.85,-175.38C81.48,-175.38 73.22,-175.38 65.59,-175.38"/>
+<polygon fill="#000000" stroke="#000000" points="65.72,-171.89 55.72,-175.39 65.72,-178.89 65.72,-171.89"/>
+</g>
+<!-- module~module_mp_tempo_diags -->
+<g id="module~~machine~~UsedByGraph_node3" class="node">
+<title>module~module_mp_tempo_diags</title>
+<g id="a_module~~machine~~UsedByGraph_node3"><a xlink:href="../module/module_mp_tempo_diags.html" xlink:title="module_mp_tempo_diags">
+<polygon fill="#337ab7" stroke="#337ab7" points="571.56,-347.77 436.29,-347.77 436.29,-325 571.56,-325 571.56,-347.77"/>
+<text xml:space="preserve" text-anchor="middle" x="503.92" y="-332.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_diags</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_diags&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge2" class="edge">
+<title>module~module_mp_tempo_diags&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M471.56,-348.18C430.62,-362.83 361.31,-384.78 337.03,-375.38"/>
+</g>
+<!-- module~module_mp_tempo_driver -->
+<g id="module~~machine~~UsedByGraph_node4" class="node">
+<title>module~module_mp_tempo_driver</title>
+<g id="a_module~~machine~~UsedByGraph_node4"><a xlink:href="../module/module_mp_tempo_driver.html" xlink:title="module_mp_tempo_driver">
+<polygon fill="#337ab7" stroke="#337ab7" points="744.33,-366.77 607.56,-366.77 607.56,-344 744.33,-344 744.33,-366.77"/>
+<text xml:space="preserve" text-anchor="middle" x="675.94" y="-351.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_driver</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge3" class="edge">
+<title>module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M607.09,-366.01C522.89,-378.06 384.57,-393.79 337.03,-375.38"/>
+</g>
+<!-- module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_diags -->
+<g id="module~~machine~~UsedByGraph_edge14" class="edge">
+<title>module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_diags</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M607.26,-347.82C599.33,-346.93 591.19,-346.03 583.13,-345.12"/>
+<polygon fill="#000000" stroke="#000000" points="583.65,-341.66 573.33,-344.03 582.88,-348.62 583.65,-341.66"/>
+</g>
+<!-- module~module_mp_tempo_main -->
+<g id="module~~machine~~UsedByGraph_node6" class="node">
+<title>module~module_mp_tempo_main</title>
+<g id="a_module~~machine~~UsedByGraph_node6"><a xlink:href="../module/module_mp_tempo_main.html" xlink:title="module_mp_tempo_main">
+<polygon fill="#337ab7" stroke="#337ab7" points="570.43,-306.77 437.41,-306.77 437.41,-284 570.43,-284 570.43,-306.77"/>
+<text xml:space="preserve" text-anchor="middle" x="503.92" y="-291.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_main</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_main -->
+<g id="module~~machine~~UsedByGraph_edge15" class="edge">
+<title>module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_main</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M644.8,-343.51C624.26,-335.54 596.4,-324.98 571.56,-316.38 566.11,-314.5 560.39,-312.59 554.68,-310.73"/>
+<polygon fill="#000000" stroke="#000000" points="555.84,-307.43 545.24,-307.7 553.7,-314.09 555.84,-307.43"/>
+</g>
+<!-- module~module_mp_tempo_ml -->
+<g id="module~~machine~~UsedByGraph_node7" class="node">
+<title>module~module_mp_tempo_ml</title>
+<g id="a_module~~machine~~UsedByGraph_node7"><a xlink:href="../module/module_mp_tempo_ml.html" xlink:title="module_mp_tempo_ml">
+<polygon fill="#337ab7" stroke="#337ab7" points="564.43,-425.77 443.41,-425.77 443.41,-403 564.43,-403 564.43,-425.77"/>
+<text xml:space="preserve" text-anchor="middle" x="503.92" y="-410.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_ml</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_ml -->
+<g id="module~~machine~~UsedByGraph_edge16" class="edge">
+<title>module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_ml</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M640.95,-367.18C614.74,-376.28 578.27,-388.93 549.68,-398.85"/>
+<polygon fill="#000000" stroke="#000000" points="548.88,-395.43 540.58,-402.01 551.18,-402.04 548.88,-395.43"/>
+</g>
+<!-- module~module_mp_tempo_init -->
+<g id="module~~machine~~UsedByGraph_node5" class="node">
+<title>module~module_mp_tempo_init</title>
+<g id="a_module~~machine~~UsedByGraph_node5"><a xlink:href="../module/module_mp_tempo_init.html" xlink:title="module_mp_tempo_init">
+<polygon fill="#337ab7" stroke="#337ab7" points="565.56,-265.77 442.29,-265.77 442.29,-243 565.56,-243 565.56,-265.77"/>
+<text xml:space="preserve" text-anchor="middle" x="503.92" y="-250.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_init</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge4" class="edge">
+<title>module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M442.21,-256.77C394.8,-256.96 327.79,-253.48 271.77,-236.38 241.17,-227.05 209.73,-207.98 188.74,-193.64"/>
+<polygon fill="#000000" stroke="#000000" points="190.76,-190.78 180.56,-187.91 186.74,-196.51 190.76,-190.78"/>
+</g>
+<!-- module~module_mp_tempo_utils -->
+<g id="module~~machine~~UsedByGraph_node8" class="node">
+<title>module~module_mp_tempo_utils</title>
+<g id="a_module~~machine~~UsedByGraph_node8"><a xlink:href="../module/module_mp_tempo_utils.html" xlink:title="module_mp_tempo_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="400.29,-305.77 271.77,-305.77 271.77,-283 400.29,-283 400.29,-305.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-290.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_utils</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_utils -->
+<g id="module~~machine~~UsedByGraph_edge17" class="edge">
+<title>module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_utils</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M454.05,-266.17C436.24,-270.46 415.89,-275.37 397.21,-279.88"/>
+<polygon fill="#000000" stroke="#000000" points="396.5,-276.44 387.6,-282.19 398.14,-283.25 396.5,-276.44"/>
+</g>
+<!-- module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge5" class="edge">
+<title>module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M335.03,-375.38C251.33,-342.98 195.32,-242.58 173.78,-197.59"/>
+<polygon fill="#000000" stroke="#000000" points="176.97,-196.15 169.58,-188.55 170.62,-199.1 176.97,-196.15"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M460.43,-307.16C452.29,-309.86 443.93,-312.97 436.29,-316.38 389.45,-337.35 384.89,-393.91 337.03,-375.38"/>
+</g>
+<!-- module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_utils -->
+<g id="module~~machine~~UsedByGraph_edge18" class="edge">
+<title>module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_utils</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M437.36,-294.99C429.08,-294.94 420.55,-294.89 412.14,-294.84"/>
+<polygon fill="#000000" stroke="#000000" points="412.3,-291.34 402.28,-294.78 412.26,-298.34 412.3,-291.34"/>
+</g>
+<!-- module~module_mp_tempo_ml&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge6" class="edge">
+<title>module~module_mp_tempo_ml&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M442.99,-404.46C410.91,-398.12 371.11,-388.58 337.03,-375.38"/>
+</g>
+<!-- module~module_mp_tempo_utils&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge7" class="edge">
+<title>module~module_mp_tempo_utils&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M298.88,-282.54C289.74,-278.9 280.14,-274.48 271.77,-269.38 237.23,-248.37 203,-216.08 182.65,-195.35"/>
+<polygon fill="#000000" stroke="#000000" points="185.33,-193.09 175.87,-188.33 180.3,-197.95 185.33,-193.09"/>
+</g>
+<!-- proc~compute_efrw -->
+<g id="module~~machine~~UsedByGraph_node9" class="node">
+<title>proc~compute_efrw</title>
+<g id="a_module~~machine~~UsedByGraph_node9"><a xlink:href="../proc/compute_efrw.html" xlink:title="compute_efrw">
+<polygon fill="#d9534f" stroke="#d9534f" points="375.54,-227.77 296.52,-227.77 296.52,-205 375.54,-205 375.54,-227.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-212.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compute_efrw</text>
+</a>
+</g>
+</g>
+<!-- proc~compute_efrw&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge8" class="edge">
+<title>proc~compute_efrw&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M296.19,-207.08C274.99,-202 248.27,-195.6 224.41,-189.88"/>
+<polygon fill="#000000" stroke="#000000" points="225.33,-186.5 214.79,-187.58 223.69,-193.31 225.33,-186.5"/>
+</g>
+<!-- proc~compute_efsw -->
+<g id="module~~machine~~UsedByGraph_node10" class="node">
+<title>proc~compute_efsw</title>
+<g id="a_module~~machine~~UsedByGraph_node10"><a xlink:href="../proc/compute_efsw.html" xlink:title="compute_efsw">
+<polygon fill="#d9534f" stroke="#d9534f" points="376.29,-186.77 295.77,-186.77 295.77,-164 376.29,-164 376.29,-186.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-171.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compute_efsw</text>
+</a>
+</g>
+</g>
+<!-- proc~compute_efsw&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge9" class="edge">
+<title>proc~compute_efsw&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M295.34,-175.38C280.84,-175.38 263.84,-175.38 246.98,-175.38"/>
+<polygon fill="#000000" stroke="#000000" points="247.45,-171.89 237.45,-175.39 247.45,-178.89 247.45,-171.89"/>
+</g>
+<!-- proc~get_nuc -->
+<g id="module~~machine~~UsedByGraph_node11" class="node">
+<title>proc~get_nuc</title>
+<g id="a_module~~machine~~UsedByGraph_node11"><a xlink:href="../proc/get_nuc.html" xlink:title="get_nuc">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="363.03,-145.77 309.03,-145.77 309.03,-123 363.03,-123 363.03,-145.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-130.03" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_nuc</text>
+</a>
+</g>
+</g>
+<!-- proc~get_nuc&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge10" class="edge">
+<title>proc~get_nuc&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M308.66,-140.7C286.22,-146.08 253.1,-154.01 224.21,-160.93"/>
+<polygon fill="#000000" stroke="#000000" points="223.76,-157.44 214.85,-163.18 225.39,-164.25 223.76,-157.44"/>
+</g>
+<!-- proc~snow_moments -->
+<g id="module~~machine~~UsedByGraph_node12" class="node">
+<title>proc~snow_moments</title>
+<g id="a_module~~machine~~UsedByGraph_node12"><a xlink:href="../proc/snow_moments.html" xlink:title="snow_moments">
+<polygon fill="#d9534f" stroke="#d9534f" points="379.29,-104.77 292.77,-104.77 292.77,-82 379.29,-82 379.29,-104.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-89.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">snow_moments</text>
+</a>
+</g>
+</g>
+<!-- proc~snow_moments&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge11" class="edge">
+<title>proc~snow_moments&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M295.43,-105.22C287.49,-107.95 279.28,-111.05 271.77,-114.39 243.54,-126.91 213.06,-144.56 191.72,-157.66"/>
+<polygon fill="#000000" stroke="#000000" points="189.96,-154.63 183.31,-162.88 193.65,-160.57 189.96,-154.63"/>
+</g>
+<!-- proc~tempo_build_tables -->
+<g id="module~~machine~~UsedByGraph_node13" class="node">
+<title>proc~tempo_build_tables</title>
+<g id="a_module~~machine~~UsedByGraph_node13"><a xlink:href="../proc/tempo_build_tables.html" xlink:title="tempo_build_tables">
+<polygon fill="#d9534f" stroke="#d9534f" points="388.29,-63.77 283.77,-63.77 283.77,-41 388.29,-41 388.29,-63.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tempo_build_tables</text>
+</a>
+</g>
+</g>
+<!-- proc~tempo_build_tables&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge12" class="edge">
+<title>proc~tempo_build_tables&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M291.05,-64.2C284.37,-66.77 277.73,-69.82 271.77,-73.39 234.83,-95.48 200.17,-132.15 180.54,-154.98"/>
+<polygon fill="#000000" stroke="#000000" points="178.06,-152.49 174.29,-162.4 183.41,-157 178.06,-152.49"/>
+</g>
+<!-- proc~tempo_init -->
+<g id="module~~machine~~UsedByGraph_node14" class="node">
+<title>proc~tempo_init</title>
+<g id="a_module~~machine~~UsedByGraph_node14"><a xlink:href="../proc/tempo_init.html" xlink:title="tempo_init">
+<polygon fill="#d9534f" stroke="#d9534f" points="366.54,-22.77 305.52,-22.77 305.52,0 366.54,0 366.54,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336.03" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tempo_init</text>
+</a>
+</g>
+</g>
+<!-- proc~tempo_init&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~machine~~UsedByGraph_edge13" class="edge">
+<title>proc~tempo_init&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M305.27,-17.29C294.06,-20.49 281.64,-25.3 271.77,-32.39 226.12,-65.15 191.16,-122.91 174.55,-154.05"/>
+<polygon fill="#000000" stroke="#000000" points="171.65,-152.04 170.15,-162.53 177.86,-155.26 171.65,-152.04"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmodulemachineUsedByGraph = svgPanZoom('#modulemachineUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="485pt" height="31pt"
+ viewBox="0.00 0.00 485.00 31.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 26.77)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-26.77 481.13,-26.77 481.13,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-22.77 0,-22.77 0,0 54,0 54,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="27" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="137.76,-22.77 72.24,-22.77 72.24,0 137.76,0 137.76,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="105" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="218.63,-22.77 155.37,-22.77 155.37,0 218.63,0 218.63,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="187" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="291,-22.77 237,-22.77 237,0 291,0 291,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="264" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="363,-22.77 309,-22.77 309,0 363,0 363,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="477.13,-22.77 380.87,-22.77 380.87,0 477.13,0 477.13,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="429" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      <br>
+
+
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kind_sngl_prec"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>kind_sngl_prec</strong></td>
+<td> =</td>
+                <td>4</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kind_dbl_prec"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>kind_dbl_prec</strong></td>
+<td> =</td>
+                <td>8</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kind_phys"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>kind_phys</strong></td>
+<td> =</td>
+                <td>kind_dbl_prec</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kind_io8"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>kind_io8</strong></td>
+<td> =</td>
+                <td>kind_phys</td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              TEMPO Microphysics
+ was developed by Anders A. Jensen<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>
