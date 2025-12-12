@@ -1,14 +1,15 @@
 module machine
-  !! This module sets the precision used for TEMPO microphysics
+  !! set the precision used for tempo microphysics
 
   implicit none
   private
+
   public :: kind_phys, kind_sngl_prec, kind_dbl_prec, kind_io8
 
   integer, parameter :: kind_sngl_prec = 4, &
     kind_dbl_prec = 8
 
-! Physics single precision flag
+! physics single precision flag
 #ifndef SINGLE_PREC 
   integer, parameter :: kind_phys = kind_dbl_prec
 #else

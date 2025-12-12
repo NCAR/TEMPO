@@ -9,7 +9,7 @@ module module_mp_tempo_params
 #else
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #endif
-  use iso_fortran_env, only : real32, real64 ! for machine independent lookup table precisions
+  use iso_fortran_env, only : real32, real64 ! for machine-independent lookup table precisions
   implicit none
 
   public
@@ -26,7 +26,7 @@ module module_mp_tempo_params
 
   ! tempo configuration flags for the driver
   type :: ty_tempo_driver_cfgs
-    logical :: semi_sedi = .false. !! flag for semi-lagrangian sedimentation
+    logical :: sedi_semi = .false. !! flag for semi-lagrangian sedimentation
   end type
 
   ! tempo lookup table filenames
@@ -292,9 +292,7 @@ module module_mp_tempo_params
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz !! rain freezing data arrays
   real(table_dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data arrays
 
-!=================================================================================================================
-! HERE STARTS OLD TEMPO PARAMS FILE CONTENT
-!=================================================================================================================
+    ! vars for the microphysics driver ------------------------------------------------------------------------
 
     real(wp)            :: RoverRv = 0.622
     real(wp)            :: Cp2 = 1004.0 ! AAJ change to Cp2
@@ -310,7 +308,7 @@ module module_mp_tempo_params
 
     !    logical :: is_aerosol_aware = .true.
     logical :: merra2_aerosol_aware = .false.
-    logical :: sedi_semi = .false.
+    ! logical :: sedi_semi = .false.
 
     ! Hail-aware microphysics options
     integer :: dimNRHG
@@ -415,7 +413,6 @@ module module_mp_tempo_params
     ! Homogeneous freezing temperature
     real(wp), parameter :: HGFR = 235.16
 
-
     real(wp)            :: R_uni = 8.314                           ! J (mol K)-1
 
     real(dp)            :: k_b = 1.38065e-23                ! Boltzmann constant [J/K]
@@ -424,7 +421,6 @@ module module_mp_tempo_params
     real(dp)            :: N_avo = 6.022e23                 ! Avogadro number [1/mol]
     real(dp)            :: ma_w                             ! mass of water molecule [kg] (= M_w / N_avo, set in mp_tempo_params_init)
     real(wp)            :: ar_volume                        ! assume radius of 0.025 micrometer, 2.5e-6 cm (= 4.0 / 3.0 * PI * (2.5e-6)**3, set in mp_tempo_params_init)
-
 
     ! Aerosol table parameter: Number of available aerosols, vertical
     ! velocity, temperature, aerosol mean radius, and hygroscopicity.
@@ -573,8 +569,11 @@ module module_mp_tempo_params
       pi * rho_g(7) / 6.0_wp, &
       pi * rho_g(8) / 6.0_wp, &
       pi * rho_g(9) / 6.0_wp]
-
-    ! av_i = av_s * D0s ** (bv_s - bv_i)
+#if defined(ccpp_default)
+    av_i = av_s * d0s ** (bv_s - bv_i)
+#endif
+    ma_w = m_w / n_avo  
+    ar_volume = 4.0_wp / 3.0_wp * pi * (2.5e-6_wp)**3
 
     lfus = lsub - lvap0
     olfus = 1.0_wp / lfus
@@ -829,11 +828,11 @@ module module_mp_tempo_params
     if (.not. allocated(tpg_qrfz)) allocate(tpg_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
     if (.not. allocated(tni_qrfz)) allocate(tni_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
     if (.not. allocated(tnr_qrfz)) allocate(tnr_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
-    
-    ! Table size is precision * entries * dimensions + 8 bytes (sp + sp) per entry for start and end markers
+
+    ! Table size is precision * entries * dimensions
     if (present(table_size)) then
       table_size = (table_dp * 2 * (ntb_c*nbc*ntb_t1*ntb_in)) + &
-        (table_dp * 4 * (ntb_r*ntb_r1*ntb_t1*ntb_in)) + (table_sp + table_sp) * 6
+        (table_dp * 4 * (ntb_r*ntb_r1*ntb_t1*ntb_in))
     endif 
   end subroutine initialize_arrays_freezewater
 
@@ -856,9 +855,9 @@ module module_mp_tempo_params
     if (.not. allocated(tnr_sacr1)) allocate(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
     if (.not. allocated(tnr_sacr2)) allocate(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
 
-    ! Table size is precision * entries * dimensions + 8 bytes (sp + sp) per entry for start and end markers
+    ! Table size is precision * entries * dimensions
     if (present(table_size)) then
-      table_size = table_dp * 12 * (ntb_s*ntb_t*ntb_r1*ntb_r) + (table_sp + table_sp) * 12
+      table_size = table_dp * 12 * (ntb_s*ntb_t*ntb_r1*ntb_r)
     endif 
   end subroutine initialize_arrays_qr_acr_qs
 
@@ -874,10 +873,10 @@ module module_mp_tempo_params
     if (.not. allocated(tcr_gacr)) allocate(tcr_gacr(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
     if (.not. allocated(tnr_racg)) allocate(tnr_racg(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
     if (.not. allocated(tnr_gacr)) allocate(tnr_gacr(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
-    
-    ! Table size is precision * entries * dimensions + 8 bytes (sp + sp) per entry for start and end markers
+
+    ! Table size is precision * entries * dimensions 
     if (present(table_size)) then
-      table_size = table_dp * 5 * (ntb_g1*ntb_g*nrhg*ntb_r1*ntb_r) + (table_sp + table_sp) * 5
+      table_size = table_dp * 5 * (ntb_g1*ntb_g*nrhg*ntb_r1*ntb_r)
     endif 
   end subroutine initialize_arrays_qr_acr_qg
 
@@ -890,7 +889,7 @@ module module_mp_tempo_params
     if (.not. allocated(tnccn_act)) &
       allocate(tnccn_act(ntb_arc,ntb_arw,ntb_art,ntb_arr,ntb_ark), source=0._table_sp)
 
-    ! Table size is precision * entries * dimensions + 8 bytes (sp + sp) per entry for start and end markers
+    ! Table size is precision * entries * dimensions
     if (present(table_size)) then
       table_size = table_sp * 1 * (ntb_arc*ntb_arw*ntb_art*ntb_arr*ntb_ark) + (table_sp + table_sp) * 1
     endif
