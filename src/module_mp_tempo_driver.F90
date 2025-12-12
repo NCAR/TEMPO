@@ -24,7 +24,7 @@ contains
     ! Required microphysics variables are qv, qc, qr, nr, qi, ni, qs, qg
     ! Optional microphysics variables are aerosol aware (nc, nwfa, nifa, nwfa2d, nifa2d), and hail aware (ng, qg)
 
-    subroutine tempo_3d_to_1d_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
+    subroutine tempo_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng, &
         nwfa, nifa, nwfa2d, nifa2d, th, pii, p, w, dz, dt_in, itimestep, &
         rainnc, rainncv, snownc, snowncv, graupelnc, graupelncv, sr, frainnc, &
         refl_10cm, diagflag, do_radar_ref, re_cloud, re_ice, re_snow, qcbl, cldfrac, &
@@ -412,7 +412,7 @@ contains
             enddo i_loop
         enddo j_loop
 
-    end subroutine tempo_3d_to_1d_driver
+    end subroutine tempo_driver
     !=================================================================================================================
 
 end module module_mp_tempo_driver

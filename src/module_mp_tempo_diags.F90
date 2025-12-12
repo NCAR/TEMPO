@@ -1,138 +1,143 @@
 module module_mp_tempo_diags
-  !! utilities for tempo microphysics
+  !! diagnostic output for tempo microphysics
   use module_mp_tempo_params ! only : wp, sp, dp
   use module_mp_radar
 
   implicit none
   private
 
-  public :: calc_effectRad, calc_refl10cm, hail_size_diagnostics
+  public :: tempo_diags, calc_effectRad, calc_refl10cm, hail_size_diagnostics
+
+  type :: ty_tempo_diags
+    real(wp), allocatable, dimension(:) :: refl10cm
+    real(wp), allocatable, dimension(:) ::  effrad
+    end type
+
+  type(ty_tempo_diags) :: tempo_diags
 
   contains 
 
-   !=================================================================================================================
-    !..Compute _radiation_ effective radii of cloud water, ice, and snow.
-    !.. These are entirely consistent with microphysics assumptions, not
-    !.. constant or otherwise ad hoc as is internal to most radiation
-    !.. schemes.  Since only the smallest snowflakes should impact
-    !.. radiation, compute from first portion of complicated Field number
-    !.. distribution, not the second part, which is the larger sizes.
+  !=================================================================================================================
+  !..Compute _radiation_ effective radii of cloud water, ice, and snow.
+  !.. These are entirely consistent with microphysics assumptions, not
+  !.. constant or otherwise ad hoc as is internal to most radiation
+  !.. schemes.  Since only the smallest snowflakes should impact
+  !.. radiation, compute from first portion of complicated Field number
+  !.. distribution, not the second part, which is the larger sizes.
 
-    subroutine calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d, re_qc1d, re_qi1d, re_qs1d, kts, kte, lsml)
+  subroutine calc_effectRad (t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d, re_qc1d, re_qi1d, re_qs1d, kts, kte, lsml)
 
-        IMPLICIT NONE
+      !..Sub arguments
+      INTEGER, INTENT(IN):: kts, kte
+      REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
+      &                    t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d
+      REAL, DIMENSION(kts:kte), INTENT(INOUT):: re_qc1d, re_qi1d, re_qs1d
+      integer, intent(in), optional :: lsml
 
-        !..Sub arguments
-        INTEGER, INTENT(IN):: kts, kte
-        REAL, DIMENSION(kts:kte), INTENT(IN)::                            &
-        &                    t1d, p1d, qv1d, qc1d, nc1d, qi1d, ni1d, qs1d
-        REAL, DIMENSION(kts:kte), INTENT(INOUT):: re_qc1d, re_qi1d, re_qs1d
-        integer, intent(in), optional :: lsml
+      !..Local variables
+      INTEGER:: k
+      REAL, DIMENSION(kts:kte):: rho, rc, nc, ri, ni, rs
+      REAL:: smo2, smob, smoc
+      REAL:: tc0, loga_, a_, b_
+      DOUBLE PRECISION:: lamc, lami
+      LOGICAL:: has_qc, has_qi, has_qs
+      INTEGER:: inu_c
+      real, dimension(15), parameter:: g_ratio = (/24,60,120,210,336, 504,720,990,1320,1716,2184,2730,3360,4080,4896/)
 
-        !..Local variables
-        INTEGER:: k
-        REAL, DIMENSION(kts:kte):: rho, rc, nc, ri, ni, rs
-        REAL:: smo2, smob, smoc
-        REAL:: tc0, loga_, a_, b_
-        DOUBLE PRECISION:: lamc, lami
-        LOGICAL:: has_qc, has_qi, has_qs
-        INTEGER:: inu_c
-        real, dimension(15), parameter:: g_ratio = (/24,60,120,210,336, 504,720,990,1320,1716,2184,2730,3360,4080,4896/)
+      has_qc = .false.
+      has_qi = .false.
+      has_qs = .false.
 
-        has_qc = .false.
-        has_qi = .false.
-        has_qs = .false.
+      re_qc1d = 0.
+      re_qi1d = 0.
+      re_qs1d = 0.
 
-        re_qc1d = 0.
-        re_qi1d = 0.
-        re_qs1d = 0.
-
-        do k = kts, kte
-            rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
-            rc(k) = MAX(R1, qc1d(k)*rho(k))
-            nc(k) = MAX(2., MIN(nc1d(k)*rho(k), Nt_c_max))
-            if (.not. (tempo_init_cfgs%aerosolaware_flag .or. merra2_aerosol_aware)) then
-               nc(k) = Nt_c
-               if (present(lsml)) then
-                  if( lsml == 1) then
-                     nc(k) = Nt_c_l
-                  else
-                     nc(k) = Nt_c_o
-                  endif
-               endif
-            endif
-            if (rc(k).gt.R1 .and. nc(k).gt.R2) has_qc = .true.
-            ri(k) = MAX(R1, qi1d(k)*rho(k))
-            ni(k) = MAX(R2, ni1d(k)*rho(k))
-            if (ri(k).gt.R1 .and. ni(k).gt.R2) has_qi = .true.
-            rs(k) = MAX(R1, qs1d(k)*rho(k))
-            if (rs(k).gt.R1) has_qs = .true.
-        enddo
-
-        if (has_qc) then
-            do k = kts, kte
-                if (rc(k).le.R1 .or. nc(k).le.R2) CYCLE
-                if (nc(k).lt.100) then
-                    inu_c = 15
-                elseif (nc(k).gt.1.E10) then
-                    inu_c = 2
+      do k = kts, kte
+          rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
+          rc(k) = MAX(R1, qc1d(k)*rho(k))
+          nc(k) = MAX(2., MIN(nc1d(k)*rho(k), Nt_c_max))
+          if (.not. (tempo_init_cfgs%aerosolaware_flag .or. merra2_aerosol_aware)) then
+              nc(k) = Nt_c
+              if (present(lsml)) then
+                if( lsml == 1) then
+                    nc(k) = Nt_c_l
                 else
-                    inu_c = MIN(15, NINT(1000.E6/nc(k)) + 2)
+                    nc(k) = Nt_c_o
                 endif
-                lamc = (nc(k)*am_r*g_ratio(inu_c)/rc(k))**obmr
-                re_qc1d(k) = MAX(2.51E-6, MIN(SNGL(0.5D0 * DBLE(3.+inu_c)/lamc), 50.E-6))
-            enddo
-        endif
+              endif
+          endif
+          if (rc(k).gt.R1 .and. nc(k).gt.R2) has_qc = .true.
+          ri(k) = MAX(R1, qi1d(k)*rho(k))
+          ni(k) = MAX(R2, ni1d(k)*rho(k))
+          if (ri(k).gt.R1 .and. ni(k).gt.R2) has_qi = .true.
+          rs(k) = MAX(R1, qs1d(k)*rho(k))
+          if (rs(k).gt.R1) has_qs = .true.
+      enddo
 
-        if (has_qi) then
-            do k = kts, kte
-                if (ri(k).le.R1 .or. ni(k).le.R2) CYCLE
-                lami = (am_i*cig(2)*oig1*ni(k)/ri(k))**obmi
-                re_qi1d(k) = MAX(2.51E-6, MIN(SNGL(0.5D0 * DBLE(3.+mu_i)/lami), 125.E-6))
-            enddo
-        endif
+      if (has_qc) then
+          do k = kts, kte
+              if (rc(k).le.R1 .or. nc(k).le.R2) CYCLE
+              if (nc(k).lt.100) then
+                  inu_c = 15
+              elseif (nc(k).gt.1.E10) then
+                  inu_c = 2
+              else
+                  inu_c = MIN(15, NINT(1000.E6/nc(k)) + 2)
+              endif
+              lamc = (nc(k)*am_r*g_ratio(inu_c)/rc(k))**obmr
+              re_qc1d(k) = MAX(2.51E-6, MIN(SNGL(0.5D0 * DBLE(3.+inu_c)/lamc), 50.E-6))
+          enddo
+      endif
 
-        if (has_qs) then
-            do k = kts, kte
-                if (rs(k).le.R1) CYCLE
-                tc0 = MIN(-0.1, t1d(k)-273.15)
-                smob = rs(k)*oams
+      if (has_qi) then
+          do k = kts, kte
+              if (ri(k).le.R1 .or. ni(k).le.R2) CYCLE
+              lami = (am_i*cig(2)*oig1*ni(k)/ri(k))**obmi
+              re_qi1d(k) = MAX(2.51E-6, MIN(SNGL(0.5D0 * DBLE(3.+mu_i)/lami), 125.E-6))
+          enddo
+      endif
 
-                !..All other moments based on reference, 2nd moment.  If bm_s.ne.2,
-                !.. then we must compute actual 2nd moment and use as reference.
-                if (bm_s.gt.(2.0-1.e-3) .and. bm_s.lt.(2.0+1.e-3)) then
-                    smo2 = smob
-                else
-                    loga_ = sa(1) + sa(2)*tc0 + sa(3)*bm_s &
-                    &         + sa(4)*tc0*bm_s + sa(5)*tc0*tc0 &
-                    &         + sa(6)*bm_s*bm_s + sa(7)*tc0*tc0*bm_s &
-                    &         + sa(8)*tc0*bm_s*bm_s + sa(9)*tc0*tc0*tc0 &
-                    &         + sa(10)*bm_s*bm_s*bm_s
-                    a_ = 10.0**loga_
-                    b_ = sb(1) + sb(2)*tc0 + sb(3)*bm_s &
-                    &         + sb(4)*tc0*bm_s + sb(5)*tc0*tc0 &
-                    &         + sb(6)*bm_s*bm_s + sb(7)*tc0*tc0*bm_s &
-                    &         + sb(8)*tc0*bm_s*bm_s + sb(9)*tc0*tc0*tc0 &
-                    &         + sb(10)*bm_s*bm_s*bm_s
-                    smo2 = (smob/a_)**(1./b_)
-                endif
-                !..Calculate bm_s+1 (th) moment.  Useful for diameter calcs.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(1) &
-                &         + sa(4)*tc0*cse(1) + sa(5)*tc0*tc0 &
-                &         + sa(6)*cse(1)*cse(1) + sa(7)*tc0*tc0*cse(1) &
-                &         + sa(8)*tc0*cse(1)*cse(1) + sa(9)*tc0*tc0*tc0 &
-                &         + sa(10)*cse(1)*cse(1)*cse(1)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(1) + sb(4)*tc0*cse(1) &
-                &        + sb(5)*tc0*tc0 + sb(6)*cse(1)*cse(1) &
-                &        + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
-                &        + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
-                smoc = a_ * smo2**b_
-                re_qs1d(k) = MAX(5.01E-6, MIN(0.5*(smoc/smob), 999.E-6))
-            enddo
-        endif
+      if (has_qs) then
+          do k = kts, kte
+              if (rs(k).le.R1) CYCLE
+              tc0 = MIN(-0.1, t1d(k)-273.15)
+              smob = rs(k)*oams
 
-    end subroutine calc_effectRad
+              !..All other moments based on reference, 2nd moment.  If bm_s.ne.2,
+              !.. then we must compute actual 2nd moment and use as reference.
+              if (bm_s.gt.(2.0-1.e-3) .and. bm_s.lt.(2.0+1.e-3)) then
+                  smo2 = smob
+              else
+                  loga_ = sa(1) + sa(2)*tc0 + sa(3)*bm_s &
+                  &         + sa(4)*tc0*bm_s + sa(5)*tc0*tc0 &
+                  &         + sa(6)*bm_s*bm_s + sa(7)*tc0*tc0*bm_s &
+                  &         + sa(8)*tc0*bm_s*bm_s + sa(9)*tc0*tc0*tc0 &
+                  &         + sa(10)*bm_s*bm_s*bm_s
+                  a_ = 10.0**loga_
+                  b_ = sb(1) + sb(2)*tc0 + sb(3)*bm_s &
+                  &         + sb(4)*tc0*bm_s + sb(5)*tc0*tc0 &
+                  &         + sb(6)*bm_s*bm_s + sb(7)*tc0*tc0*bm_s &
+                  &         + sb(8)*tc0*bm_s*bm_s + sb(9)*tc0*tc0*tc0 &
+                  &         + sb(10)*bm_s*bm_s*bm_s
+                  smo2 = (smob/a_)**(1./b_)
+              endif
+              !..Calculate bm_s+1 (th) moment.  Useful for diameter calcs.
+              loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(1) &
+              &         + sa(4)*tc0*cse(1) + sa(5)*tc0*tc0 &
+              &         + sa(6)*cse(1)*cse(1) + sa(7)*tc0*tc0*cse(1) &
+              &         + sa(8)*tc0*cse(1)*cse(1) + sa(9)*tc0*tc0*tc0 &
+              &         + sa(10)*cse(1)*cse(1)*cse(1)
+              a_ = 10.0**loga_
+              b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(1) + sb(4)*tc0*cse(1) &
+              &        + sb(5)*tc0*tc0 + sb(6)*cse(1)*cse(1) &
+              &        + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
+              &        + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
+              smoc = a_ * smo2**b_
+              re_qs1d(k) = MAX(5.01E-6, MIN(0.5*(smoc/smob), 999.E-6))
+          enddo
+      endif
+
+  end subroutine calc_effectRad
 
     !=================================================================================================================
     !..Compute radar reflectivity assuming 10 cm wavelength radar and using
@@ -186,15 +191,15 @@ module module_mp_tempo_diags
         DOUBLE PRECISION:: cback, x, eta, f_d
         REAL:: xslw1, ygra1, zans1
 
-      xam_r = am_r
-      xbm_r = bm_r
-      xmu_r = mu_r
-      xam_s = am_s
-      xbm_s = bm_s
-      xmu_s = mu_s
-      xam_g = am_g(idx_bg1)
-      xbm_g = bm_g
-      xmu_g = mu_g
+        xam_r = am_r
+        xbm_r = bm_r
+        xmu_r = mu_r
+        xam_s = am_s
+        xbm_s = bm_s
+        xmu_s = mu_s
+        xam_g = am_g(idx_bg1)
+        xbm_g = bm_g
+        xmu_g = mu_g
 
         !+---+
         if (present(vt_dBZ) .and. present(first_time_step)) then

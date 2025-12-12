@@ -1,9 +1,13 @@
 module module_mp_tempo_init
   !! initialize variables for tempo microphysics
+  !!
   !! includes a procedure to build and save lookup tables
   use module_mp_tempo_params, only : wp, sp, dp, tempo_init_cfgs, tempo_table_cfgs
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
-  ! use module_mp_radar
+
+#ifdef ifort
+  use ifport, only : rename
+#endif
 
 #ifdef build_tables_with_mpi
   use mpi_f08 
@@ -18,9 +22,6 @@ module module_mp_tempo_init
 
   public :: tempo_init, tempo_build_tables
 
-  ! type(ty_tempo_init_cfgs) :: tempo_init_cfgs
-  ! type(ty_tempo_table_cfgs) :: tempo_table_cfgs
-
   contains
 
   subroutine tempo_init(aerosolaware_flag, hailaware_flag, restart_flag)
@@ -28,8 +29,7 @@ module module_mp_tempo_init
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
       initialize_array_efrw, initialize_array_efsw, initialize_arrays_drop_evap, initialize_arrays_ccn, initialize_arrays_qi_aut_qs, &
-      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater, &
-      am_r, bm_r, mu_r, am_s, bm_s, mu_s, am_g, bm_g, mu_g, idx_bg1 ! For radar
+      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater
 
     logical, intent(in), optional :: aerosolaware_flag, hailaware_flag, restart_flag
 
@@ -107,17 +107,6 @@ module module_mp_tempo_init
       call initialize_arrays_qr_acr_qg(table_size)
       call read_table_qr_acr_qg(trim(table_filename), table_size)
       write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
-     
-      ! Initialize various constants for computing radar reflectivity.
-      ! xam_r = am_r
-      ! xbm_r = bm_r
-      ! xmu_r = mu_r
-      ! xam_s = am_s
-      ! xbm_s = bm_s
-      ! xmu_s = mu_s
-      ! xam_g = am_g(idx_bg1)
-      ! xbm_g = bm_g
-      ! xmu_g = mu_g
     endif
   end subroutine tempo_init
 
@@ -205,9 +194,9 @@ module module_mp_tempo_init
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) call rename_file_if_exists(filename)
-
+    
     mp_unit = 11
-    open(unit=mp_unit, file=filename, form='unformatted', status='new', &
+    open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
       iostat=istat, convert='big_endian')
     write(mp_unit) tpi_qrfz
     write(mp_unit) tni_qrfz
@@ -231,7 +220,7 @@ module module_mp_tempo_init
 
     mp_unit = 11
     call check_before_table_read(filename, table_size)
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', &
+    open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
       action='read', iostat=istat, convert='big_endian')
     read(mp_unit) tpi_qrfz
     read(mp_unit) tni_qrfz
@@ -396,7 +385,7 @@ module module_mp_tempo_init
     if (fileexists) call rename_file_if_exists(filename)
 
     mp_unit = 11
-    open(unit=mp_unit, file=filename, form='unformatted', status='new', &
+    open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
       iostat=istat, convert='big_endian')
     write(mp_unit) tcs_racs1
     write(mp_unit) tmr_racs1
@@ -427,7 +416,7 @@ module module_mp_tempo_init
 
     mp_unit = 11
     call check_before_table_read(filename, table_size)
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', &
+    open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
       action='read', iostat=istat, convert='big_endian')
     read(mp_unit) tcs_racs1
     read(mp_unit) tmr_racs1
@@ -556,7 +545,7 @@ module module_mp_tempo_init
     if (fileexists) call rename_file_if_exists(filename)
 
     mp_unit = 11
-    open(unit=mp_unit, file=filename, form='unformatted', status='new', &
+    open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
       iostat=istat, convert='big_endian')
     write(mp_unit) tcg_racg
     write(mp_unit) tmr_racg
@@ -579,7 +568,7 @@ module module_mp_tempo_init
 
     mp_unit = 11
     call check_before_table_read(filename, table_size)
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', &
+    open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
       action='read', iostat=istat, convert='big_endian')
     read(mp_unit) tcg_racg
     read(mp_unit) tmr_racg
@@ -637,7 +626,8 @@ module module_mp_tempo_init
 
 
   subroutine get_version(version)
-    !! returns the tempo version string from the README.md file or returns empty string if not found
+    !! returns the tempo version string from the README.md file
+    !! or returns empty string if not found
   
     character(len=*), intent(inout) :: version
     character(len=100) :: first_line, filename
@@ -664,7 +654,7 @@ module module_mp_tempo_init
 
   subroutine read_table_ccn(filename, table_size)
     !! read static file containing CCN activation of aerosols;
-    !! The data were created from a parcel model by Feingold & Heymsfield
+    !! the data were created from a parcel model by Feingold & Heymsfield
     !! with further changes by Eidhammer and Kriedenweis
     use module_mp_tempo_params, only : tnccn_act
   
@@ -734,8 +724,8 @@ module module_mp_tempo_init
     !! rename a lookup table if attempting to write to that file and it already exists
     character(len=*), intent(in) :: oldfilename
     character(len=100) :: newfilename
-    character(8) :: date
-    character(6) :: time
+    character(10) :: date
+    character(10) :: time
     integer :: renamestat
     character(len=20) :: fileappend
 
@@ -916,7 +906,7 @@ module module_mp_tempo_init
     do n = 1, nbs
       vs(n) = 1.5_dp*av_s*ds(n)**bv_s * exp(real(-fv_s*ds(n), kind=dp))
     enddo
-
+    
     do m = local_start, local_end
       do k = 1, ntb_r1
         lam_exp = (n0r_exp(k)*am_r*crg(1)/r_r(m))**ore1
@@ -1014,7 +1004,7 @@ module module_mp_tempo_init
 
   subroutine qr_acr_qg(local_start, local_end, &
     ltcg_racg, ltmr_racg, ltcr_gacr, ltnr_racg, ltnr_gacr)
-    !! Rain collecting graupel (and inverse).  Explicit CE integration.
+    !! rain collecting graupel (and inverse).  Explicit CE integration.
     use module_mp_tempo_params, only : table_dp, nrhg, nbg, nbr, dr, &
       av_g, dg, bv_g, ntb_r, ntb_r1, &
       n0r_exp, am_r, cre, crg, r_r, ore1, org1, org2, &

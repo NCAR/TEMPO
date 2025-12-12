@@ -1,5 +1,19 @@
 program build_tables
   !! program to build 3 lookup tables for tempo microphysics
+  !!
+  !! example build `make build_tables -f Makefile.intel mpi=1`
+  !!
+!> timing information (ursa) to build the largest lookup table (rain-graupel collection)
+!>
+!> | Description | Time (s) |
+!> |-----------|-------------|
+!> | gfortran (-O2)                               | 3000 |
+!> | mpif90 (-O2) 1 process                       | 3000 |
+!> | mpif90 (-O2) 13 processes                    | 250 |
+!> | ifort (-fp-model consistent)                 | 1300 |
+!> | mpiifort (-fp-model consistent) 1 process    | 1300 |
+!> | mpiifort (-fp-model consistent) 13 processes | 120 |
+
   use module_mp_tempo_params, only : table_dp
   use module_mp_tempo_init, only : tempo_build_tables
 

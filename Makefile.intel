@@ -4,7 +4,7 @@ name := tempo
 # to run unit tests, build test-drive and add the test-drive
 # directory to testdrive_dir. This directory should have libtest-drive.a
 # https://github.com/fortran-lang/test-drive
-testdrive_dir = /set-this-dir/test-drive/build
+testdrive_dir = /set-this-dir/test-drive-intel/build
 
 # compiles with mpi for faster table builds when mpi = 1
 mpi = 0
@@ -22,10 +22,10 @@ tempotest_exe := run_tempo_tests
 tables_exe := run_build_tables
 
 # Compiler
-fc := gfortran
-fc_mpi := mpif90
+fc := ifort
+fc_mpi := mpiifort
 ar := ar rcs
-fcflags := -c -Dstandalone -O2 -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -J ./$(src_dir)
+fcflags := -c -Dstandalone -fp-model consistent -Difort -r8 -module ./src
 
 # tempo library
 tempo_lib := $(patsubst %, lib%.a, $(name))
