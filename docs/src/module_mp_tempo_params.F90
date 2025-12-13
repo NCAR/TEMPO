@@ -2,9 +2,9 @@ module module_mp_tempo_params
   !! parameters and variables used in tempo microphysics
 
 ! define machine precision
-#if defined(mpas)
+#if defined(tempo_mpas)
   use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
-#elif defined(ccpp)
+#elif defined(tempo_ccpp)
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #else
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
@@ -20,7 +20,6 @@ module module_mp_tempo_params
   type :: ty_tempo_init_cfgs
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
-    logical :: restart_flag = .false. !! flag for restart or DA cycling
     character(len=4) :: model_flag !! flag for model
   end type
 
@@ -95,6 +94,14 @@ module module_mp_tempo_params
   real(wp), parameter :: nu_c_scale = 1000.e6_wp !! scaling parameter for nu_c
   integer, parameter :: nu_c_max = 15 !! maximum value for nu_c
   integer, parameter :: nu_c_min = 2 !! minimum value for nu_c
+
+  real(wp), parameter :: naccn0 = 300.0e6_wp !! used for water-friendly aerosol initialization
+  real(wp), parameter :: naccn1 = 50.0e6_wp !! used for water-friendly aerosol initialization
+  real(wp), parameter :: nain0 = 1.5e6_wp !! used for ice-friendly aerosol initialization
+  real(wp), parameter :: nain1 = 0.5e6_wp !! used for ice-friendly aerosol initialization
+  real(wp), parameter :: nwfa_default = 11.1e6_wp !! default value for water-friendly aerosols
+  real(wp), parameter :: nifa_default = nain1*0.01_wp !! default value for ice-friendly aerosols
+  real(wp), parameter :: aero_max = 9999.e6_wp !! maximum aerosol value
 
   ! parameters that should NOT be changed -----------------------------------------------------------------
   integer, parameter :: table_sp = real32 !! precision for lookup tables (machine independent)
@@ -306,9 +313,7 @@ module module_mp_tempo_params
     real(wp), parameter :: R2 = 1.e-6
     real(wp), parameter :: eps = 1.e-15
 
-    !    logical :: is_aerosol_aware = .true.
     logical :: merra2_aerosol_aware = .false.
-    ! logical :: sedi_semi = .false.
 
     ! Hail-aware microphysics options
     integer :: dimNRHG
@@ -343,10 +348,6 @@ module module_mp_tempo_params
     ! Declaration of constants for assumed CCN/IN aerosols when none in
     ! the input data.  Look inside the init routine for modifications
     ! due to surface land-sea points or vegetation characteristics.
-    real(wp), parameter :: nwfa_default = 11.1e6
-    real(wp), parameter :: naIN1 = 0.5e6
-    real(wp), parameter :: nifa_default = naIN1*0.01
-    real(wp), parameter :: aero_max = 9999.e6
     real(dp), parameter :: max_ni = 4999.e3
     real(wp), parameter :: icenuc_max = 1000.e3
     
@@ -363,10 +364,6 @@ module module_mp_tempo_params
 
     integer, parameter :: IFDRY = 0
     real(wp)           :: T_0 = 273.15
-
-    real(wp), parameter :: naIN0 = 1.5e6
-    real(wp), parameter :: naCCN0 = 300.0e6
-    real(wp), parameter :: naCCN1 = 50.0e6
 
     ! Sum of two gamma distrib for snow (Field et al. 2005).
     ! N(D) = M2**4/M3**3 * [Kap0*exp(-M2*Lam0*D/M3)

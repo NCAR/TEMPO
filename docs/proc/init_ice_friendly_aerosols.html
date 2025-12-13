@@ -10,7 +10,7 @@
     <meta name="author" content="Anders A. Jensen" >
     <link rel="icon" href="../favicon.png">
 
-    <title>MLdata &ndash; TEMPO Microphysics </title>
+    <title>init_ice_friendly_aerosols &ndash; TEMPO Microphysics</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -80,8 +80,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>MLdata
-      <small>Derived Type</small>
+    <h1>init_ice_friendly_aerosols
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -91,21 +91,21 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>44.0% of total for derived types.</p>Including implementation: 11 statements, 44.0% of total for derived types.">11 statements</a>
+                 title=" 0.5% of total for procedures.">19 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/module_mp_tempo_ml.F90"> Source File</a>
+              <a href="../src/module_mp_tempo_aerosols.F90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/module_mp_tempo_ml.f90.html'>module_mp_tempo_ml.F90</a></li>
-                <li class="breadcrumb-item"><a href='../module/module_mp_tempo_ml.html'>module_mp_tempo_ml</a></li>
-            <li class="breadcrumb-item active" aria-current="page">MLdata</li>
+                <li class="breadcrumb-item"><a href='../sourcefile/module_mp_tempo_aerosols.f90.html'>module_mp_tempo_aerosols.F90</a></li>
+                <li class="breadcrumb-item"><a href='../module/module_mp_tempo_aerosols.html'>module_mp_tempo_aerosols</a></li>
+            <li class="breadcrumb-item active" aria-current="page">init_ice_friendly_aerosols</li>
           </ol>
         </nav>
       </div>
@@ -126,26 +126,7 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-      <div class="card mb-4">
-      <a data-bs-toggle="collapse" href="#vars-0"
-         aria-expanded="false" aria-controls="vars-0">
-         <h4 class="card-header bg-primary text-white">Variables</h4>
-      </a>
-      <div id="vars-0" class="collapse">
-        <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/mldata.html#variable-input_size">input_size</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-output_size">output_size</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-node_size">node_size</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-transform_mean">transform_mean</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-transform_var">transform_var</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-weights00">weights00</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-bias00">bias00</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-weights01">weights01</a>
-            <a class="list-group-item" href="../type/mldata.html#variable-bias01">bias01</a>
-        </div>
-      </div>
-    </div>
-
+  
   
   
   
@@ -171,172 +152,50 @@
     </div>
     
     <div class="col-md-9" id='text'>
-      <h2 id="type-def-statement">
-        type, public :: MLdata</h2>
+    <h2>public  subroutine init_ice_friendly_aerosols(hgt, nifa)  
+</h2>
     
-    <br>
 
-    <section>
-    <h2>Components</h2>
-      <table class="table table-striped varlist">
+    <p>exponential profile of aerosols if nothing else is available</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
     <thead>
       <tr>
         <th scope="col">Type</th>
-<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
         <th scope="col"></th>
         <th scope="col">Name</th>
-<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+        <th scope="col"></th>
     </thead>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_size"></span>
-              integer,
+              <span class="anchor" id="variable-hgt~2"></span>
+              real(kind=wp),
             </td>
-              <td>public</td>
-            <td>
-              
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>input_size</strong></td>
-                <td></td>
-                <td></td>
+            <td><strong>hgt</strong></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-output_size"></span>
-              integer,
+              <span class="anchor" id="variable-nifa"></span>
+              real(kind=wp),
             </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>output_size</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-node_size"></span>
-              integer,
-            </td>
-              <td>public</td>
-            <td>
-              
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>node_size</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-transform_mean"></span>
-              real,
-            </td>
-              <td>public,</td>
-            <td>
-              allocatable, dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>transform_mean</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-transform_var"></span>
-              real,
-            </td>
-              <td>public,</td>
-            <td>
-              allocatable, dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>transform_var</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-weights00"></span>
-              real,
-            </td>
-              <td>public,</td>
-            <td>
-              allocatable, dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>weights00</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-bias00"></span>
-              real,
-            </td>
-              <td>public,</td>
-            <td>
-              allocatable, dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>bias00</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-weights01"></span>
-              real,
-            </td>
-              <td>public,</td>
-            <td>
-              allocatable, dimension(:,:)
-            </td>
-            <td>::</td>
-            <td><strong>weights01</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-bias01"></span>
-              real,
-            </td>
-              <td>public,</td>
-            <td>
-              allocatable, dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>bias01</strong></td>
-                <td></td>
-                <td></td>
+            <td><strong>nifa</strong></td>
             <td>
                 
             </td>
@@ -344,12 +203,18 @@
     </tbody>
   </table>
 
-    </section>
     <br>
+
+
+    
+    
+
+    
     
 
 
 
+    
     
     </div>
   </div>
