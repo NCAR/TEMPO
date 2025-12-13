@@ -5,7 +5,7 @@ module module_mp_tempo_init
   use module_mp_tempo_params, only : wp, sp, dp, tempo_init_cfgs, tempo_table_cfgs
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
 
-#ifdef ifort
+#ifdef tempo_intel
   use ifport, only : rename
 #endif
 
@@ -24,14 +24,14 @@ module module_mp_tempo_init
 
   contains
 
-  subroutine tempo_init(aerosolaware_flag, hailaware_flag, restart_flag)
+  subroutine tempo_init(aerosolaware_flag, hailaware_flag)
     !! public procedure called to initialize tempo microphysics
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
       initialize_array_efrw, initialize_array_efsw, initialize_arrays_drop_evap, initialize_arrays_ccn, initialize_arrays_qi_aut_qs, &
       initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater
 
-    logical, intent(in), optional :: aerosolaware_flag, hailaware_flag, restart_flag
+    logical, intent(in), optional :: aerosolaware_flag, hailaware_flag
 
     character(len=100) :: table_filename
     integer :: table_size
@@ -47,12 +47,10 @@ module module_mp_tempo_init
     if (initialize_mp_vars) then
       if (present(aerosolaware_flag)) tempo_init_cfgs%aerosolaware_flag = aerosolaware_flag
       if (present(hailaware_flag)) tempo_init_cfgs%hailaware_flag = hailaware_flag
-      if (present(restart_flag)) tempo_init_cfgs%restart_flag = restart_flag
 
       write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
       write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_init_cfgs%aerosolaware_flag
       write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_init_cfgs%hailaware_flag
-      write(*,'(A,L)') 'tempo_init() --- restart = ', tempo_init_cfgs%restart_flag
 
       ! set graupel variables from hail_aware_flag
       call initialize_graupel_vars(tempo_init_cfgs%hailaware_flag) 
@@ -851,7 +849,7 @@ module module_mp_tempo_init
     enddo
 
     do k = 1, nbc
-      nu_c = get_nuc(t_nc(k))
+      nu_c = get_nuc(real(t_nc(k), kind=wp))
       do j = 1, ntb_c
         lamc = (t_nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
         n0_c = t_nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
