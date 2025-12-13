@@ -35,7 +35,7 @@ contains
 #if defined(ccpp_default)
     ! Extended diagnostics, most arrays only
     ! allocated if ext_diag flag is .true.
-        ext_diag, sedi_semi, &
+        ext_diag, &
         prw_vcdc1, prw_vcde1, &
         tpri_inu1, tpri_ide1_d, tpri_ide1_s, tprs_ide1, &
         tprs_sde1_d, tprs_sde1_s, &
@@ -74,7 +74,6 @@ contains
 #if defined(ccpp_default)
         ! Extended diagnostics, most arrays only allocated if ext_diag is true
         logical, intent(in) :: ext_diag
-        logical, intent(in) :: sedi_semi
         real(wp), optional, dimension(:), intent(out) :: &
             prw_vcdc1, &
             prw_vcde1, tpri_inu1, tpri_ide1_d, &
@@ -191,7 +190,6 @@ contains
         logical :: debug_flag
         character*256 :: mp_debug
         integer :: nu_c, decfl_
-
         !=================================================================================================================
 
         debug_flag = .false.
@@ -2423,7 +2421,7 @@ contains
 
         if (any(l_qr .eqv. .true.)) then
             nstep = nint(1./onstep(1))
-            if(.not. sedi_semi) then
+            if(.not. tempo_driver_cfgs%sedi_semi) then
                 do n = 1, nstep
                     do k = kte, kts, -1
                         sed_r(k) = vtrk(k)*rr(k)
@@ -2597,7 +2595,7 @@ contains
 
         if (any(l_qg .eqv. .true.)) then
             nstep = nint(1./onstep(4))
-            if(.not. sedi_semi) then
+            if(.not. tempo_driver_cfgs%sedi_semi) then
 
                 do n = 1, nstep
                     do k = kte, kts, -1

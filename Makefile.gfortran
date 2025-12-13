@@ -93,6 +93,7 @@ unit_tests: set-configs check-compiler set-utest $(unittest_exe)
 $(src_dir)/module_mp_tempo_params.o: $(src_dir)/machine.o
 $(src_dir)/module_mp_tempo_ml.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_utils.o: $(src_dir)/module_mp_tempo_params.o
+$(src_dir)/module_mp_tempo_aerosols.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_utils.o
 $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_radar.o

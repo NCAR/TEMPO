@@ -25,7 +25,7 @@ tables_exe := run_build_tables
 fc := ifort
 fc_mpi := mpiifort
 ar := ar rcs
-fcflags := -c -Dstandalone -fp-model consistent -Difort -r8 -module ./src
+fcflags := -c -Dstandalone -fp-model consistent -Dtempo_intel -r8 -module ./src
 
 # tempo library
 tempo_lib := $(patsubst %, lib%.a, $(name))
