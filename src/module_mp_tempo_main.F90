@@ -76,7 +76,7 @@ module module_mp_tempo_main
 
         real(wp), dimension(kts:kte) :: temp, twet, pres, qv
         real(wp), dimension(kts:kte) :: rc, ri, rr, rs, rg, rb
-        real(wp), dimension(kts:kte) :: ni, nr, nc, ns, ng, nwfa, nifa
+        real(wp), dimension(kts:kte) :: ni, nr, nc, ng, nwfa, nifa
         real(wp), dimension(kts:kte) :: rho, rhof, rhof2
         real(wp), dimension(kts:kte) :: qvs, qvsi, delqvs
         real(wp), dimension(kts:kte) :: satw, sati, ssatw, ssati
@@ -86,8 +86,8 @@ module module_mp_tempo_main
         real(dp), dimension(kts:kte) :: ilamr, ilamg, n0_r, n0_g
         real(dp) :: n0_melt
         real(wp), dimension(kts:kte) :: mvd_r, mvd_c, mvd_g
-        real(wp), dimension(kts:kte) :: smob, smo2, smo1, smo0, &
-            smoc, smod, smoe, smof, smog
+        real(dp), dimension(kts:kte) :: smob, smo2, smo1, smo0, &
+            smoc, smod, smoe, smof, smog, ns
 
         real(wp), dimension(kts:kte) :: sed_r, sed_s, sed_g, sed_i, sed_n, sed_c, sed_b
 
@@ -274,6 +274,7 @@ module module_mp_tempo_main
 
         !=================================================================================================================
         ! Convert microphysics variables to concentrations (kg / m^3 and # / m^3)
+
         do k = kts, kte
             temp(k) = t1d(k)
             qv(k) = max(min_qv, qv1d(k))
@@ -502,103 +503,108 @@ module module_mp_tempo_main
             do k = kts, kte
                 if (.not. L_qs(k)) CYCLE
                 tc0 = min(-0.1, temp(k)-273.15)
-                smob(k) = rs(k)*oams
+                call snow_moments(rs=rs(k), tc=tc0, &
+                  smob=smob(k), smoc=smoc(k), ns=ns(k), &
+                  smo0=smo0(k), smo1=smo1(k), smo2=smo2(k), &
+                  smoe=smoe(k), smof=smof(k), smog=smog(k))
 
-                !..All other moments based on reference, 2nd moment.  If bm_s.ne.2,
-                !.. then we must compute actual 2nd moment and use as reference.
-                if (bm_s.gt.(2.0-1.e-3) .and. bm_s.lt.(2.0+1.e-3)) then
-                    smo2(k) = smob(k)
-                else
-                    loga_ = sa(1) + sa(2)*tc0 + sa(3)*bm_s &
-                        + sa(4)*tc0*bm_s + sa(5)*tc0*tc0 &
-                        + sa(6)*bm_s*bm_s + sa(7)*tc0*tc0*bm_s &
-                        + sa(8)*tc0*bm_s*bm_s + sa(9)*tc0*tc0*tc0 &
-                        + sa(10)*bm_s*bm_s*bm_s
-                    a_ = 10.0**loga_
-                    b_ = sb(1) + sb(2)*tc0 + sb(3)*bm_s &
-                        + sb(4)*tc0*bm_s + sb(5)*tc0*tc0 &
-                        + sb(6)*bm_s*bm_s + sb(7)*tc0*tc0*bm_s &
-                        + sb(8)*tc0*bm_s*bm_s + sb(9)*tc0*tc0*tc0 &
-                        + sb(10)*bm_s*bm_s*bm_s
-                    smo2(k) = (smob(k)/a_)**(1./b_)
-                endif
+                ! smob(k) = rs(k)*oams
 
-                !..Calculate 0th moment.  Represents snow number concentration.
-                loga_ = sa(1) + sa(2)*tc0 + sa(5)*tc0*tc0 + sa(9)*tc0*tc0*tc0
-                a_ = 10.0**loga_
-                b_ = sb(1) + sb(2)*tc0 + sb(5)*tc0*tc0 + sb(9)*tc0*tc0*tc0
-                smo0(k) = a_ * smo2(k)**b_
+                ! !..All other moments based on reference, 2nd moment.  If bm_s.ne.2,
+                ! !.. then we must compute actual 2nd moment and use as reference.
+                ! if (bm_s.gt.(2.0-1.e-3) .and. bm_s.lt.(2.0+1.e-3)) then
+                !     smo2(k) = smob(k)
+                ! else
+                !     loga_ = sa(1) + sa(2)*tc0 + sa(3)*bm_s &
+                !         + sa(4)*tc0*bm_s + sa(5)*tc0*tc0 &
+                !         + sa(6)*bm_s*bm_s + sa(7)*tc0*tc0*bm_s &
+                !         + sa(8)*tc0*bm_s*bm_s + sa(9)*tc0*tc0*tc0 &
+                !         + sa(10)*bm_s*bm_s*bm_s
+                !     a_ = 10.0**loga_
+                !     b_ = sb(1) + sb(2)*tc0 + sb(3)*bm_s &
+                !         + sb(4)*tc0*bm_s + sb(5)*tc0*tc0 &
+                !         + sb(6)*bm_s*bm_s + sb(7)*tc0*tc0*bm_s &
+                !         + sb(8)*tc0*bm_s*bm_s + sb(9)*tc0*tc0*tc0 &
+                !         + sb(10)*bm_s*bm_s*bm_s
+                !     smo2(k) = (smob(k)/a_)**(1./b_)
+                ! endif
 
-                !..Calculate 1st moment.  Useful for depositional growth and melting.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3) &
-                    + sa(4)*tc0 + sa(5)*tc0*tc0 &
-                    + sa(6) + sa(7)*tc0*tc0 &
-                    + sa(8)*tc0 + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3) + sb(4)*tc0 &
-                    + sb(5)*tc0*tc0 + sb(6) &
-                    + sb(7)*tc0*tc0 + sb(8)*tc0 &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)
-                smo1(k) = a_ * smo2(k)**b_
+                ! !..Calculate 0th moment.  Represents snow number concentration.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(5)*tc0*tc0 + sa(9)*tc0*tc0*tc0
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1) + sb(2)*tc0 + sb(5)*tc0*tc0 + sb(9)*tc0*tc0*tc0
+                ! smo0(k) = a_ * smo2(k)**b_
 
-                !..Calculate bm_s+1 (th) moment.  Useful for diameter calcs.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(1) &
-                    + sa(4)*tc0*cse(1) + sa(5)*tc0*tc0 &
-                    + sa(6)*cse(1)*cse(1) + sa(7)*tc0*tc0*cse(1) &
-                    + sa(8)*tc0*cse(1)*cse(1) + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)*cse(1)*cse(1)*cse(1)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(1) + sb(4)*tc0*cse(1) &
-                    + sb(5)*tc0*tc0 + sb(6)*cse(1)*cse(1) &
-                    + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
-                smoc(k) = a_ * smo2(k)**b_
-                !..Calculate snow number concentration (explicit integral, not smo0)
-                M0 = smob(k)/smoc(k)
-                Mrat = smob(k)*M0*M0*M0
-                slam1 = M0 * Lam0
-                slam2 = M0 * Lam1
-                ns(k) = Mrat*Kap0/slam1                                        &
-                    + Mrat*Kap1*M0**mu_s*csg(15)/slam2**cse(15)
+                ! !..Calculate 1st moment.  Useful for depositional growth and melting.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3) &
+                !     + sa(4)*tc0 + sa(5)*tc0*tc0 &
+                !     + sa(6) + sa(7)*tc0*tc0 &
+                !     + sa(8)*tc0 + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3) + sb(4)*tc0 &
+                !     + sb(5)*tc0*tc0 + sb(6) &
+                !     + sb(7)*tc0*tc0 + sb(8)*tc0 &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)
+                ! smo1(k) = a_ * smo2(k)**b_
 
-                !..Calculate bv_s+2 (th) moment.  Useful for riming.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(13) &
-                    + sa(4)*tc0*cse(13) + sa(5)*tc0*tc0 &
-                    + sa(6)*cse(13)*cse(13) + sa(7)*tc0*tc0*cse(13) &
-                    + sa(8)*tc0*cse(13)*cse(13) + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)*cse(13)*cse(13)*cse(13)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(13) + sb(4)*tc0*cse(13) &
-                    + sb(5)*tc0*tc0 + sb(6)*cse(13)*cse(13) &
-                    + sb(7)*tc0*tc0*cse(13) + sb(8)*tc0*cse(13)*cse(13) &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)*cse(13)*cse(13)*cse(13)
-                smoe(k) = a_ * smo2(k)**b_
+                ! !..Calculate bm_s+1 (th) moment.  Useful for diameter calcs.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(1) &
+                !     + sa(4)*tc0*cse(1) + sa(5)*tc0*tc0 &
+                !     + sa(6)*cse(1)*cse(1) + sa(7)*tc0*tc0*cse(1) &
+                !     + sa(8)*tc0*cse(1)*cse(1) + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)*cse(1)*cse(1)*cse(1)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(1) + sb(4)*tc0*cse(1) &
+                !     + sb(5)*tc0*tc0 + sb(6)*cse(1)*cse(1) &
+                !     + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
+                ! smoc(k) = a_ * smo2(k)**b_
+                ! !..Calculate snow number concentration (explicit integral, not smo0)
+                ! M0 = smob(k)/smoc(k)
+                ! Mrat = smob(k)*M0*M0*M0
+                ! slam1 = M0 * Lam0
+                ! slam2 = M0 * Lam1
+                ! ns(k) = Mrat*Kap0/slam1                                        &
+                !     + Mrat*Kap1*M0**mu_s*csg(15)/slam2**cse(15)
 
-                !..Calculate 1+(bv_s+1)/2 (th) moment.  Useful for depositional growth.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(16) &
-                    + sa(4)*tc0*cse(16) + sa(5)*tc0*tc0 &
-                    + sa(6)*cse(16)*cse(16) + sa(7)*tc0*tc0*cse(16) &
-                    + sa(8)*tc0*cse(16)*cse(16) + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)*cse(16)*cse(16)*cse(16)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(16) + sb(4)*tc0*cse(16) &
-                    + sb(5)*tc0*tc0 + sb(6)*cse(16)*cse(16) &
-                    + sb(7)*tc0*tc0*cse(16) + sb(8)*tc0*cse(16)*cse(16) &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)*cse(16)*cse(16)*cse(16)
-                smof(k) = a_ * smo2(k)**b_
-                !..Calculate bm_s + bv_s+2 (th) moment.  Useful for riming into graupel.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(17) &
-                    + sa(4)*tc0*cse(17) + sa(5)*tc0*tc0 &
-                    + sa(6)*cse(17)*cse(17) + sa(7)*tc0*tc0*cse(17) &
-                    + sa(8)*tc0*cse(17)*cse(17) + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)*cse(17)*cse(17)*cse(17)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(17) + sb(4)*tc0*cse(17) &
-                    + sb(5)*tc0*tc0 + sb(6)*cse(17)*cse(17) &
-                    + sb(7)*tc0*tc0*cse(17) + sb(8)*tc0*cse(17)*cse(17) &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)*cse(17)*cse(17)*cse(17)
-                smog(k) = a_ * smo2(k)**b_
+                ! !..Calculate bv_s+2 (th) moment.  Useful for riming.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(13) &
+                !     + sa(4)*tc0*cse(13) + sa(5)*tc0*tc0 &
+                !     + sa(6)*cse(13)*cse(13) + sa(7)*tc0*tc0*cse(13) &
+                !     + sa(8)*tc0*cse(13)*cse(13) + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)*cse(13)*cse(13)*cse(13)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(13) + sb(4)*tc0*cse(13) &
+                !     + sb(5)*tc0*tc0 + sb(6)*cse(13)*cse(13) &
+                !     + sb(7)*tc0*tc0*cse(13) + sb(8)*tc0*cse(13)*cse(13) &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)*cse(13)*cse(13)*cse(13)
+                ! smoe(k) = a_ * smo2(k)**b_
+
+                ! !..Calculate 1+(bv_s+1)/2 (th) moment.  Useful for depositional growth.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(16) &
+                !     + sa(4)*tc0*cse(16) + sa(5)*tc0*tc0 &
+                !     + sa(6)*cse(16)*cse(16) + sa(7)*tc0*tc0*cse(16) &
+                !     + sa(8)*tc0*cse(16)*cse(16) + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)*cse(16)*cse(16)*cse(16)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(16) + sb(4)*tc0*cse(16) &
+                !     + sb(5)*tc0*tc0 + sb(6)*cse(16)*cse(16) &
+                !     + sb(7)*tc0*tc0*cse(16) + sb(8)*tc0*cse(16)*cse(16) &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)*cse(16)*cse(16)*cse(16)
+                ! smof(k) = a_ * smo2(k)**b_
+                ! !..Calculate bm_s + bv_s+2 (th) moment.  Useful for riming into graupel.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(17) &
+                !     + sa(4)*tc0*cse(17) + sa(5)*tc0*tc0 &
+                !     + sa(6)*cse(17)*cse(17) + sa(7)*tc0*tc0*cse(17) &
+                !     + sa(8)*tc0*cse(17)*cse(17) + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)*cse(17)*cse(17)*cse(17)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(17) + sb(4)*tc0*cse(17) &
+                !     + sb(5)*tc0*tc0 + sb(6)*cse(17)*cse(17) &
+                !     + sb(7)*tc0*tc0*cse(17) + sb(8)*tc0*cse(17)*cse(17) &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)*cse(17)*cse(17)*cse(17)
+                ! smog(k) = a_ * smo2(k)**b_
 
             enddo
 
@@ -1797,52 +1803,57 @@ module module_mp_tempo_main
             do k = kts, kte
                 if (.not. L_qs(k)) CYCLE
                 tc0 = min(-0.1, temp(k)-273.15)
-                smob(k) = rs(k)*oams
 
-                !..All other moments based on reference, 2nd moment.  If bm_s.ne.2,
-                !.. then we must compute actual 2nd moment and use as reference.
-                if (bm_s.gt.(2.0-1.e-3) .and. bm_s.lt.(2.0+1.e-3)) then
-                    smo2(k) = smob(k)
-                else
-                    loga_ = sa(1) + sa(2)*tc0 + sa(3)*bm_s &
-                        + sa(4)*tc0*bm_s + sa(5)*tc0*tc0 &
-                        + sa(6)*bm_s*bm_s + sa(7)*tc0*tc0*bm_s &
-                        + sa(8)*tc0*bm_s*bm_s + sa(9)*tc0*tc0*tc0 &
-                        + sa(10)*bm_s*bm_s*bm_s
-                    a_ = 10.0**loga_
-                    b_ = sb(1) + sb(2)*tc0 + sb(3)*bm_s &
-                        + sb(4)*tc0*bm_s + sb(5)*tc0*tc0 &
-                        + sb(6)*bm_s*bm_s + sb(7)*tc0*tc0*bm_s &
-                        + sb(8)*tc0*bm_s*bm_s + sb(9)*tc0*tc0*tc0 &
-                        + sb(10)*bm_s*bm_s*bm_s
-                    smo2(k) = (smob(k)/a_)**(1./b_)
-                endif
+                call snow_moments(rs=rs(k), tc=tc0, &
+                  smob=smob(k), smoc=smoc(k), ns=ns(k), &
+                  smo0=smo0(k), smo1=smo1(k), smo2=smo2(k), &
+                  smoe=smoe(k), smof=smof(k), smog=smog(k))
+                ! smob(k) = rs(k)*oams
 
-                !..Calculate bm_s+1 (th) moment.  Useful for diameter calcs.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(1) &
-                    + sa(4)*tc0*cse(1) + sa(5)*tc0*tc0 &
-                    + sa(6)*cse(1)*cse(1) + sa(7)*tc0*tc0*cse(1) &
-                    + sa(8)*tc0*cse(1)*cse(1) + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)*cse(1)*cse(1)*cse(1)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(1) + sb(4)*tc0*cse(1) &
-                    + sb(5)*tc0*tc0 + sb(6)*cse(1)*cse(1) &
-                    + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
-                smoc(k) = a_ * smo2(k)**b_
+                ! !..All other moments based on reference, 2nd moment.  If bm_s.ne.2,
+                ! !.. then we must compute actual 2nd moment and use as reference.
+                ! if (bm_s.gt.(2.0-1.e-3) .and. bm_s.lt.(2.0+1.e-3)) then
+                !     smo2(k) = smob(k)
+                ! else
+                !     loga_ = sa(1) + sa(2)*tc0 + sa(3)*bm_s &
+                !         + sa(4)*tc0*bm_s + sa(5)*tc0*tc0 &
+                !         + sa(6)*bm_s*bm_s + sa(7)*tc0*tc0*bm_s &
+                !         + sa(8)*tc0*bm_s*bm_s + sa(9)*tc0*tc0*tc0 &
+                !         + sa(10)*bm_s*bm_s*bm_s
+                !     a_ = 10.0**loga_
+                !     b_ = sb(1) + sb(2)*tc0 + sb(3)*bm_s &
+                !         + sb(4)*tc0*bm_s + sb(5)*tc0*tc0 &
+                !         + sb(6)*bm_s*bm_s + sb(7)*tc0*tc0*bm_s &
+                !         + sb(8)*tc0*bm_s*bm_s + sb(9)*tc0*tc0*tc0 &
+                !         + sb(10)*bm_s*bm_s*bm_s
+                !     smo2(k) = (smob(k)/a_)**(1./b_)
+                ! endif
 
-                !..Calculate bm_s+bv_s (th) moment.  Useful for sedimentation.
-                loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(14) &
-                    + sa(4)*tc0*cse(14) + sa(5)*tc0*tc0 &
-                    + sa(6)*cse(14)*cse(14) + sa(7)*tc0*tc0*cse(14) &
-                    + sa(8)*tc0*cse(14)*cse(14) + sa(9)*tc0*tc0*tc0 &
-                    + sa(10)*cse(14)*cse(14)*cse(14)
-                a_ = 10.0**loga_
-                b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(14) + sb(4)*tc0*cse(14) &
-                    + sb(5)*tc0*tc0 + sb(6)*cse(14)*cse(14) &
-                    + sb(7)*tc0*tc0*cse(14) + sb(8)*tc0*cse(14)*cse(14) &
-                    + sb(9)*tc0*tc0*tc0 + sb(10)*cse(14)*cse(14)*cse(14)
-                smod(k) = a_ * smo2(k)**b_
+                ! !..Calculate bm_s+1 (th) moment.  Useful for diameter calcs.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(1) &
+                !     + sa(4)*tc0*cse(1) + sa(5)*tc0*tc0 &
+                !     + sa(6)*cse(1)*cse(1) + sa(7)*tc0*tc0*cse(1) &
+                !     + sa(8)*tc0*cse(1)*cse(1) + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)*cse(1)*cse(1)*cse(1)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(1) + sb(4)*tc0*cse(1) &
+                !     + sb(5)*tc0*tc0 + sb(6)*cse(1)*cse(1) &
+                !     + sb(7)*tc0*tc0*cse(1) + sb(8)*tc0*cse(1)*cse(1) &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)*cse(1)*cse(1)*cse(1)
+                ! smoc(k) = a_ * smo2(k)**b_
+
+                ! !..Calculate bm_s+bv_s (th) moment.  Useful for sedimentation.
+                ! loga_ = sa(1) + sa(2)*tc0 + sa(3)*cse(14) &
+                !     + sa(4)*tc0*cse(14) + sa(5)*tc0*tc0 &
+                !     + sa(6)*cse(14)*cse(14) + sa(7)*tc0*tc0*cse(14) &
+                !     + sa(8)*tc0*cse(14)*cse(14) + sa(9)*tc0*tc0*tc0 &
+                !     + sa(10)*cse(14)*cse(14)*cse(14)
+                ! a_ = 10.0**loga_
+                ! b_ = sb(1)+ sb(2)*tc0 + sb(3)*cse(14) + sb(4)*tc0*cse(14) &
+                !     + sb(5)*tc0*tc0 + sb(6)*cse(14)*cse(14) &
+                !     + sb(7)*tc0*tc0*cse(14) + sb(8)*tc0*cse(14)*cse(14) &
+                !     + sb(9)*tc0*tc0*tc0 + sb(10)*cse(14)*cse(14)*cse(14)
+                ! smod(k) = a_ * smo2(k)**b_
             enddo
 
             !+---+-----------------------------------------------------------------+
