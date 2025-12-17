@@ -220,58 +220,58 @@ module module_mp_tempo_params
     1.e6_wp] !! number bins for IN concentration from \(0.001-1000\, L^{-1}\) \([m^{-3}]\)
   
   ! variables ---------------------------------------------------------------------------------------------
-  integer :: dim_nrhg !! number of dimensions for graupel density
+  integer, protected :: dim_nrhg !! number of dimensions for graupel density
 
-  real(wp), dimension(nrhg) :: av_g = [45.9173813_wp, 67.0867386_wp, 98.0158463_wp, &
+  real(wp), protected, dimension(nrhg) :: av_g = [45.9173813_wp, 67.0867386_wp, 98.0158463_wp, &
     122.353378_wp, 143.204224_wp, 161.794724_wp, &
     178.762115_wp, 194.488785_wp, 209.225876_wp] !! graupel fallspeed power-law coefficients (hail_aware = true)
-  real(wp), dimension(nrhg) :: bv_g = [0.640961647_wp, 0.640961647_wp, 0.640961647_wp, &
+  real(wp), protected, dimension(nrhg) :: bv_g = [0.640961647_wp, 0.640961647_wp, 0.640961647_wp, &
     0.640961647_wp, 0.640961647_wp, 0.640961647_wp, &
     0.640961647_wp, 0.640961647_wp, 0.640961647_wp] !! graupel fallspeed power-law coefficients (hail_aware = true)
     !! @note
     !! av_g and bv_g values from A. Heymsfield: Best - Reynolds relationship
     !! @endnote
 
-  real(wp) :: am_i !! ice mass-diameter power-law coefficient
-  real(wp) :: am_r !! rain mass-diameter power-law coefficient
-  real(wp), dimension (nrhg) :: am_g !! graupel mass-diameter power-law coefficient
-  real(wp) :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
-  real(wp) :: olfus !! 1 / lfus \([kg\, J^{-1}]\)
-  real(wp) :: orv !! 1 / rv \([K\, kg\, J^{-1}]\)
+  real(wp), protected :: am_i !! ice mass-diameter power-law coefficient
+  real(wp), protected :: am_r !! rain mass-diameter power-law coefficient
+  real(wp), protected, dimension (nrhg) :: am_g !! graupel mass-diameter power-law coefficient
+  real(wp), protected :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
+  real(wp), protected :: olfus !! 1 / lfus \([kg\, J^{-1}]\)
+  real(wp), protected :: orv !! 1 / rv \([K\, kg\, J^{-1}]\)
 
-  real(wp) :: sc3 !! schmidt number to the 1/3 power
+  real(wp), protected :: sc3 !! schmidt number to the 1/3 power
 
-  real(wp) :: d0i !! minimum diameter of cloud ice \([m]\)
-  real(wp) :: xm0s !! minimum mass of snow \([kg]\)
-  real(wp) :: xm0g !! minimum mass of graupel \([kg]\)
-  real(wp) :: obmi !! 1 / bm_i
-  real(wp) :: obmr !! 1 / bm_r
-  real(wp) :: oams !! 1 / am_s
-  real(wp) :: obms !! 1 / bm_s
-  real(wp) :: ocms !! oams ^ obms
-  real(wp), dimension(nrhg) :: oamg !! 1 / am_g
-  real(wp), dimension(nrhg) :: ocmg !! oamg ^ obmg
-  real(wp) :: obmg !! 1 / bm_g
+  real(wp), protected :: d0i !! minimum diameter of cloud ice \([m]\)
+  real(wp), protected :: xm0s !! minimum mass of snow \([kg]\)
+  real(wp), protected :: xm0g !! minimum mass of graupel \([kg]\)
+  real(wp), protected :: obmi !! 1 / bm_i
+  real(wp), protected :: obmr !! 1 / bm_r
+  real(wp), protected :: oams !! 1 / am_s
+  real(wp), protected :: obms !! 1 / bm_s
+  real(wp), protected :: ocms !! oams ^ obms
+  real(wp), protected, dimension(nrhg) :: oamg !! 1 / am_g
+  real(wp), protected, dimension(nrhg) :: ocmg !! oamg ^ obmg
+  real(wp), protected :: obmg !! 1 / bm_g
 
   ! various gamma calculations used throughout tempo
-  real(wp), dimension(5,15) :: cce, ccg !! for \(ccg = \Gamma(x)\), cce is x for cloud water
-  real(wp), dimension(15) :: ocg1, ocg2 !! inverse of specific ccg values
-  real(wp), dimension(7) :: cie, cig !! for \(cig = \Gamma(x)\), cie is x for cloud ice
-  real(wp) :: oig1, oig2 !! inverse of specific cig values
-  real(wp), dimension(13) :: cre, crg !! for \(crg = \Gamma(x)\), cre is x for rain
-  real(wp) :: ore1, org1, org2, org3 !! inverse of specific cre and crg values
-  real(wp), dimension(17) :: cse, csg !! for \(csg = \Gamma(x)\), cse is x for snow
-  real(wp), dimension(12,nrhg) :: cge, cgg !! for \(cgg = \Gamma(x)\), cge is x for graupel
-  real(wp) :: oge1, ogg1, ogg2, ogg3 !! inverse of specific cge and cgg values
+  real(wp), protected, dimension(5,15) :: cce, ccg !! for \(ccg = \Gamma(x)\), cce is x for cloud water
+  real(wp), protected, dimension(15) :: ocg1, ocg2 !! inverse of specific ccg values
+  real(wp), protected, dimension(7) :: cie, cig !! for \(cig = \Gamma(x)\), cie is x for cloud ice
+  real(wp), protected :: oig1, oig2 !! inverse of specific cig values
+  real(wp), protected, dimension(13) :: cre, crg !! for \(crg = \Gamma(x)\), cre is x for rain
+  real(wp), protected :: ore1, org1, org2, org3 !! inverse of specific cre and crg values
+  real(wp), protected, dimension(17) :: cse, csg !! for \(csg = \Gamma(x)\), cse is x for snow
+  real(wp), protected, dimension(12,nrhg) :: cge, cgg !! for \(cgg = \Gamma(x)\), cge is x for graupel
+  real(wp), protected :: oge1, ogg1, ogg2, ogg3 !! inverse of specific cge and cgg values
 
   ! precomputed constants in various rate equations
-  real(wp) :: t1_qr_qc, t1_qr_qi, t2_qr_qi !! terms for rain collecting cloud water and cloud ice equations
-  real(wp) :: t1_qs_qc, t1_qs_qi !! terms for snow collecting cloud water and cloud ice equations
-  real(wp) :: t1_qr_ev, t2_qr_ev !! terms for rain evaporation equation
-  real(wp) :: t1_qs_sd, t2_qs_sd !! terms for deposition/sublimation of snow equation
-  real(wp) :: t1_qs_me, t2_qs_me !! terms for melting snow equation
-  real(wp) :: t1_qg_sd !! term for deposition/sublimation of graupel equation
-  real(wp) :: t1_qg_me !! term for melting graupel equation
+  real(wp), protected :: t1_qr_qc, t1_qr_qi, t2_qr_qi !! terms for rain collecting cloud water and cloud ice equations
+  real(wp), protected :: t1_qs_qc, t1_qs_qi !! terms for snow collecting cloud water and cloud ice equations
+  real(wp), protected :: t1_qr_ev, t2_qr_ev !! terms for rain evaporation equation
+  real(wp), protected :: t1_qs_sd, t2_qs_sd !! terms for deposition/sublimation of snow equation
+  real(wp), protected :: t1_qs_me, t2_qs_me !! terms for melting snow equation
+  real(wp), protected :: t1_qg_sd !! term for deposition/sublimation of graupel equation
+  real(wp), protected :: t1_qg_me !! term for melting graupel equation
 
   integer :: nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3, niin2 !! lookup table indexes
   integer :: nic1 !! used for cloud droplet number concentration lookup table
@@ -279,14 +279,14 @@ module module_mp_tempo_params
   !! nic1 should be real(dp)
   !! @endbug
 
-  real(dp), dimension(nbc) :: dc, dtc !! diameter and bin space for cloud water bins \([m]\)
-  real(dp), dimension(nbi) :: di, dti !! diameter and bin space for ice bins \([m]\)
-  real(dp), dimension(nbr) :: dr, dtr !! diameter and bin space for rain bins \([m]\)
-  real(dp), dimension(nbs) :: ds, dts !! diameter and bin space for snow bins \([m]\)
-  real(dp), dimension(nbg) :: dg, dtg !! diameter and bin space for graupel bins \([m]\)
-  real(dp), dimension(nbc) :: t_nc !! cloud droplet number concentration bins \([cm^{-3}]\)
+  real(dp), protected, dimension(nbc) :: dc, dtc !! diameter and bin space for cloud water bins \([m]\)
+  real(dp), protected, dimension(nbi) :: di, dti !! diameter and bin space for ice bins \([m]\)
+  real(dp), protected, dimension(nbr) :: dr, dtr !! diameter and bin space for rain bins \([m]\)
+  real(dp), protected, dimension(nbs) :: ds, dts !! diameter and bin space for snow bins \([m]\)
+  real(dp), protected, dimension(nbg) :: dg, dtg !! diameter and bin space for graupel bins \([m]\)
+  real(dp), protected, dimension(nbc) :: t_nc !! cloud droplet number concentration bins \([cm^{-3}]\)
 
-  ! lookup table data 
+  ! lookup table data set in module_mp_tempo_init and cannot be protected
   real(dp), allocatable, dimension(:,:) :: t_efrw, t_efsw !! collection efficiency data arrays
   real(dp), allocatable, dimension(:,:,:) :: tpc_wev, tnc_wev !! evaporation data arrays
   real(table_sp), allocatable, dimension(:,:,:,:,:) :: tnccn_act !! cloud condensation nuclei data arrays
