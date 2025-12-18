@@ -1,7 +1,7 @@
 module module_mp_tempo_main
 
     use module_mp_tempo_params
-    use module_mp_tempo_utils, only : snow_moments, calc_rslf, calc_rsif
+    use module_mp_tempo_utils, only : snow_moments, calc_rslf, calc_rsif, get_nuc
     ! use module_mp_tempo_init, only : tempo_init_cfgs
 
     implicit none
@@ -109,7 +109,7 @@ module module_mp_tempo_main
         real(wp) :: a_, b_, loga_, a1, a2, tf
         real(wp) :: tempc, tc0, r_mvd1, r_mvd2, xkrat
         real(wp) :: dew_t, tlcl, the
-        real(wp) :: xnc, xri, xni, xmi, oxmi, xrc, xrr, xnr
+        real(wp) :: xri, xni, xmi, oxmi, xrr, xnr, xrc, xnc
         real(wp), dimension(kts:kte) :: xrg, xng, xrb
         real(wp) :: xsat, rate_max, sump, ratio
         real(wp) :: clap, fcd, dfcd
@@ -291,49 +291,49 @@ module module_mp_tempo_main
             mvd_r(k) = D0r
             mvd_c(k) = D0c
 
-            if (qc1d(k) .gt. R1) then
-                no_micro = .false.
-                rc(k) = qc1d(k)*rho(k)
-                nc(k) = max(2., min(nc1d(k)*rho(k), nt_c_max))
-                l_qc(k) = .true.
-                if (nc(k).gt.10000.e6) then
-                    nu_c = 2
-                elseif (nc(k).lt.100.) then
-                    nu_c = 15
-                else
-                    nu_c = nint(nu_c_scale/nc(k)) + 2
-                    rand = 0.0
-                    if (present(rand2)) then
-                        rand = rand2
-                    endif
-                    nu_c = max(2, min(nu_c+nint(rand), 15))
-                endif
-                lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
-                xDc = (bm_r + nu_c + 1.) / lamc
-                if (xDc.lt. D0c) then
-                    lamc = cce(2,nu_c)/D0c
-                elseif (xDc.gt. D0r*2.) then
-                    lamc = cce(2,nu_c)/(D0r*2.)
-                endif
-                nc(k) = min(real(nt_c_max, kind=dp), ccg(1,nu_c)*ocg2(nu_c)*rc(k) / am_r*lamc**bm_r)
-                ! CCPP version has different values of Nt_c for land/ocean
-                if (.not.(    tempo_init_cfgs%aerosolaware_flag .or. merra2_aerosol_aware)) then
-                    nc(k) = Nt_c
-                    if (present(lsml)) then
-                        if (lsml == 1) then
-                            nc(k) = Nt_c_l
-                        else
-                            nc(k) = Nt_c_o
-                        endif
-                    endif
-                endif
-            else
-                qc1d(k) = 0.0
-                nc1d(k) = 0.0
-                rc(k) = R1
-                nc(k) = 2.
-                L_qc(k) = .false.
-            endif
+            ! if (qc1d(k) .gt. R1) then
+            !     no_micro = .false.
+            !     rc(k) = qc1d(k)*rho(k)
+            !     nc(k) = max(2., min(nc1d(k)*rho(k), nt_c_max))
+            !     l_qc(k) = .true.
+            !     if (nc(k).gt.10000.e6) then
+            !         nu_c = 2
+            !     elseif (nc(k).lt.100.) then
+            !         nu_c = 15
+            !     else
+            !         nu_c = nint(nu_c_scale/nc(k)) + 2
+            !         rand = 0.0
+            !         if (present(rand2)) then
+            !             rand = rand2
+            !         endif
+            !         nu_c = max(2, min(nu_c+nint(rand), 15))
+            !     endif
+            !     lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
+            !     xDc = (bm_r + nu_c + 1.) / lamc
+            !     if (xDc.lt. D0c) then
+            !         lamc = cce(2,nu_c)/D0c
+            !     elseif (xDc.gt. D0r*2.) then
+            !         lamc = cce(2,nu_c)/(D0r*2.)
+            !     endif
+            !     nc(k) = min(real(nt_c_max, kind=dp), ccg(1,nu_c)*ocg2(nu_c)*rc(k) / am_r*lamc**bm_r)
+            !     ! CCPP version has different values of Nt_c for land/ocean
+            !     if (.not.(    tempo_init_cfgs%aerosolaware_flag .or. merra2_aerosol_aware)) then
+            !         nc(k) = Nt_c
+            !         if (present(lsml)) then
+            !             if (lsml == 1) then
+            !                 nc(k) = Nt_c_l
+            !             else
+            !                 nc(k) = Nt_c_o
+            !             endif
+            !         endif
+            !     endif
+            ! else
+            !     qc1d(k) = 0.0
+            !     nc1d(k) = 0.0
+            !     rc(k) = R1
+            !     nc(k) = 2.
+            !     L_qc(k) = .false.
+            ! endif
 
             if (qi1d(k) .gt. R1) then
                 no_micro = .false.
@@ -362,34 +362,34 @@ module module_mp_tempo_main
                 L_qi(k) = .false.
             endif
 
-            if (qr1d(k) .gt. R1) then
-                no_micro = .false.
-                rr(k) = qr1d(k)*rho(k)
-                nr(k) = max(R2, nr1d(k)*rho(k))
-                if (nr(k).le. R2) then
-                    mvd_r(k) = 1.0E-3
-                    lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
-                    nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
-                endif
-                L_qr(k) = .true.
-                lamr = (am_r*crg(3)*org2*nr(k)/rr(k))**obmr
-                mvd_r(k) = (3.0 + mu_r + 0.672) / lamr
-                if (mvd_r(k) .gt. 2.5E-3) then
-                    mvd_r(k) = 2.5E-3
-                    lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
-                    nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
-                elseif (mvd_r(k) .lt. D0r*0.75) then
-                    mvd_r(k) = D0r*0.75
-                    lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
-                    nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
-                endif
-            else
-                qr1d(k) = 0.0
-                nr1d(k) = 0.0
-                rr(k) = R1
-                nr(k) = R2
-                L_qr(k) = .false.
-            endif
+            ! if (qr1d(k) .gt. R1) then
+            !     no_micro = .false.
+            !     rr(k) = qr1d(k)*rho(k)
+            !     nr(k) = max(R2, nr1d(k)*rho(k))
+            !     if (nr(k).le. R2) then
+            !         mvd_r(k) = 1.0E-3
+            !         lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
+            !         nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
+            !     endif
+            !     L_qr(k) = .true.
+            !     lamr = (am_r*crg(3)*org2*nr(k)/rr(k))**obmr
+            !     mvd_r(k) = (3.0 + mu_r + 0.672) / lamr
+            !     if (mvd_r(k) .gt. 2.5E-3) then
+            !         mvd_r(k) = 2.5E-3
+            !         lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
+            !         nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
+            !     elseif (mvd_r(k) .lt. D0r*0.75) then
+            !         mvd_r(k) = D0r*0.75
+            !         lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
+            !         nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
+            !     endif
+            ! else
+            !     qr1d(k) = 0.0
+            !     nr1d(k) = 0.0
+            !     rr(k) = R1
+            !     nr(k) = R2
+            !     L_qr(k) = .false.
+            ! endif
             if (qs1d(k) .gt. R1) then
                 no_micro = .false.
                 rs(k) = qs1d(k)*rho(k)
@@ -447,7 +447,10 @@ module module_mp_tempo_main
             !     ! endif
             ! endif
         enddo
-        call compute_graupel_properties(rho, qg1d, ng1d, qb1d, rg, ng, rb, l_qg, idx_bg, qgten, ngten, qbten)
+        call cloud_check_and_update(rho, qc1d, nc1d, rc, nc, l_qc, qcten, ncten)
+        call rain_check_and_update(rho, qr1d, nr1d, rr, nr, l_qr, qrten, nrten)
+        call graupel_check_and_update(rho, qg1d, ng1d, qb1d, rg, ng, rb, l_qg, &
+          idx_bg, qgten, ngten, qbten)
         !     if (debug_flag) then
         !      write(mp_debug,*) 'DEBUG-VERBOSE at (i,j) ', ii, ', ', jj
         !      CALL wrf_debug(550, mp_debug)
@@ -1467,40 +1470,40 @@ module module_mp_tempo_main
                 - pni_wfz(k) - pnc_scw(k) - pnc_gcw(k)) &
                 * orho
 
-            !..Cloud water mass/number balance; keep mass-wt mean size between
-            !.. 1 and 50 microns.  Also no more than Nt_c_max drops total.
-            xrc=max(r1, (qc1d(k) + qcten(k)*dtsave)*rho(k))
-            xnc=max(2., (nc1d(k) + ncten(k)*dtsave)*rho(k))
-            if (xrc .gt. r1) then
-                if (xnc.gt.10000.e6) then
-                    nu_c = 2
-                elseif (xnc.lt.100.) then
-                    nu_c = 15
-                else
-                    nu_c = nint(nu_c_scale/xnc) + 2
-                    rand = 0.0
-                    if (present(rand2)) then
-                        rand = rand2
-                    endif
-                    nu_c = max(2, min(nu_c+nint(rand), 15))
-                endif
-                lamc = (xnc*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
-                xDc = (bm_r + nu_c + 1.) / lamc
-                if (xDc.lt. D0c) then
-                    lamc = cce(2,nu_c)/D0c
-                    xnc = ccg(1,nu_c)*ocg2(nu_c)*xrc/am_r*lamc**bm_r
-                    ncten(k) = (xnc-nc1d(k)*rho(k))*odts*orho
-                elseif (xDc.gt. D0r*2.) then
-                    lamc = cce(2,nu_c)/(D0r*2.)
-                    xnc = ccg(1,nu_c)*ocg2(nu_c)*xrc/am_r*lamc**bm_r
-                    ncten(k) = (xnc-nc1d(k)*rho(k))*odts*orho
-                endif
-            else
-                ncten(k) = -nc1d(k)*odts
-            endif
-            xnc=max(0., (nc1d(k) + ncten(k)*dtsave)*rho(k))
-            if (xnc.gt.Nt_c_max) &
-                ncten(k) = (Nt_c_max-nc1d(k)*rho(k))*odts*orho
+            ! !..Cloud water mass/number balance; keep mass-wt mean size between
+            ! !.. 1 and 50 microns.  Also no more than Nt_c_max drops total.
+            ! xrc=max(r1, (qc1d(k) + qcten(k)*dtsave)*rho(k))
+            ! xnc=max(2., (nc1d(k) + ncten(k)*dtsave)*rho(k))
+            ! if (xrc .gt. r1) then
+            !     if (xnc.gt.10000.e6) then
+            !         nu_c = 2
+            !     elseif (xnc.lt.100.) then
+            !         nu_c = 15
+            !     else
+            !         nu_c = nint(nu_c_scale/xnc) + 2
+            !         rand = 0.0
+            !         if (present(rand2)) then
+            !             rand = rand2
+            !         endif
+            !         nu_c = max(2, min(nu_c+nint(rand), 15))
+            !     endif
+            !     lamc = (xnc*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
+            !     xDc = (bm_r + nu_c + 1.) / lamc
+            !     if (xDc.lt. D0c) then
+            !         lamc = cce(2,nu_c)/D0c
+            !         xnc = ccg(1,nu_c)*ocg2(nu_c)*xrc/am_r*lamc**bm_r
+            !         ncten(k) = (xnc-nc1d(k)*rho(k))*odts*orho
+            !     elseif (xDc.gt. D0r*2.) then
+            !         lamc = cce(2,nu_c)/(D0r*2.)
+            !         xnc = ccg(1,nu_c)*ocg2(nu_c)*xrc/am_r*lamc**bm_r
+            !         ncten(k) = (xnc-nc1d(k)*rho(k))*odts*orho
+            !     endif
+            ! else
+            !     ncten(k) = -nc1d(k)*odts
+            ! endif
+            ! xnc=max(0., (nc1d(k) + ncten(k)*dtsave)*rho(k))
+            ! if (xnc.gt.Nt_c_max) &
+            !     ncten(k) = (Nt_c_max-nc1d(k)*rho(k))*odts*orho
 
             !..Cloud ice mixing ratio tendency
             qiten(k) = qiten(k) + (pri_inu(k) + pri_iha(k) + pri_ihm(k)    &
@@ -1553,26 +1556,26 @@ module module_mp_tempo_main
 
             !..Rain mass/number balance; keep median volume diameter between
             !.. 37 microns (D0r*0.75) and 2.5 mm.
-            xrr=max(R1,(qr1d(k) + qrten(k)*dtsave)*rho(k))
-            xnr=max(R2,(nr1d(k) + nrten(k)*dtsave)*rho(k))
-            if (xrr.gt. R1) then
-                lamr = (am_r*crg(3)*org2*xnr/xrr)**obmr
-                mvd_r(k) = (3.0 + mu_r + 0.672) / lamr
-                if (mvd_r(k) .gt. 2.5E-3) then
-                    mvd_r(k) = 2.5E-3
-                    lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
-                    xnr = crg(2)*org3*xrr*lamr**bm_r / am_r
-                    nrten(k) = (xnr-nr1d(k)*rho(k))*odts*orho
-                elseif (mvd_r(k) .lt. D0r*0.75) then
-                    mvd_r(k) = D0r*0.75
-                    lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
-                    xnr = crg(2)*org3*xrr*lamr**bm_r / am_r
-                    nrten(k) = (xnr-nr1d(k)*rho(k))*odts*orho
-                endif
-            else
-                qrten(k) = -qr1d(k)*odts
-                nrten(k) = -nr1d(k)*odts
-            endif
+            ! xrr=max(R1,(qr1d(k) + qrten(k)*dtsave)*rho(k))
+            ! xnr=max(R2,(nr1d(k) + nrten(k)*dtsave)*rho(k))
+            ! if (xrr.gt. R1) then
+            !     lamr = (am_r*crg(3)*org2*xnr/xrr)**obmr
+            !     mvd_r(k) = (3.0 + mu_r + 0.672) / lamr
+            !     if (mvd_r(k) .gt. 2.5E-3) then
+            !         mvd_r(k) = 2.5E-3
+            !         lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
+            !         xnr = crg(2)*org3*xrr*lamr**bm_r / am_r
+            !         nrten(k) = (xnr-nr1d(k)*rho(k))*odts*orho
+            !     elseif (mvd_r(k) .lt. D0r*0.75) then
+            !         mvd_r(k) = D0r*0.75
+            !         lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
+            !         xnr = crg(2)*org3*xrr*lamr**bm_r / am_r
+            !         nrten(k) = (xnr-nr1d(k)*rho(k))*odts*orho
+            !     endif
+            ! else
+            !     qrten(k) = -qr1d(k)*odts
+            !     nrten(k) = -nr1d(k)*odts
+            ! endif
 
             !..Snow tendency
             qsten(k) = qsten(k) + (prs_iau(k) + prs_sde(k) + prs_sci(k) &
@@ -1650,11 +1653,20 @@ module module_mp_tempo_main
 
         enddo
 
-        ! send temporary arrays to avoid updates to qg1d, ng1d, and qb1d
+        ! send temporary arrays to avoid updates to 1d variables at this point
+        xrg = qc1d
+        xng = nc1d
+        call cloud_check_and_update(rho, xrg, xng, rc, nc, l_qc, qcten, ncten)
+  
+        xrg = qr1d
+        xng = nr1d
+        call rain_check_and_update(rho, xrg, xng, rr, nr, l_qr, qrten, nrten)
+
         xrg = qg1d
         xng = ng1d
         xrb = qb1d
-        call compute_graupel_properties(rho, xrg, xng, xrb, rg, ng, rb, l_qg, idx_bg, qgten, ngten, qbten)
+        call graupel_check_and_update(rho, xrg, xng, xrb, rg, ng, rb, l_qg, &
+          idx_bg, qgten, ngten, qbten)
 
         !=================================================================================================================
         !..Update variables for TAU+1 before condensation & sedimention.
@@ -2603,39 +2615,39 @@ module module_mp_tempo_main
         do k = kts, kte
             t1d(k)  = t1d(k) + tten(k)*DT
             qv1d(k) = max(min_qv, qv1d(k) + qvten(k)*dt)
-            qc1d(k) = qc1d(k) + qcten(k)*dt
-            nc1d(k) = max(2./rho(k), min(nc1d(k) + ncten(k)*dt, nt_c_max))
+            ! qc1d(k) = qc1d(k) + qcten(k)*dt
+            ! nc1d(k) = max(2./rho(k), min(nc1d(k) + ncten(k)*dt, nt_c_max))
             if (tempo_init_cfgs%aerosolaware_flag) then
                 nwfa1d(k) = max(nwfa_default, min(aero_max, (nwfa1d(k)+nwfaten(k)*dt)))
                 nifa1d(k) = max(nifa_default, min(aero_max, (nifa1d(k)+nifaten(k)*dt)))
             endif
-            if (qc1d(k) .le. R1) then
-                qc1d(k) = 0.0
-                nc1d(k) = 0.0
-            else
-                if (nc1d(k)*rho(k).gt.10000.e6) then
-                    nu_c = 2
-                elseif (nc1d(k)*rho(k).lt.100.) then
-                    nu_c = 15
-                else
-                    nu_c = nint(nu_c_scale/(nc1d(k)*rho(k))) + 2
-                    rand = 0.0
-                    if (present(rand2)) then
-                        rand = rand2
-                    endif
-                    nu_c = max(2, min(nu_c+nint(rand), 15))
-                endif
+            ! if (qc1d(k) .le. R1) then
+            !     qc1d(k) = 0.0
+            !     nc1d(k) = 0.0
+            ! else
+            !     if (nc1d(k)*rho(k).gt.10000.e6) then
+            !         nu_c = 2
+            !     elseif (nc1d(k)*rho(k).lt.100.) then
+            !         nu_c = 15
+            !     else
+            !         nu_c = nint(nu_c_scale/(nc1d(k)*rho(k))) + 2
+            !         rand = 0.0
+            !         if (present(rand2)) then
+            !             rand = rand2
+            !         endif
+            !         nu_c = max(2, min(nu_c+nint(rand), 15))
+            !     endif
 
-                lamc = (am_r*ccg(2,nu_c)*ocg1(nu_c)*nc1d(k)/qc1d(k))**obmr
-                xDc = (bm_r + nu_c + 1.) / lamc
-                if (xDc.lt. D0c) then
-                    lamc = cce(2,nu_c)/D0c
-                elseif (xDc.gt. D0r*2.) then
-                    lamc = cce(2,nu_c)/(D0r*2.)
-                endif
-                nc1d(k) = min(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r,&
-                    real(Nt_c_max, kind=dp)/rho(k))
-            endif
+            !     lamc = (am_r*ccg(2,nu_c)*ocg1(nu_c)*nc1d(k)/qc1d(k))**obmr
+            !     xDc = (bm_r + nu_c + 1.) / lamc
+            !     if (xDc.lt. D0c) then
+            !         lamc = cce(2,nu_c)/D0c
+            !     elseif (xDc.gt. D0r*2.) then
+            !         lamc = cce(2,nu_c)/(D0r*2.)
+            !     endif
+            !     nc1d(k) = min(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r,&
+            !         real(Nt_c_max, kind=dp)/rho(k))
+            ! endif
 
             qi1d(k) = qi1d(k) + qiten(k)*DT
             ni1d(k) = max(R2/rho(k), ni1d(k) + niten(k)*DT)
@@ -2653,22 +2665,22 @@ module module_mp_tempo_main
                 endif
                 ni1d(k) = min(cig(1)*oig2*qi1d(k)/am_i*lami**bm_i, max_ni/rho(k))
             endif
-            qr1d(k) = qr1d(k) + qrten(k)*DT
-            nr1d(k) = max(R2/rho(k), nr1d(k) + nrten(k)*DT)
-            if (qr1d(k) .le. R1) then
-                qr1d(k) = 0.0
-                nr1d(k) = 0.0
-            else
-                lamr = (am_r*crg(3)*org2*nr1d(k)/qr1d(k))**obmr
-                mvd_r(k) = (3.0 + mu_r + 0.672) / lamr
-                if (mvd_r(k) .gt. 2.5E-3) then
-                    mvd_r(k) = 2.5E-3
-                elseif (mvd_r(k) .lt. D0r*0.75) then
-                    mvd_r(k) = D0r*0.75
-                endif
-                lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
-                nr1d(k) = crg(2)*org3*qr1d(k)*lamr**bm_r / am_r
-            endif
+            ! qr1d(k) = qr1d(k) + qrten(k)*DT
+            ! nr1d(k) = max(R2/rho(k), nr1d(k) + nrten(k)*DT)
+            ! if (qr1d(k) .le. R1) then
+            !     qr1d(k) = 0.0
+            !     nr1d(k) = 0.0
+            ! else
+            !     lamr = (am_r*crg(3)*org2*nr1d(k)/qr1d(k))**obmr
+            !     mvd_r(k) = (3.0 + mu_r + 0.672) / lamr
+            !     if (mvd_r(k) .gt. 2.5E-3) then
+            !         mvd_r(k) = 2.5E-3
+            !     elseif (mvd_r(k) .lt. D0r*0.75) then
+            !         mvd_r(k) = D0r*0.75
+            !     endif
+            !     lamr = (3.0 + mu_r + 0.672) / mvd_r(k)
+            !     nr1d(k) = crg(2)*org3*qr1d(k)*lamr**bm_r / am_r
+            ! endif
             qs1d(k) = qs1d(k) + qsten(k)*DT
             if (qs1d(k) .le. R1) qs1d(k) = 0.0
             ! qg1d(k) = qg1d(k) + qgten(k)*DT
@@ -2694,7 +2706,11 @@ module module_mp_tempo_main
             ! endif
 
         enddo
-        call compute_graupel_properties(rho, qg1d, ng1d, qg1d, rg, ng, rb, l_qg, idx_bg, qgten, ngten, qbten)
+
+        call cloud_check_and_update(rho, qc1d, nc1d, rc, nc, l_qc, qcten, ncten)
+        call rain_check_and_update(rho, qr1d, nr1d, rr, nr, l_qr, qrten, nrten) 
+        call graupel_check_and_update(rho, qg1d, ng1d, qg1d, rg, ng, rb, l_qg, &  
+          idx_bg, qgten, ngten, qbten)
 
 #if defined(ccpp_default)
         ! Diagnostics
@@ -3302,7 +3318,7 @@ module module_mp_tempo_main
   END SUBROUTINE semi_lagrange_sedim
 
   
-  subroutine compute_graupel_properties(rho, qg1d, ng1d, qb1d, rg, ng, rb, &
+  subroutine graupel_check_and_update(rho, qg1d, ng1d, qb1d, rg, ng, rb, &
       lqg, idx, qgten, ngten, qbten)
     use module_mp_tempo_params, only : r1, r2, nrhg, rho_g, mu_g, &
       am_g, bm_g, ogg3, cgg, ogg2, obmg, d0r, idx_bg1, gonv_max, &
@@ -3327,11 +3343,13 @@ module module_mp_tempo_main
         lqg(k) = .true.
         !update mass
         rg(k) = (qg1d(k)+qgten(k)*global_dt)*rho(k)
-   
+        qg1d(k) = qg1d(k)+qgten(k)*global_dt
+
         !update number and density
         if (present(ng1d) .and. present(qb1d)) then
           ng(k) = max(r2, (ng1d(k)+ngten(k)*global_dt)*rho(k))
-          rb(k) = min(max(rg(k)/rho(k)/rho_g(nrhg), qb1d(k)+qbten(k)*global_dt), rg(k)/rho(k)/rho_g(1))
+          rb(k) = min(max(rg(k)/rho(k)/rho_g(nrhg), &
+            qb1d(k)+qbten(k)*global_dt), rg(k)/rho(k)/rho_g(1))
           qb1d(k) = rb(k)
           idx(k) = max(1, min(nint(rg(k)/rho(k)/rb(k)*0.01_wp)+1, nrhg))
 
@@ -3357,6 +3375,7 @@ module module_mp_tempo_main
             lamg = (3.0_wp + mu_g + 0.672_wp) / mvdg
             ng(k) = cgg(2,1)*ogg3*rg(k)*lamg**bm_g / am_g(idx(k))
           endif
+
           if (hit_limit) ngten(k) = (ng(k)/rho(k) - ng1d(k)) * global_odt
           ng1d(k) = cgg(2,1)*ogg3*qg1d(k)*lamg**bm_g / am_g(idx(k))
           qb1d(k) = min(max(qg1d(k)/rho_g(nrhg), qb1d(k)+qbten(k)*global_dt), qg1d(k)/rho_g(1))
@@ -3370,7 +3389,6 @@ module module_mp_tempo_main
           ng(k) = cgg(2,1)*ogg3*rg(k)*lamg**bm_g / am_g(idx(k))
           rb(k) = rg(k)/rho(k)/rho_g(idx(k))
         endif
-        qg1d(k) = qg1d(k)+qgten(k)*global_dt
       else
         lqg(k) = .false.
         rg(k) = r1
@@ -3387,6 +3405,143 @@ module module_mp_tempo_main
         endif 
       endif
     enddo 
-  end subroutine compute_graupel_properties
+  end subroutine graupel_check_and_update
+
+
+ subroutine cloud_check_and_update(rho, qc1d, nc1d, rc, nc, &
+      lqc, qcten, ncten)
+    use module_mp_tempo_params, only : r1, r2, nt_c_max, nu_c_scale, &
+      am_r, bm_r, cce, ccg, d0c, d0r, ocg1, ocg2, obmr, nt_c_l
+
+    real(wp), dimension(:), intent(in) :: rho
+    real(wp), dimension(:), intent(inout) :: qc1d, qcten, rc, nc
+    real(wp), dimension(:), intent(inout), optional :: nc1d
+    real(wp), dimension(:), intent(inout), optional :: ncten  
+    logical, dimension(:), intent(inout) :: lqc
+    integer :: k, nz, nu_c
+    real(wp) :: mvdc
+    real(dp) :: lamc, xdc
+    logical :: hit_limit
+
+    nz = size(qc1d)
+
+    do k = 1, nz
+      hit_limit = .false.
+      if (qc1d(k)+qcten(k)*global_dt > r1) then
+        lqc(k) = .true.
+        ! update mass
+        rc(k) = (qc1d(k)+qcten(k)*global_dt)*rho(k)
+        qc1d(k) = qc1d(k)+qcten(k)*global_dt
+
+        ! update number
+        if (present(nc1d)) then
+          nc(k) = max(r2, (nc1d(k)+ncten(k)*global_dt)*rho(k))
+          
+          ! number check
+          if (nc(k) <= r2) then
+            hit_limit = .true.
+            nc(k) = r2
+          endif 
+          if (nc(k) > nt_c_max) then
+            hit_limit = .true.
+            nc(k) = nt_c_max
+          endif 
+        
+          ! size check
+          nu_c = get_nuc(nc(k))
+          lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
+          xdc = (bm_r + nu_c + 1._wp) / lamc
+          if (xdc < d0c) then
+            lamc = cce(2,nu_c)/d0c
+            hit_limit = .true.
+          elseif (xDc > d0r*2._wp) then
+            lamc = cce(2,nu_c)/(d0r*2._wp)
+            hit_limit = .true.
+          endif
+          ! update number to be consistent with lamc
+          nc(k) = ccg(1,nu_c)*ocg2(nu_c)*rc(k) / am_r*lamc**bm_r
+
+          if (hit_limit) ncten(k) = (nc(k)/rho(k) - nc1d(k)) * global_odt
+          nc1d(k) = max(r2/rho(k), &
+            min(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r, nt_c_max/rho(k)))
+        else
+          nc(k) = nt_c_l
+        endif
+      else
+        lqc(k) = .false.
+        rc(k) = r1
+        nc(k) = r2
+        qc1d(k) = 0.0_wp
+        if (present(nc1d)) then
+          ncten(k) = -nc1d(k) * global_odt
+          nc1d(k) = 0.0_wp
+        endif 
+      endif
+    enddo
+  end subroutine cloud_check_and_update
+
+
+  subroutine rain_check_and_update(rho, qr1d, nr1d, rr, nr, &
+      lqr, qrten, nrten)
+    use module_mp_tempo_params, only : r1, r2, mu_r, crg, &
+      am_r, bm_r, obmr, d0r, d0r_max, org2, org3
+
+    real(wp), dimension(:), intent(in) :: rho
+    real(wp), dimension(:), intent(inout) :: qr1d, nr1d, qrten, nrten, rr, nr
+    logical, dimension(:), intent(inout) :: lqr
+    integer :: k, nz
+    real(wp) :: mvdr
+    real(dp) :: lamr
+    logical :: hit_limit
+
+    nz = size(qr1d)
+
+      do k = 1, nz
+        hit_limit = .false.
+        if (qr1d(k)+qrten(k)*global_dt > r1) then
+          lqr(k) = .true.
+          ! update mass
+          rr(k) = (qr1d(k)+qrten(k)*global_dt)*rho(k)
+          qr1d(k) = qr1d(k)+qrten(k)*global_dt
+
+          ! update number
+          nr(k) = max(r2, (nr1d(k)+nrten(k)*global_dt)*rho(k))
+
+          ! number check
+          if (nr(k) <= r2) then
+            hit_limit = .true.
+            mvdr = 1.0e-3_wp
+            lamr = (3.0_wp + mu_r + 0.672_wp) / mvdr
+            nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
+          endif
+          
+          ! size check
+          lamr = (am_r*crg(3)*org2*nr(k)/rr(k))**obmr
+          mvdr = (3.0_wp + mu_r + 0.672_wp) / lamr
+          if (mvdr >  d0r_max) then
+            hit_limit = .true.
+            mvdr = d0r_max
+            lamr = (3.0_wp + mu_r + 0.672_wp) / mvdr
+            nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
+          elseif (mvdr < d0r*0.75_wp) then
+            hit_limit = .true.
+            mvdr = d0r*0.75_wp
+            lamr = (3.0_wp + mu_r + 0.672_wp) / mvdr
+            nr(k) = crg(2)*org3*rr(k)*lamr**bm_r / am_r
+          endif
+          ! update number to be consistent with lamc
+          if (hit_limit) nrten(k) = (nr(k)/rho(k) - nr1d(k))*global_odt
+          nr1d(k) = crg(2)*org3*qr1d(k)*lamr**bm_r / am_r
+        else
+          lqr(k) = .false.
+          rr(k) = r1
+          nr(k) = r2
+          qrten(k) = -qr1d(k) * global_odt
+          nrten(k) = -nr1d(k) * global_odt
+          qr1d(k) = 0.0_wp
+          nr1d(k) = 0.0_wp
+        endif
+      enddo
+    end subroutine rain_check_and_update
 
 end module module_mp_tempo_main

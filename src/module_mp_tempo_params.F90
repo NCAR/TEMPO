@@ -78,6 +78,7 @@ module module_mp_tempo_params
   real(wp), parameter :: d0r = 50.e-6_wp !! minimum diameter of raindrops \([m]\)
   real(wp), parameter :: d0s = 300.e-6_wp !! minimum diameter of snow \([m]\)
   real(wp), parameter :: d0g = 350.e-6_wp !! minimum diameter of graupel \([m]\)
+  real(wp), parameter :: d0r_max = 2.5e-3_wp !! maximum diameter of raindrops \([m]\)
 
   real(wp), parameter :: c_cube = 0.5_wp !! capacitance of a sphere \(\left(D^{3}\right)\)
   real(wp), parameter :: c_sqrd = 0.15_wp !! capacitance of plates/aggregates \(\left(D^{2}\right)\)
@@ -110,7 +111,17 @@ module module_mp_tempo_params
   integer, parameter :: nrhg = 9 !! graupel density array size when hail_aware = true
   integer, parameter :: nrhg1 = 1 !! graupel density array size when hail_aware = false
 
+  real(wp), parameter :: min_qv = 1.e-10_wp !! minimum value of water vapor mixing ratio \([kg\, kg^{-1}]\)
+  real(wp), parameter :: r1 = 1.e-12_wp !! minimum hydrometeor mass \([kg\, m^{-3}]\) 
+  real(wp), parameter :: r2 = 1.e-6_wp !! minimum hydrometeor number \([kg\, m^{-3}]\)
+  real(wp), parameter :: eps = 1.e-15_wp !! small non-zero number
+
+  real(dp), parameter :: gonv_min = 1.e2_dp !! minimum graupel y-intercept \([m^{-4}]\)
+  real(dp), parameter :: gonv_max = 1.e6_dp !! maximum graupel y-intercept \([m^{-4}]\)
+
+  real(wp), parameter :: t0 = 273.15_wp !! melting point of ice \([K]\)
   real(wp), parameter :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
+
   real(wp), dimension(nrhg), parameter :: rho_g = [50._wp, 100._wp, 200._wp, 300._wp, 400._wp, &
     500._wp, 600._wp, 700._wp, 800._wp] !! !! densities of graupel when hail_aware = true \([kg\, m^{-3}]\)
 
@@ -305,13 +316,6 @@ module module_mp_tempo_params
     real(wp)            :: Cp2 = 1004.0 ! AAJ change to Cp2
 
     ! ======================================================================
-    ! Minimum microphys values
-    ! R1 value, 1.e-12, cannot be set lower because of numerical
-    ! problems with Paul Field's moments and should not be set larger
-    ! because of truncation problems in snow/ice growth.
-    real(wp), parameter :: R1 = 1.e-12
-    real(wp), parameter :: R2 = 1.e-6
-    real(wp), parameter :: eps = 1.e-15
 
     logical :: merra2_aerosol_aware = .false.
 
@@ -339,7 +343,6 @@ module module_mp_tempo_params
     real(wp) :: Nt_c, mu_c
     real(wp) :: mu_c_o, mu_c_l
 
-    real(wp) :: min_qv = 1.e-10
 #if defined(ccpp_default)
     real(wp), parameter :: demott_nuc_ssati = 0.15 ! 0.15 for CCPP
 #else
@@ -374,13 +377,6 @@ module module_mp_tempo_params
     real(wp), parameter :: Kap1 = 17.46
     real(wp), parameter :: Lam0 = 20.78
     real(wp), parameter :: Lam1 = 3.29
-
-    ! Y-intercept parameter for graupel is not constant and depends on
-    ! mixing ratio.  Also, when mu_g is non-zero, these become equiv
-    ! y-intercept for an exponential distrib and proper values are
-    ! computed based on same mixing ratio and total number concentration.
-    real(dp), parameter :: gonv_min = 1.e2
-    real(dp), parameter :: gonv_max = 1.e6
 
     real(wp), parameter :: a_coeff = 0.47244157
     real(wp), parameter :: b_coeff = 0.54698726
