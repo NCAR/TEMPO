@@ -104,7 +104,7 @@ module module_mp_tempo_init
       table_filename = tempo_table_cfgs%qrqg_table_name
       call initialize_arrays_qr_acr_qg(table_size)
       call read_table_qr_acr_qg(trim(table_filename), table_size)
-      write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
+      write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
     endif
   end subroutine tempo_init
 

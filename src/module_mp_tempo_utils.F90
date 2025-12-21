@@ -4,9 +4,25 @@ module module_mp_tempo_utils
   implicit none
   private
   
-  public :: snow_moments, calc_gamma_p, get_nuc, calc_rslf, calc_rsif
+  public :: snow_moments, calc_gamma_p, get_nuc, get_cloud_number, &
+    calc_rslf, calc_rsif
 
   contains 
+
+  function get_cloud_number(land) result(num)
+    !! returns land-specific value of cloud droplet number concentration
+    !! if land == 1, else returns ocean-specific value
+    use module_mp_tempo_params, only : nt_c_l, nt_c_o
+    
+    integer, intent(in), optional :: land
+    real(wp) :: num
+
+    num = nt_c_l
+    if (present(land)) then
+      if (land /= 1) num = nt_c_o
+    endif 
+  end function
+
 
   function calc_gamma_p(a, x) result(gamma_p)
     !! normalized lower gamma function calculated either with a 
@@ -453,6 +469,7 @@ module module_mp_tempo_utils
     rsif = .622*esi/max(1.e-4_wp,(p-esi))
   end function calc_rsif
 
+
   function get_nuc(nc) result(nu_c)
     !! returns nu_c for cloud water (values from 2-15)
     use module_mp_tempo_params, only : nu_c_scale
@@ -460,7 +477,14 @@ module module_mp_tempo_utils
     real(wp), intent(in) :: nc
     integer :: nu_c
     
-    nu_c = min(15, nint(nu_c_scale/nc) + 2)
+    ! write(*,*) 'in nuc', nu_c_scale, nc, nu_c_scale/nc, nint(nu_c_scale/nc), &
+    !   nint(nu_c_scale/nc) + 2
+
+    if ((nu_c_scale/nc) >= 12.5_wp) then
+      nu_c = 15
+    else
+      nu_c = min(15, nint(nu_c_scale/nc) + 2)
+    endif 
   end function get_nuc
 
 end module module_mp_tempo_utils

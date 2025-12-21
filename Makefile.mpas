@@ -32,7 +32,8 @@ module_mp_tempo_init.o: module_mp_tempo_params.o \
 						module_mp_tempo_utils.o \
 						module_mp_radar.o
 module_mp_tempo_main.o : module_mp_tempo_params.o \
-						 module_mp_tempo_utils.o
+						 module_mp_tempo_utils.o \
+						 module_mp_tempo_diags.o
 module_mp_tempo_diags.o: module_mp_tempo_params.o \
    						 module_mp_radar.o
 module_mp_tempo_driver.o : module_mp_tempo_params.o \

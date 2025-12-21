@@ -3,8 +3,8 @@ module module_mp_tempo_driver
   ! use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
   use module_mp_tempo_params
   ! use module_mp_tempo_utils
-  use module_mp_tempo_diags, only : calc_effectRad, calc_refl10cm, hail_size_diagnostics
-  use module_mp_tempo_main, only : tempo_main
+  ! use module_mp_tempo_diags, only : ty_tempo_diags
+  use module_mp_tempo_main, only : tempo_main, ty_tempo_diags
   use module_mp_tempo_ml, only : predict_number_sub
   ! use module_mp_tempo_init, only : tempo_init_cfgs
 
@@ -13,6 +13,17 @@ module module_mp_tempo_driver
   !use mp_radar
 
   implicit none
+  private
+
+  public :: tempo_driver, ty_tempo_diags_driver
+
+
+  type :: ty_tempo_diags_driver
+    real(wp), allocatable, dimension(:,:,:) :: refl10cm
+    real(wp), allocatable, dimension(:,:,:) :: effrad
+    real(wp), allocatable, dimension(:,:) :: total_liquid_equiv_precipitation
+    real(wp), allocatable, dimension(:,:) :: rain_precipitation
+  end type
 
   contains
 
@@ -27,8 +38,9 @@ module module_mp_tempo_driver
     max_hail_diameter_column, max_hail_diameter_sfc, &
     ids, ide, jds, jde, kds, kde, &
     ims, ime, jms, jme, kms, kme, &
-    its, ite, jts, jte, kts, kte)
+    its, ite, jts, jte, kts, kte, tempo_diags_driver)
 
+    
     real(wp), intent(in) :: dt !! timestep \([s]]\)
     integer, intent(in) :: itimestep !! integer timestep = integration time / dt
     integer, intent(in) :: ids, ide, jds, jde, kds, kde !! domain locations
@@ -104,6 +116,13 @@ module module_mp_tempo_driver
     integer, optional, intent(in) :: do_radar_ref
     character(len=132) :: message
 
+    type(ty_tempo_diags) :: tempo_diags
+    type(ty_tempo_diags_driver) :: tempo_diags_driver
+
+    if (.not. allocated(tempo_diags_driver%rain_precipitation)) then
+        allocate(tempo_diags_driver%rain_precipitation(its:ite, jts:jte), source=0._wp)
+    endif   
+
     i_start = its
     j_start = jts
     i_end = ite
@@ -125,8 +144,8 @@ module module_mp_tempo_driver
           endif
           sr(i,j) = 0.0
 
-          Nt_c = Nt_c_o
-          mu_c = 4
+          !Nt_c = Nt_c_o
+          !mu_c = 4
 
           !=================================================================================================================
           ! Begin k loop
@@ -143,7 +162,7 @@ module module_mp_tempo_driver
               qg1d(k) = qg(i,k,j)
               ni1d(k) = ni(i,k,j)
               nr1d(k) = nr(i,k,j)
-              rho(k) = RoverRv * p1d(k) / (r * t1d(k) * (qv1d(k)+RoverRv))
+              rho(k) = RoverRv * p1d(k) / (rdry * t1d(k) * (qv1d(k)+RoverRv))
 
               sgs_clouds(k) = .false.
               if (present(qcbl) .and. present(cldfrac)) then
@@ -176,7 +195,7 @@ module module_mp_tempo_driver
               if (present(nc)) then
                   nc1d(k) = nc(i,k,j)
               else
-                  nc1d(k) = Nt_c / rho(k)
+                  nc1d(k) = Nt_c_l / rho(k)
                   !configs%aerosol_aware = .false.
               endif
           enddo
@@ -213,7 +232,9 @@ module module_mp_tempo_driver
           ! Main call to the 1D microphysics
           call tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, &
             qg1d=qg1d, qb1d=qb1d, &
-            ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, w1d=w1d, dz1d=dz1d, pptrain=pptrain, pptsnow=pptsnow, pptgraul=pptgraul, pptice=pptice, kts=kts, kte=kte, dt=dt, ii=i, jj=j) !, configs=configs)
+            ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, w1d=w1d, dz1d=dz1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_diags=tempo_diags)
+        
+        ! tempo_diags%ref(i,:,j) = refl1d
 
           ! Compute diagnostics and return output to 3D
           pcp_ra(i,j) = pptrain
@@ -282,6 +303,7 @@ module module_mp_tempo_driver
               ni(i,k,j) = ni1d(k)
               nr(i,k,j) = nr1d(k)
               th(i,k,j) = t1d(k) / pii(i,k,j)
+              ! tempo_diags3d%refl10cm(i,k,j) = tempo_diags1d%refl10cm(k)
 
               if (present(qcbl) .and. present(cldfrac)) then
                   if ((qc1d(k) <= R1) .and. (qcbl1d(k) > 1.e-9) .and. (cldfrac1d(k) > 0.)) then
@@ -328,37 +350,37 @@ module module_mp_tempo_driver
 
           !=================================================================================================================
           ! Reflectivity
-          call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
-              t1d=t1d, p1d=p1d, dBZ=dBZ, kts=kts, kte=kte, ii=i, jj=j) !, configs=configs)
-          do k = kts, kte
-              refl_10cm(i,k,j) = max(-35.0_wp, dBZ(k))
-          enddo
+        !   call calc_refl10cm (qv1d=qv1d, qc1d=qc1d, qr1d=qr1d, nr1d=nr1d, qs1d=qs1d, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, &
+        !       t1d=t1d, p1d=p1d, dBZ=dBZ, kts=kts, kte=kte, ii=i, jj=j) !, configs=configs)
+        !   do k = kts, kte
+        !       refl_10cm(i,k,j) = max(-35.0_wp, dBZ(k))
+        !   enddo
 
-          if ((present(max_hail_diameter_sfc)) .and. (present(max_hail_diameter_column))) then
-              ! Maximium hail size
-              call hail_size_diagnostics(kts=kts, kte=kte, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, qv1d=qv1d, &
-                  qg_max_diam1d=qg_max_diam1d) !, configs=configs)
+        !   if ((present(max_hail_diameter_sfc)) .and. (present(max_hail_diameter_column))) then
+        !       ! Maximium hail size
+        !       call hail_size_diagnostics(kts=kts, kte=kte, qg1d=qg1d, ng1d=ng1d, qb1d=qb1d, t1d=t1d, p1d=p1d, qv1d=qv1d, &
+        !           qg_max_diam1d=qg_max_diam1d) !, configs=configs)
 
-              max_hail_diameter_sfc(i,j) = max(0.0_wp, qg_max_diam1d(kts))
-              max_hail_diameter_column(i,j) = max(0.0_wp, maxval(qg_max_diam1d))
-          endif
+        !       max_hail_diameter_sfc(i,j) = max(0.0_wp, qg_max_diam1d(kts))
+        !       max_hail_diameter_column(i,j) = max(0.0_wp, maxval(qg_max_diam1d))
+        !   endif
 
-          ! Cloud, ice, and snow effective radius
-          if (has_reqc /= 0 .and. has_reqi /= 0 .and. has_reqs /= 0) then
-              do k = kts, kte
-                  re_qc1d(k) = 2.49e-6
-                  re_qi1d(k) = 4.99e-6
-                  re_qs1d(k) = 9.99e-6
-              enddo
-              call calc_effectRad (t1d=t1d, p1d=p1d, qv1d=qv1d, qc1d=qc1d, nc1d=nc1d, qi1d=qi1d, &
-                    ni1d=ni1d, qs1d=qs1d, re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, &
-                    kts=kts, kte=kte) !, configs=configs)
-              do k = kts, kte
-                  re_cloud(i,k,j) = max(2.49e-6, min(re_qc1d(k), 50.e-6))
-                  re_ice(i,k,j)   = max(4.99e-6, min(re_qi1d(k), 125.e-6))
-                  re_snow(i,k,j)  = max(9.99e-6, min(re_qs1d(k), 999.e-6))
-              enddo
-          endif
+        !   ! Cloud, ice, and snow effective radius
+        !   if (has_reqc /= 0 .and. has_reqi /= 0 .and. has_reqs /= 0) then
+        !       do k = kts, kte
+        !           re_qc1d(k) = 2.49e-6
+        !           re_qi1d(k) = 4.99e-6
+        !           re_qs1d(k) = 9.99e-6
+        !       enddo
+        !       call calc_effectRad (t1d=t1d, p1d=p1d, qv1d=qv1d, qc1d=qc1d, nc1d=nc1d, qi1d=qi1d, &
+        !             ni1d=ni1d, qs1d=qs1d, re_qc1d=re_qc1d, re_qi1d=re_qi1d, re_qs1d=re_qs1d, &
+        !             kts=kts, kte=kte) !, configs=configs)
+        !       do k = kts, kte
+        !           re_cloud(i,k,j) = max(2.49e-6, min(re_qc1d(k), 50.e-6))
+        !           re_ice(i,k,j)   = max(4.99e-6, min(re_qi1d(k), 125.e-6))
+        !           re_snow(i,k,j)  = max(9.99e-6, min(re_qs1d(k), 999.e-6))
+        !       enddo
+        !   endif
         enddo
     enddo 
 

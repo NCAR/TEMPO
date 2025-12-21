@@ -103,6 +103,12 @@ module module_mp_tempo_params
   real(wp), parameter :: nwfa_default = 11.1e6_wp !! default value for water-friendly aerosols
   real(wp), parameter :: nifa_default = nain1*0.01_wp !! default value for ice-friendly aerosols
   real(wp), parameter :: aero_max = 9999.e6_wp !! maximum aerosol value
+  real(wp), parameter :: hgfrz = 235.16_wp
+
+  real(wp), parameter :: nt_c_o = 50.e6_wp
+  real(wp), parameter :: nt_c_l = 100.e6_wp
+  real(wp), parameter :: nt_c_max = 1999.e6_wp
+  real(wp), parameter :: nt_c_min = 2._wp
 
   ! parameters that should NOT be changed -----------------------------------------------------------------
   integer, parameter :: table_sp = real32 !! precision for lookup tables (machine independent)
@@ -132,8 +138,35 @@ module module_mp_tempo_params
   real(wp) :: lsub = 2.834e6_wp !! enthalpy of sublimation \([J\, kg^{-1}]\)
   real(wp) :: lvap0 = 2.5e6_wp !! enthalpy of vaporization \([J\, kg^{-1}]\)
   real(wp) :: rv = 461.5_wp !! gas constant for water vapor \([J\, K^{-1}\, kg^{-1}]\)
+  real(wp) :: rdry = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
+  real(wp) :: roverrv = 0.622_wp !! dry gas constant divided by water vapor gas constant
   real(wp) :: r = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
-  
+  real(wp) :: rho_not
+  real(wp) :: rho_not0
+  real(wp) :: cp = 1004.0_wp
+
+    real(wp), parameter :: kap0 = 490.6_wp
+    real(wp), parameter :: kap1 = 17.46_wp
+    real(wp), parameter :: lam0 = 20.78_wp
+    real(wp), parameter :: lam1 = 3.29_wp
+    real(wp), parameter :: demott_nuc_ssati = 0.25
+    real(dp), parameter :: max_ni = 4999.e3
+    real(wp), parameter :: icenuc_max = 1000.e3
+    real(wp), parameter :: rime_threshold = 2.0 ! For MPAS
+    real(wp), parameter :: rime_conversion = 0.95 ! For MPAS
+    real(wp), parameter :: fv_r = 195.0
+    real(wp) :: rho_s = 100.0
+    real(wp), parameter :: av_c = 0.316946e8
+    real(wp), parameter :: a_coeff = 0.47244157
+    real(wp), parameter :: b_coeff = 0.54698726
+    real(wp), parameter :: av_i = 1493.9
+    real(wp), parameter :: Ef_si = 0.05
+    real(wp), parameter :: Ef_rs = 0.95
+    real(wp), parameter :: Ef_rg = 0.75
+    real(wp), parameter :: Ef_ri = 0.95
+
+
+
   ! lookup table dimensions
   integer, parameter :: nbins = 100 !! lookup table dimension (number of bins)
   integer, parameter :: nbc = nbins !! lookup table dimension for cloud water
@@ -229,7 +262,32 @@ module module_mp_tempo_params
     1.e4_wp,2.e4_wp,3.e4_wp,4.e4_wp,5.e4_wp,6.e4_wp,7.e4_wp,8.e4_wp,9.e4_wp, &
     1.e5_wp,2.e5_wp,3.e5_wp,4.e5_wp,5.e5_wp,6.e5_wp,7.e5_wp,8.e5_wp,9.e5_wp, &
     1.e6_wp] !! number bins for IN concentration from \(0.001-1000\, L^{-1}\) \([m^{-3}]\)
-  
+      
+  ! Aerosol table parameter: Number of available aerosols, vertical
+  ! velocity, temperature, aerosol mean radius, and hygroscopicity.
+  real(wp), dimension(ntb_arc), parameter :: &
+      ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)
+  real(wp), dimension(ntb_arw), parameter :: &
+      ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)
+  real(wp), dimension(ntb_art), parameter :: &
+      ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
+  real(wp), dimension(ntb_arr), parameter :: &
+      ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
+  real(wp), dimension(ntb_ark), parameter :: &
+      ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
+
+  ! For snow moments conversions (from Field et al. 2005)
+  real(wp), dimension(10), parameter :: &
+      sa = (/ 5.065339, -0.062659, -3.032362, 0.029469, -0.000285, &
+      0.31255, 0.000204, 0.003199, 0.0, -0.015952/)
+  real(wp), dimension(10), parameter :: &
+      sb = (/ 0.476221, -0.015896, 0.165977, 0.007468, -0.000141, &
+      0.060366, 0.000079, 0.000594, 0.0, -0.003577/)
+
+  ! Temperatures (5 C interval 0 to -40) used in lookup tables.
+  real(wp), dimension(ntb_t), parameter :: &
+      tc = (/-0.01, -5., -10., -15., -20., -25., -30., -35., -40./)
+
   ! variables ---------------------------------------------------------------------------------------------
   integer, protected :: dim_nrhg !! number of dimensions for graupel density
 
@@ -249,6 +307,7 @@ module module_mp_tempo_params
   real(wp), protected :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
   real(wp), protected :: olfus !! 1 / lfus \([kg\, J^{-1}]\)
   real(wp), protected :: orv !! 1 / rv \([K\, kg\, J^{-1}]\)
+  real(wp), protected :: ar_volume !! volume for Koop nucleation
 
   real(wp), protected :: sc3 !! schmidt number to the 1/3 power
 
@@ -285,7 +344,8 @@ module module_mp_tempo_params
   real(wp), protected :: t1_qg_me !! term for melting graupel equation
 
   integer :: nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3, niin2 !! lookup table indexes
-  integer :: nic1 !! used for cloud droplet number concentration lookup table
+  ! integer :: nic1 !! used for cloud droplet number concentration lookup table
+  real(dp) :: nic1 !! used for cloud droplet number concentration lookup table
   !! @bug
   !! nic1 should be real(dp)
   !! @endbug
@@ -308,223 +368,7 @@ module module_mp_tempo_params
     tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2 !! rain-snow collection data arrays
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qcfz, tni_qcfz !! cloud droplet freezing data arrays
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz !! rain freezing data arrays
-  real(table_dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data arrays
-
-    ! vars for the microphysics driver ------------------------------------------------------------------------
-
-    real(wp)            :: RoverRv = 0.622
-    real(wp)            :: Cp2 = 1004.0 ! AAJ change to Cp2
-
-    ! ======================================================================
-
-    logical :: merra2_aerosol_aware = .false.
-
-    ! Hail-aware microphysics options
-    integer :: dimNRHG
-
-    ! Densities of rain, graupel, and cloud ice.
-    real(wp), parameter :: rho_w2 = 1000.0 ! Change to rho_w2 to solve MPAS same var name conflict
-
-    real(wp) :: t1_qg_qc, t2_qg_sd, t2_qg_me
-
-    !=================================================================================================================
-    ! Parameters needed by the microphysics driver
-
-    ! Prescribed number of cloud droplets.  Set according to known data or
-    ! roughly 100 per cc (100.e6 m^-3) for Maritime cases and
-    ! 300 per cc (300.e6 m^-3) for Continental.  Gamma shape parameter,
-    ! mu_c, calculated based on Nt_c is important in autoconversion
-    ! scheme.  In 2-moment cloud water, Nt_c represents a maximum of
-    ! droplet concentration and nu_c is also variable depending on local
-    ! droplet number concentration.
-    real(wp), parameter :: Nt_c_o = 50.e6
-    real(wp), parameter :: Nt_c_l = 100.e6
-    real(wp), parameter :: Nt_c_max = 1999.e6
-    real(wp) :: Nt_c, mu_c
-    real(wp) :: mu_c_o, mu_c_l
-
-#if defined(ccpp_default)
-    real(wp), parameter :: demott_nuc_ssati = 0.15 ! 0.15 for CCPP
-#else
-    real(wp), parameter :: demott_nuc_ssati = 0.25
-#endif
-    ! Declaration of constants for assumed CCN/IN aerosols when none in
-    ! the input data.  Look inside the init routine for modifications
-    ! due to surface land-sea points or vegetation characteristics.
-    real(dp), parameter :: max_ni = 4999.e3
-    real(wp), parameter :: icenuc_max = 1000.e3
-    
-    real(wp), parameter :: rime_threshold = 2.0 ! For MPAS
-    real(wp), parameter :: rime_conversion = 0.95 ! For MPAS
-
-    real(wp), parameter :: fv_r = 195.0
-    real(wp) :: rho_s2 = 100.0 ! AAJ change to rho_s2 to solve MPAS same var name conflict
-    real(wp), parameter :: av_c = 0.316946e8
-
-    logical, parameter :: iiwarm = .false.
-    logical, parameter :: dustyIce = .true.
-    logical, parameter :: homogIce = .true.
-
-    integer, parameter :: IFDRY = 0
-    real(wp)           :: T_0 = 273.15
-
-    ! Sum of two gamma distrib for snow (Field et al. 2005).
-    ! N(D) = M2**4/M3**3 * [Kap0*exp(-M2*Lam0*D/M3)
-    !      + Kap1*(M2/M3)**mu_s * D**mu_s * exp(-M2*Lam1*D/M3)]
-    ! M2 and M3 are the (bm_s)th and (bm_s+1)th moments respectively
-    ! calculated as function of ice water content and temperature.
-    real(wp), parameter :: Kap0 = 490.6
-    real(wp), parameter :: Kap1 = 17.46
-    real(wp), parameter :: Lam0 = 20.78
-    real(wp), parameter :: Lam1 = 3.29
-
-    real(wp), parameter :: a_coeff = 0.47244157
-    real(wp), parameter :: b_coeff = 0.54698726
-
-#if defined(ccpp_default)
-    real(wp) :: av_i
-#else
-    real(wp), parameter :: av_i = 1493.9
-#endif
-
-    ! Collection efficiencies.  Rain/snow/graupel collection of cloud
-    ! droplets use variables (Ef_rw, Ef_sw, Ef_gw respectively) and
-    ! get computed elsewhere because they are dependent on stokes
-    ! number.
-    real(wp), parameter :: Ef_si = 0.05
-    real(wp), parameter :: Ef_rs = 0.95
-    real(wp), parameter :: Ef_rg = 0.75
-    real(wp), parameter :: Ef_ri = 0.95
-
-    ! Constants in Cooper curve relation for cloud ice number.
-    real(wp), parameter :: TNO = 5.0
-    real(wp), parameter :: ATO = 0.304
-
-    ! Rho_not used in fallspeed relations (rho_not/rho)**.5 adjustment.
-    real(wp), parameter :: rho_not = 101325.0 / (287.05*298.0)
-
-    ! Homogeneous freezing temperature
-    real(wp), parameter :: HGFR = 235.16
-
-    real(wp)            :: R_uni = 8.314                           ! J (mol K)-1
-
-    real(dp)            :: k_b = 1.38065e-23                ! Boltzmann constant [J/K]
-    real(dp)            :: M_w = 18.01528e-3                ! molecular mass of water [kg/mol]
-    real(dp)            :: M_a = 28.96e-3                   ! molecular mass of air [kg/mol]
-    real(dp)            :: N_avo = 6.022e23                 ! Avogadro number [1/mol]
-    real(dp)            :: ma_w                             ! mass of water molecule [kg] (= M_w / N_avo, set in mp_tempo_params_init)
-    real(wp)            :: ar_volume                        ! assume radius of 0.025 micrometer, 2.5e-6 cm (= 4.0 / 3.0 * PI * (2.5e-6)**3, set in mp_tempo_params_init)
-
-    ! Aerosol table parameter: Number of available aerosols, vertical
-    ! velocity, temperature, aerosol mean radius, and hygroscopicity.
-    real(wp), dimension(ntb_arc), parameter :: &
-        ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)
-    real(wp), dimension(ntb_arw), parameter :: &
-        ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)
-    real(wp), dimension(ntb_art), parameter :: &
-        ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
-    real(wp), dimension(ntb_arr), parameter :: &
-        ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
-    real(wp), dimension(ntb_ark), parameter :: &
-        ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
-
-    ! For snow moments conversions (from Field et al. 2005)
-    real(wp), dimension(10), parameter :: &
-        sa = (/ 5.065339, -0.062659, -3.032362, 0.029469, -0.000285, &
-        0.31255, 0.000204, 0.003199, 0.0, -0.015952/)
-    real(wp), dimension(10), parameter :: &
-        sb = (/ 0.476221, -0.015896, 0.165977, 0.007468, -0.000141, &
-        0.060366, 0.000079, 0.000594, 0.0, -0.003577/)
-
-    ! Temperatures (5 C interval 0 to -40) used in lookup tables.
-    real(wp), dimension(ntb_t), parameter :: &
-        Tc = (/-0.01, -5., -10., -15., -20., -25., -30., -35., -40./)
-
-#if defined(ccpp_default)
-    ! To permit possible creation of new lookup tables as variables expand/change,
-    ! specify a name of external file(s) including version number for pre-computed
-    ! Thompson tables.
-    character(len=*), parameter :: thomp_table_file = 'thompson_tables_precomp_v2.sl'
-    character(len=*), parameter :: qr_acr_qg_file = 'MP_TEMPO_QRacrQG.dat'
-    character(len=*), parameter :: qr_acr_qg_hailaware_file = 'MP_TEMPO_HAILAWARE_QRacrQG.dat'
-    character(len=*), parameter :: qr_acr_qs_file = 'MP_TEMPO_QRacrQS.dat'
-    character(len=*), parameter :: freeze_h2o_file = 'MP_TEMPO_freezeH2O.dat'
-
-    ! Min and max radiative effective radius of cloud water, cloud ice, and snow;
-    ! performed by subroutine calc_effectRad. On purpose, these should stay PUBLIC.
-    real(wp), parameter :: re_qc_min = 2.50e-6               ! 2.5 microns
-    real(wp), parameter :: re_qc_max = 50.0e-6               ! 50 microns
-    real(wp), parameter :: re_qi_min = 2.50e-6               ! 2.5 microns
-    real(wp), parameter :: re_qi_max = 125.0e-6              ! 125 microns
-    real(wp), parameter :: re_qs_min = 5.00e-6               ! 5 microns
-    real(wp), parameter :: re_qs_max = 999.0e-6              ! 999 microns (1 mm)
-
-    ! MPI communicator
-    ! type(MPI_Comm) :: mpi_communicator
-
-    ! Write tables with master MPI task after computing them in tempo_init
-    logical :: thompson_table_writer
-#endif
-
-    ! ML data
-    integer, parameter :: nc_ml_input = 7
-    integer, parameter :: nc_ml_nodes = 24
-    integer, parameter :: nc_ml_output = 1
-
-    integer, parameter :: nr_ml_input = 7
-    integer, parameter :: nr_ml_nodes = 24
-    integer, parameter :: nr_ml_output = 1
-
-    real(wp), dimension(nc_ml_input), parameter :: &
-         nc_ml_trans_mean = (/0.000191556196486247, 3.58145042772654e-05, &
-         3.12611085359273e-07, 5.74303078738579e-05, 84191.2092225319, &
-         279.070551773565, 0.123679354084004/)
-    real(wp), dimension(nc_ml_input), parameter :: &
-         nc_ml_trans_var = (/5.78143564171777e-08, 3.22834309750552e-08, &
-         6.45745893307455e-11, 4.16625579383794e-08, 215694631.771185, &
-         94.6576255386858, 0.384841247662964/)
-
-    real(wp), dimension(nc_ml_input * nc_ml_nodes), parameter :: &
-         nc_ml_w00 = (/-2.006957, -0.2812008, -0.339073, 1.596426, 2.395225, 1.76315, &
-         -0.0626798, 1.267002, -0.02234177, -6.522605e-33, 0.4792154, -0.1253034, &
-         -3.217191, -3.092887, -0.0863651, 1.071625, 0.09741028, 0.2255831, &
-         -0.6929023, -0.02693799, -3.432344e-33, -0.8791879, -0.9359049, 1.083484, &
-         -0.07909214, -0.0122418, -0.02815927, 0.1676407, 0.08252326, 0.6697816, &
-         -0.4019359, 0.4687141, 0.001813132, -9.792186e-33, 0.0409322, 0.0113192, &
-         -0.01354596, 0.00307771, -0.4635534, 0.03835761, -0.1015553, 0.7316446, &
-         -0.05791711, -0.0002690362, -7.920147e-33, -0.1216918, -0.3190572, 0.09809405, &
-         -0.16476, -0.03387314, 0.005422261, 0.04043967, 0.03901243, 0.07444729, &
-         0.01954299, 0.06918761, 0.04823543, -8.637957e-33, 0.06371575, -0.09250915, &
-         -1.109653, -1.373999, -0.2412623, -0.04482195, 0.1584691, 0.06353725, &
-         0.0006248798, 0.04593191, -8.878673e-33, -0.4988684, 0.01110262, 0.04623203, &
-         0.006581791, 0.03536217, -0.1890567, -0.08839592, 0.1327181, 0.03478973, &
-         -0.1565902, -0.100401, -0.1179777, -8.879818e-33, -0.1383738, 0.02847495, &
-         -0.005902881, 0.005615512, -0.6308192, -0.02431803, -0.141971, -0.3490018, &
-         -0.9850957, -0.1449479, -8.059166e-33, -0.1186465, -1.165381, 0.069015, &
-         0.003388841, -0.04041302, 0.1638467, 0.1147008, -0.04833491, -0.07755993, &
-         -0.5137688, 0.04546477, 0.04101883, 6.752353e-33, 0.3541977, 0.04880851, &
-         -0.00102834, -0.01280629, -0.1116254, -0.02204754, 0.07100908, 0.2354002, &
-         0.07129629, 0.2489657, 8.080785e-33, -0.03449865, 0.06037927, -0.02023619, &
-         0.7779589, 0.04680278, 0.7492616, 0.6545208, -1.09497, -1.176524, &
-         -0.451585, 0.881124, -0.4551499, -8.708624e-33, 1.006558, -0.04979523, &
-         -0.0006915367, -0.002993054, 0.01654614, -0.07141764, -0.2216591, 0.8637336, &
-         0.8358089, -0.7576646, 8.186339e-33, 0.1161914, 0.7121871, -1.146734, &
-         0.03925339, 0.9975697, -0.06953461, -0.07598846, -0.06418022, -0.01897495, &
-         -0.03612464, -0.06703389, -0.103049, 9.364858e-33, -0.03949085, 1.005938, &
-         0.0001625419, -0.01027657, 0.03823901, 0.3197246, -0.1160718, 0.04449431, &
-         0.009831783, 0.6551342, -8.470687e-33, 0.1374123, -0.01782138, 0.01719949/)
-    real(wp), dimension(nc_ml_nodes), parameter :: &
-         nc_ml_w01 = (/-4.045869, 0.558111, -1.567351, -1.64972, 2.748608, &
-         -1.909901, 0.3955558, 1.507247, 0.3599722, -0.0001173223, -0.9398569, &
-         -0.6867028, -61.72853, -63.13766, 1.165811, -0.6848684, 0.1931683, &
-         1.1208, 2.63087, 0.740169, -21.62499, 1.545568, 3.575141, -1.299604/)
-    real(wp), dimension(nc_ml_nodes), parameter :: &
-         nc_ml_b00 = (/-0.9842531, 0.3064759, -0.4500185, 1.28336, 1.384105, 0.528031, &
-         0.8453538, 1.579872, 2.245679, -0.008679952, 0.4549862, -0.136581, &
-         -2.576741, -2.483647, -0.2089484, 0.7607977, 1.847745, 0.7316047, &
-         -0.287945, 2.227298, -2.314714, -0.2561245, -0.6993448, -0.1359731/)
-    real(wp), dimension(nc_ml_output), parameter :: &
-         nc_ml_b01 = (/1.572826/)
+  real(table_dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data array
     
   ! -------------------------------------------------------------------------------------------------------
   ! -------------------------------------------------------------------------------------------------------
@@ -562,15 +406,15 @@ module module_mp_tempo_params
       pi * rho_g(7) / 6.0_wp, &
       pi * rho_g(8) / 6.0_wp, &
       pi * rho_g(9) / 6.0_wp]
-#if defined(ccpp_default)
-    av_i = av_s * d0s ** (bv_s - bv_i)
-#endif
-    ma_w = m_w / n_avo  
+      !!  av_i = av_s * d0s ** (bv_s - bv_i)
+    ! ma_w = m_w / n_avo  
     ar_volume = 4.0_wp / 3.0_wp * pi * (2.5e-6_wp)**3
 
     lfus = lsub - lvap0
     olfus = 1.0_wp / lfus
     orv = 1.0_wp / rv
+    rho_not = 101325.0 / (rdry*298.0)
+    rho_not0 = 101325.0 / (rdry*t0)
 
     ! Schmidt number to one-third used numerous times
     sc3 = sc**(1.0_wp/3.0_wp)

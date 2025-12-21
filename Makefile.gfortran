@@ -115,8 +115,11 @@ $(unittest_dir)/test_tempo_utils_suite.o: $(src_dir)/module_mp_tempo_params.o
 $(unittest_dir)/test_tempo_utils_suite.o: $(src_dir)/module_mp_tempo_utils.o
 $(unittest_dir)/test_tempo_init_suite.o: $(src_dir)/module_mp_tempo_params.o
 $(unittest_dir)/test_tempo_init_suite.o: $(src_dir)/module_mp_tempo_init.o
+$(unittest_dir)/test_tempo_main_suite.o: $(src_dir)/module_mp_tempo_params.o
+$(unittest_dir)/test_tempo_main_suite.o: $(src_dir)/module_mp_tempo_main.o
 $(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_utils_suite.o
 $(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_init_suite.o
+$(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_main_suite.o
 
 clean:
 	rm -rf $(src_dir)/*.o $(src_dir)/*.mod $(test_dir)/*.o $(test_dir)/*.mod $(unittest_dir)/*.o $(unittest_dir)/*.mod $(tools_dir)/*.o $(tools_dir)/*.mod $(tempo_lib) $(unittest_exe) $(tempotest_exe) $(tables_exe)

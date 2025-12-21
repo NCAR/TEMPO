@@ -3,6 +3,7 @@ program run_unit_tests
   use testdrive, only : run_testsuite, new_testsuite, testsuite_type
   use test_tempo_utils_suite, only : collect_tempo_utils_suite
   use test_tempo_init_suite, only : collect_tempo_init_suite
+  use test_tempo_main_suite, only : collect_tempo_main_suite
   implicit none
   integer :: stat, is
   type(testsuite_type), allocatable :: testsuites(:)
@@ -12,7 +13,8 @@ program run_unit_tests
 
   testsuites = [ &
     new_testsuite("tempo_utils_suite", collect_tempo_utils_suite), &
-    new_testsuite("tempo_init_suite", collect_tempo_init_suite) &
+    new_testsuite("tempo_init_suite", collect_tempo_init_suite), &
+    new_testsuite("tempo_main_suite", collect_tempo_main_suite) &
     ]
 
   do is = 1, size(testsuites)
