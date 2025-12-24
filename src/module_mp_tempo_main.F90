@@ -3,7 +3,7 @@ module module_mp_tempo_main
   use module_mp_tempo_params, only : wp, sp, dp, &
     min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g
   use module_mp_tempo_utils, only : get_nuc, get_cloud_number, snow_moments, calc_rslf, calc_rsif
-  use module_mp_tempo_diags, only : reflectivity_10cm
+  use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius
   implicit none
   private
 
@@ -18,10 +18,15 @@ module module_mp_tempo_main
   real(wp) :: global_dt, global_inverse_dt
 
   type :: ty_tempo_main_diags
-    real(wp) :: rain_precipitation
-    real(wp) :: ice_liquid_equiv_precipitation
-    real(wp) :: snow_liquid_equiv_precipitation
-    real(wp), dimension(:), allocatable :: reflectivity
+    real(wp) :: rain_precip
+    real(wp) :: ice_precip
+    real(wp) :: snow_precip
+    real(wp) :: graupel_precip
+    real(wp) :: frozen_frac
+    real(wp), dimension(:), allocatable :: refl
+    real(wp), dimension(:), allocatable :: re_qc
+    real(wp), dimension(:), allocatable :: re_qi
+    real(wp), dimension(:), allocatable :: re_qs
   end type
 
   type :: ty_tend
@@ -53,13 +58,13 @@ module module_mp_tempo_main
   contains
 
   subroutine tempo_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
-    nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, kts, kte, dt, itimestep, ii, jj, tempo_main_diags)
+    nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, kts, kte, dt, ii, jj, tempo_main_diags)
 
     type(ty_tend) :: tend
     type(ty_tempo_main_diags), intent(out) :: tempo_main_diags
     type(ty_process_flag) :: process_flag
 
-    integer, intent(in) :: kts, kte, ii, jj, itimestep
+    integer, intent(in) :: kts, kte, ii, jj
     real(wp), intent(in) :: dt
     real(wp), dimension(kts:kte), intent(inout) :: t1d !! 1D temperature \([K]\)
     real(wp), dimension(kts:kte), intent(in) :: p1d !! 1D pressure \([Pa]\)
@@ -79,13 +84,6 @@ module module_mp_tempo_main
     real(wp), dimension(kts:kte), intent(in) :: w1d !! 1D vertical velocity \(m\; s^{-1}]\)
     real(wp), dimension(kts:kte), intent(in) :: dz1d !! 1D vertical grid spacing \([m]\)
 
-    ! real(wp), intent(inout) :: pptrain, pptsnow, pptgraul, pptice
-    ! integer, intent(in), optional :: lsml
-    ! real(wp), intent(in), optional :: rand1, rand2, rand3
-    ! real(wp), dimension(:), intent(out), optional :: pfil1, pfll1
-    ! integer, intent(in), optional :: decfl
-
-    real(wp), dimension(kts:kte) :: pfll
     real(wp), dimension(kts:kte) :: tten, qvten, qcten, qiten, qrten, qsten, &
       qgten, qbten, niten, nrten, ncten, ngten, nwfaten, nifaten !! tendencies
 
@@ -116,7 +114,7 @@ module module_mp_tempo_main
 
     logical :: do_micro, supersaturated, semi_sedi
     logical, save :: main_called = .false.
-    real(wp) :: tempc, tc0, temp_precip
+    real(wp) :: tempc, tc0
     integer :: k, nz
     integer :: nu_c
 
@@ -241,7 +239,6 @@ module module_mp_tempo_main
       smoz(k) = 0._dp
       ns(k) = 0._dp
       vtboost(k) = 1._wp
-      pfll(k) = 0.
     enddo
 
     ! fallspeeds and sedimentation
@@ -263,7 +260,6 @@ module module_mp_tempo_main
       qv(k) = max(min_qv, qv1d(k))
       pres(k) = p1d(k)
       rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
-      ! write(*,*) k, temp(k)-t0
     enddo
     
     qsave = qc1d
@@ -392,7 +388,7 @@ module module_mp_tempo_main
 
     ! update aerosols here
 
-    ! if (process_flag%cloud_condensation) then
+    if (process_flag%cloud_condensation) then
       call cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
         nwfa, qv, qvs, l_qc, rc, nc, tend)
 
@@ -423,7 +419,7 @@ module module_mp_tempo_main
       call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
       supersaturated)
-    ! endif 
+    endif 
 
     if (process_flag%rain_evaporation) then
       call rain_evaporation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
@@ -458,44 +454,33 @@ module module_mp_tempo_main
     if (any(l_qr)) then
       call rain_fallspeed(rhof, l_qr, rr, ilamr, dz1d, vtrr, vtnr, substeps, kvt)
       if (semi_sedi) then 
-
-        ! xrx = rr
-        ! xnx = nr
-        ! call semi_lagrange_sedim(nz,dz1d,vtrr,rr,tempo_main_diags%rain_precipitation,pfll,global_dt,R1)
-        ! call semi_lagrange_sedim(nz,dz1d,vtnr,nr,tempo_main_diags%rain_precipitation,pfll,global_dt,R2)
-        
-        ! do k = 1, nz
-        !   qrten(k) = qrten(k) + (rr(k) - xrx(k)) * global_inverse_dt / rho(k)
-        !   nrten(k) = nrten(k) + (nr(k) - xnx(k)) * global_inverse_dt / rho(k)
-        ! enddo 
-
-        call semilagrangian_sedimentation(itimestep, dz1d, rho, rr, qrten, vtrr, substeps, &
-          tempo_main_diags%rain_precipitation)
-        call semilagrangian_sedimentation(itimestep, dz1d, rho, nr, nrten, vtnr, substeps)
+        call semilagrangian_sedimentation(dz1d, rho, rr, qrten, vtrr, substeps, &
+          tempo_main_diags%rain_precip)
+        call semilagrangian_sedimentation(dz1d, rho, nr, nrten, vtnr, substeps)
       else  
         call sedimentation(rr, vtrr, dz1d, rho, qrten, r1, kvt, substeps, &
-          tempo_main_diags%rain_precipitation)
+          tempo_main_diags%rain_precip)
         call sedimentation(nr, vtnr, dz1d, rho, nrten, r2, kvt, substeps)
       endif 
     endif 
    
-
-
     kvt = 1
     substeps = 1
     if (any(l_qs)) then
       call snow_fallspeed(rhof, l_qs, rs, tend%prr_sml, smob, smoc, rr, vtrr, &
         dz1d, vtrs, vtboost, substeps, kvt)
       call sedimentation(rs, vtrs, dz1d, rho, qsten, r1, kvt, substeps, &
-        tempo_main_diags%snow_liquid_equiv_precipitation)
+        tempo_main_diags%snow_precip)
     endif 
 
     kvt = 1
     substeps = 1
     if (any(l_qg)) then
-      call graupel_fallspeed(rhof, rho, temp, visco, vtrr, l_qg, rg, qb1d, idx_bg, &
-        ilamg, dz1d, vtrg, vtng, substeps, kvt)
-      call sedimentation(rg, vtrg, dz1d, rho, qgten, r1, kvt, substeps)
+      call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, &
+        vtrr=vtrr, l_qg=l_qg, rg=rg, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, &
+        dz1d=dz1d, vt=vtrg, vtn=vtng, substeps=substeps, kvt=kvt)
+      call sedimentation(rg, vtrg, dz1d, rho, qgten, r1, kvt, substeps, &
+        tempo_main_diags%graupel_precip)
       call sedimentation(ng, vtng, dz1d, rho, ngten, r2, kvt, substeps)
       xbx = rb*rho
       call sedimentation(xbx, vtrg, dz1d, rho, qbten, r1/rho_g(nrhg), kvt, substeps)
@@ -507,13 +492,9 @@ module module_mp_tempo_main
     if (any(l_qi)) then
       call ice_fallspeed(rhof, l_qi, ri, ilami, dz1d, vtri, vtni, substeps, kvt)
       call sedimentation(ri, vtri, dz1d, rho, qiten, r1, kvt, substeps, &
-        tempo_main_diags%ice_liquid_equiv_precipitation)
+        tempo_main_diags%ice_precip)
       call sedimentation(ni, vtni, dz1d, rho, niten, r2, kvt, substeps)
     endif 
-        
-    !do k = 1, nz
-    !  write(*,*) k, 'test1', rr(k), nr(k)
-    !enddo 
 
     kvt = 1
     substeps = 1
@@ -525,12 +506,12 @@ module module_mp_tempo_main
 
     ! ! call freeze melt all
  
-    ! ! final output
-    ! do k = 1, nz
-    !   t1d(k)  = t1d(k) + tten(k)*global_dt
-    !   qv1d(k) = max(min_qv, qv1d(k) + qvten(k)*global_dt)
-    ! update rho?
-    ! enddo
+    ! final output
+    do k = 1, nz
+      t1d(k)  = t1d(k) + tten(k)*global_dt
+      qv1d(k) = max(min_qv, qv1d(k) + qvten(k)*global_dt)
+      rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
+    enddo
 
     ! update aerososl for output
     if (present(nc1d)) then
@@ -578,20 +559,36 @@ module module_mp_tempo_main
       endif 
     enddo
     
-    call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
-      qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+    if (present(ng1d) .and. present(qb1d)) then
+      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
+        qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+    else
+      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, &
+        rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+    endif 
 
-    allocate(tempo_main_diags%reflectivity(nz), source=-35._wp)
-    call reflectivity_10cm(temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
-      l_qg, rg, ng, idx_bg, ilamg, tempo_main_diags%reflectivity)
+    ! diags
+    tempo_main_diags%frozen_frac = &
+      (tempo_main_diags%ice_precip + tempo_main_diags%snow_precip + &
+      tempo_main_diags%graupel_precip) / &
+      (tempo_main_diags%ice_precip + tempo_main_diags%snow_precip + &
+      tempo_main_diags%graupel_precip + tempo_main_diags%rain_precip + r1)
 
-      ! diagnostics
-    !   ! call calc_effectRad()
-    !   ! call hail_size()
-    !   ! set precip in ddt
+    allocate(tempo_main_diags%refl(nz), source=-35._wp)
+    call reflectivity_10cm(temp, l_qr, rr, nr, ilamr, &
+      l_qs, rs, smoc, smob, smoz, l_qg, rg, ng, idx_bg, ilamg, &
+      tempo_main_diags%refl)
+
+    allocate(tempo_main_diags%re_qc(nz), source=0._wp)
+    allocate(tempo_main_diags%re_qi(nz), source=0._wp)
+    allocate(tempo_main_diags%re_qs(nz), source=0._wp)
+
+    call effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
+      tempo_main_diags%re_qc, tempo_main_diags%re_qi, tempo_main_diags%re_qs)
+
   end subroutine tempo_main
-
 
 !   subroutine freeze_melt_all()
 !     ! freeze or melt all (make routine)
@@ -835,6 +832,7 @@ module module_mp_tempo_main
           qb1d(k) = min(max(qg1d(k)/rho_g(nrhg), qb1d(k)+qbten(k)*global_dt), qg1d(k)/rho_g(1))
           idx(k) = max(1, min(nint(qg1d(k)/qb1d(k)*0.01_wp)+1, nrhg))
         else
+          idx(k) = idx_bg1
           ygra1 = log10(max(1.e-9_dp, real(rg(k), kind=dp)))
           zans1 = 3.4_dp + 2._dp/7._dp*(ygra1+8._dp)
           n0_exp = max(gonv_min, min(10._dp**(zans1), gonv_max))
@@ -882,12 +880,8 @@ module module_mp_tempo_main
     real(dp) :: lamc, xdc
     logical :: hit_limit
 
-    ! write(*,*) 'size check in', size(qc1d), size(nc1d), size(rho)
-    ! write(*,*), 'params check', r1, r2, nt_c_max, nu_c_scale, &
-    !   am_r, bm_r, cce, ccg, d0c, d0r, ocg1, ocg2, obmr, nt_c_l, d0r
     nz = size(qc1d)
     do k = 1, nz
-      ! write(*,*) 'in', k, qc1d(k), nc1d(k)
       hit_limit = .false.
       if (qc1d(k)+qcten(k)*global_dt > r1) then
         l_qc(k) = .true.
@@ -929,12 +923,10 @@ module module_mp_tempo_main
         else
           nc(k) = get_cloud_number()
         endif
-        ! write(*,*), 'HERE1', qc1d(k), nc1d(k), rc(k), nc(k), l_qc(k)
         nu_c = get_nuc(nc(k))
         lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
         ilamc(k) = 1._dp / lamc
         mvd_c(k) = max(min((3.0_wp + nu_c + 0.672_wp) * ilamc(k), d0r), d0c)
-        ! write(*,*) 'HERE1', k, l_qc(k), rc(k), nc(k), ilamc(k), mvd_c(k), nu_c, lamc
       else
         l_qc(k) = .false.
         rc(k) = r1
@@ -947,7 +939,6 @@ module module_mp_tempo_main
           nc1d(k) = 0.0_wp
         endif 
       endif
-       ! write(*,*) 'out', k, qc1d(k), nc1d(k)
     enddo
   end subroutine cloud_check_and_update
 
@@ -1016,7 +1007,6 @@ module module_mp_tempo_main
         qr1d(k) = 0.0_wp
         nr1d(k) = 0.0_wp
       endif
-      ! write(*,*) 'check', k, rr(k), nr(k), qr1d(k), nr1d(k)
     enddo
   end subroutine rain_check_and_update
 
@@ -1120,11 +1110,14 @@ module module_mp_tempo_main
 
     nz = size(rho)
     do k = 1, nz
-      if (present(nwfa1d) .and. present(nifa1d)) then
+      if (present(nwfa1d)) then
         nwfa(k) = (nwfa1d(k)+nwfaten(k)*global_dt)*rho(k)
-        nifa(k) = (nifa1d(k)+nifaten(k)*global_dt)*rho(k)
       else  
         nwfa(k) = nwfa_default*rho(k)
+      endif 
+      if (present(nifa1d)) then
+        nifa(k) = (nifa1d(k)+nifaten(k)*global_dt)*rho(k)
+      else  
         nifa(k) = nifa_default*rho(k)
       endif 
       nwfa(k) = max(nwfa_default*rho(k), min(aero_max*rho(k), nwfa(k)))
@@ -1722,9 +1715,8 @@ module module_mp_tempo_main
   end subroutine sedimentation
 
 
-  subroutine semilagrangian_sedimentation(itimestep, dz1d, rho, rr, qrten, vt, substeps, precip)
+  subroutine semilagrangian_sedimentation(dz1d, rho, rr, qrten, vt, substeps, precip)
 
-    integer, intent(in) :: itimestep
     integer, intent(in) :: substeps
     real(wp), dimension(:), intent(in) :: dz1d, rho
     real(wp), dimension(:), intent(inout) :: rr, qrten
@@ -1886,7 +1878,6 @@ module module_mp_tempo_main
             qsum = qsum + dqh*dza(kt)
             rr(k) = qsum/zsum
           endif
-          ! cycle intp
         endif
         orho = 1._wp / rho(k)
         qrten(k) = qrten(k) + (rr(k) - rr_save(k)) * &

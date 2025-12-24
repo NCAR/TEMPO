@@ -2,7 +2,6 @@ module module_mp_tempo_driver
 
   use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
-  use module_mp_tempo_ml, only : predict_number_sub
 
   implicit none
   private
@@ -16,8 +15,14 @@ module module_mp_tempo_driver
 
   type :: ty_tempo_driver_diags
     real(wp), allocatable, dimension(:,:) :: rain_precipitation
+    real(wp), allocatable, dimension(:,:) :: ice_liquid_equiv_precipitation
     real(wp), allocatable, dimension(:,:) :: snow_liquid_equiv_precipitation
+    real(wp), allocatable, dimension(:,:) :: graupel_liquid_equiv_precipitation
+    real(wp), allocatable, dimension(:,:) :: frozen_fraction
     real(wp), allocatable, dimension(:,:,:) :: reflectivity
+    real(wp), allocatable, dimension(:,:,:) :: re_cloud
+    real(wp), allocatable, dimension(:,:,:) :: re_ice
+    real(wp), allocatable, dimension(:,:,:) :: re_snow
   end type
 
   contains
@@ -61,13 +66,6 @@ module module_mp_tempo_driver
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: ng !! 3D graupel number mixing ratio \([kg^{-1}]\) (hail-aware)
     real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d
 
-    !real, dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: re_cloud, re_ice, re_snow
-    !real, dimension(ims:ime, jms:jme), intent(inout) :: rainnc, rainncv, sr
-    !real, optional, dimension(ims:ime,jms:jme), intent(inout) :: frainnc, max_hail_diameter_column, max_hail_diameter_sfc
-    !real, dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: refl_10cm
-    !real, dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qcbl, cldfrac
-    !real, dimension(ims:ime, jms:jme), intent(inout), optional :: snownc, snowncv, graupelnc, graupelncv
-
     real(wp), dimension(kts:kte) :: t1d !! 1D temperature \([K]\)
     real(wp), dimension(kts:kte) :: p1d !! 1D pressure \([Pa]\)
     real(wp), dimension(kts:kte) :: qv1d !! 1D water vapor mixing ratio \([kg\; kg^{-1}]\)
@@ -86,25 +84,7 @@ module module_mp_tempo_driver
     real(wp), dimension(:), allocatable :: nifa1d !! 1D ice-friendly aerosol number mixing ratio \([kg^{-1}]\)
     real(wp), dimension(:), allocatable :: qb1d !! 1D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\)
     real(wp), dimension(:), allocatable :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\)
-
-    
-    ! Local (1d) variables
-    ! real, dimension(kts:kte) :: rho, dbz, qcbl1d, cldfrac1d, qg_max_diam1d
-    ! real, dimension(kts:kte) :: re_qc1d, re_qi1d, re_qs1d
-    ! double precision, dimension(kts:kte) :: ncbl1d
-    ! real, dimension(its:ite, jts:jte) :: pcp_ra, pcp_sn, pcp_gr, pcp_ic, frain
-    ! real :: pptrain, pptsnow, pptgraul, pptice
-    !real :: nwfa1
-    !real :: ygra1, zans1
-    !real :: graupel_vol
-    !real :: tmprc, tmpnc, xDc
-    !integer :: nu_c
-    !logical, dimension(kts:kte) :: sgs_clouds
-    !double precision :: lamg, lam_exp, lamr, n0_min, n0_exp, lamc
     integer :: i, j, k, nz
-    !logical, optional, intent(in) :: diagflag
-    !integer, optional, intent(in) :: do_radar_ref
-    !character(len=132) :: message
 
     type(ty_tempo_main_diags) :: tempo_main_diags
     type(ty_tempo_driver_diags), intent(out) :: tempo_driver_diags
@@ -112,9 +92,15 @@ module module_mp_tempo_driver
 
     nz = kte - kts + 1
     allocate(tempo_driver_diags%reflectivity(its:ite, kts:kte, jts:jte), source=-35._wp)
+    allocate(tempo_driver_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
+    allocate(tempo_driver_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
+    allocate(tempo_driver_diags%re_snow(its:ite, kts:kte, jts:jte), source=0._wp)
     allocate(tempo_driver_diags%rain_precipitation(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_driver_diags%ice_liquid_equiv_precipitation(its:ite, jts:jte), source=0._wp)
     allocate(tempo_driver_diags%snow_liquid_equiv_precipitation(its:ite, jts:jte), source=0._wp)
-
+    allocate(tempo_driver_diags%graupel_liquid_equiv_precipitation(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_driver_diags%frozen_fraction(its:ite, jts:jte), source=0._wp)
+  
     if (present(nwfa)) allocate(nwfa1d(nz), source=0._wp)
     if (present(nifa)) allocate(nifa1d(nz), source=0._wp)
     if (present(nc)) allocate(nc1d(nz), source=0._wp)
@@ -160,14 +146,24 @@ module module_mp_tempo_driver
         ! Main call to the 1D microphysics
         call tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, &
           qg1d=qg1d, qb1d=qb1d, &
-          ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, w1d=w1d, dz1d=dz1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags, itimestep=itimestep)
-      
-        tempo_driver_diags%rain_precipitation(i,j) = tempo_main_diags%rain_precipitation
-        tempo_driver_diags%snow_liquid_equiv_precipitation(i,j) = &
-          tempo_main_diags%snow_liquid_equiv_precipitation
+          ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, w1d=w1d, dz1d=dz1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags)
+          
+        tempo_driver_diags%rain_precipitation(i,j) = tempo_main_diags%rain_precip
+        tempo_driver_diags%snow_liquid_equiv_precipitation(i,j) = tempo_main_diags%snow_precip
+        tempo_driver_diags%graupel_liquid_equiv_precipitation(i,j) = tempo_main_diags%graupel_precip
+        tempo_driver_diags%frozen_fraction(i,j) = tempo_main_diags%frozen_frac
 
-        if (allocated(tempo_main_diags%reflectivity)) then
-          tempo_driver_diags%reflectivity(i,:,j) = tempo_main_diags%reflectivity
+        if (allocated(tempo_main_diags%refl)) then
+          tempo_driver_diags%reflectivity(i,:,j) = tempo_main_diags%refl
+        endif
+        if (allocated(tempo_main_diags%re_qc)) then
+          tempo_driver_diags%re_cloud(i,:,j) = tempo_main_diags%re_qc
+        endif
+        if (allocated(tempo_main_diags%re_qi)) then
+          tempo_driver_diags%re_ice(i,:,j) = tempo_main_diags%re_qi
+        endif
+          if (allocated(tempo_main_diags%re_qs)) then
+          tempo_driver_diags%re_snow(i,:,j) = tempo_main_diags%re_qs
         endif
 
         do k = kts, kte

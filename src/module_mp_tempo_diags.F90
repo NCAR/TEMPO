@@ -67,7 +67,7 @@ module module_mp_tempo_diags
     allocate(ze_snow(nz), source=1.e-22_wp)
     allocate(ze_graupel(nz), source=1.e-22_wp)
 
-    k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
+    ! k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
 
     do k = nz, 1, -1
       if (l_qr(k)) then
@@ -78,19 +78,19 @@ module module_mp_tempo_diags
       if (l_qs(k)) then
         ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_s/900._wp)*(am_s/900._wp)*smoz(k)
-        if (k_melt > 2 .and. k < k_melt-1) then
-          ze_snow(k) = reflectivity_from_melting_snow(temp(k), rs(k), &
-            smob(k), smoc(k), rr(k))
-        endif 
+        ! if (k_melt > 2 .and. k < k_melt-1) then
+        !   ze_snow(k) = reflectivity_from_melting_snow(temp(k), rs(k), &
+        !     smob(k), smoc(k), rr(k))
+        ! endif 
       endif
       if (l_qg(k)) then
         n0_g = ng(k)*ogg2*(1._dp/ilamg(k))**cge(2,1)
         ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_g(idx(k))/900._wp)*(am_g(idx(k))/900._wp) * n0_g*cgg(4,1)*ilamg(k)**cge(4,1)
-        if (k_melt > 2 .and. k < k_melt-1) then
-          ze_graupel(k) = reflectivity_from_melting_graupel(temp(k), rg(k), ng(k), &
-            ilamg(k), idx(k), rr(k))
-        endif 
+        ! if (k_melt > 2 .and. k < k_melt-1) then
+        !   ze_graupel(k) = reflectivity_from_melting_graupel(temp(k), rg(k), ng(k), &
+        !     ilamg(k), idx(k), rr(k))
+        ! endif 
       endif
 
       dbz(k) = max(-35._wp, 10._wp*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp))
