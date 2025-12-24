@@ -113,7 +113,7 @@ module module_mp_tempo_utils
   end function calc_gamma_cf   
 
 
-  subroutine snow_moments(rs, tc, smob, smoc, ns, smo0, smo1, smo2, smoe, smof, smog)
+  subroutine snow_moments(rs, tc, smob, smoc, ns, smo0, smo1, smo2, smoe, smof, smog, smoz)
     !! Compute snow moments
     ! smo0 = 0th moment
     ! smo1 = 1st moment
@@ -124,13 +124,14 @@ module module_mp_tempo_utils
     ! smoe = (bv_s+2)th moment
     ! smof = (1+(bv_s+1)/2)th moment
     ! smog = (bm_s+bv_s+2)th moment
+    ! somz = (bm**2)th moment for reflectivity
     use module_mp_tempo_params, only : bm_s, sa, sb, &
       oams, cse, csg, lam0, lam1, kap0, kap1, mu_s
     
     real(wp), intent(in) :: rs, tc
     real(dp) :: loga_, a_, b_, smo2_, m0, mrat, slam1, slam2
     real(dp), intent(out) :: smob, smoc
-    real(dp), intent(out), optional :: ns, smo0, smo1, smo2, smoe, smof, smog
+    real(dp), intent(out), optional :: ns, smo0, smo1, smo2, smoe, smof, smog, smoz
 
     ! Second moment and smob
     smob = real(rs*oams, kind=dp)
@@ -231,6 +232,20 @@ module module_mp_tempo_utils
         + sb(7)*tc*tc*cse(17) + sb(8)*tc*cse(17)*cse(17) &
         + sb(9)*tc*tc*tc + sb(10)*cse(17)*cse(17)*cse(17)
     if (present(smog)) smog = a_ * smo2_**b_
+
+    !..Calculate bm_s*2 (th) moment.  Useful for reflectivity.
+    loga_ = sa(1) + sa(2)*tc + sa(3)*cse(3) &
+      + sa(4)*tc*cse(3) + sa(5)*tc*tc &
+      + sa(6)*cse(3)*cse(3) + sa(7)*tc*tc*cse(3) &
+      + sa(8)*tc*cse(3)*cse(3) + sa(9)*tc*tc*tc &
+      + sa(10)*cse(3)*cse(3)*cse(3)
+    a_ = 10.0**loga_
+    b_ = sb(1)+ sb(2)*tc + sb(3)*cse(3) + sb(4)*tc*cse(3) &
+      + sb(5)*tc*tc + sb(6)*cse(3)*cse(3) &
+      + sb(7)*tc*tc*cse(3) + sb(8)*tc*cse(3)*cse(3) &
+      + sb(9)*tc*tc*tc + sb(10)*cse(3)*cse(3)*cse(3)
+    if (present(smoz)) smoz = a_ * smo2**b_
+
   end subroutine snow_moments
 
 
