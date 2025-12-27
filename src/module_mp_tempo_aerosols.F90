@@ -6,18 +6,25 @@ module module_mp_tempo_aerosols
   implicit none
   private
 
-  public :: init_water_friendly_aerosols, init_ice_friendly_aerosols, init_aerosol_emissions
+  public :: init_water_friendly_aerosols, init_ice_friendly_aerosols, &
+    aerosol_collection_efficiency
 
   contains
 
-  subroutine init_water_friendly_aerosols(hgt, nwfa)
+  subroutine init_water_friendly_aerosols(dz1d, nwfa)
     !! exponential profile of aerosols if nothing else is available
-    real(wp), dimension(:), intent(in) :: hgt
+    real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(out) :: nwfa
+    real(wp), dimension(:), allocatable :: hgt
     real(wp) :: h_01, niccn3
     integer :: k, nz
     
-    nz = size(hgt)
+    nz = size(dz1d)
+    allocate(hgt(nz), source=0._wp)
+    do k = 2, nz
+      hgt(k) = hgt(k-1) + dz1d(k)
+    enddo
+
     if(hgt(1) <= 1000.0_wp) then
       h_01 = 0.8_wp
     elseif(hgt(1) >= 2500.0_wp) then
@@ -33,14 +40,20 @@ module module_mp_tempo_aerosols
   end subroutine init_water_friendly_aerosols
 
 
-  subroutine init_ice_friendly_aerosols(hgt, nifa)
+  subroutine init_ice_friendly_aerosols(dz1d, nifa)
     !! exponential profile of aerosols if nothing else is available
-    real(wp), dimension(:), intent(in) :: hgt
+    real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(out) :: nifa
+    real(wp), dimension(:), allocatable :: hgt
     real(wp) :: h_01, niin3
     integer :: k, nz
     
-    nz = size(hgt)
+    nz = size(dz1d)
+    allocate(hgt(nz), source=0._wp)
+    do k = 2, nz
+      hgt(k) = hgt(k-1) + dz1d(k)
+    enddo
+
     if(hgt(1) <= 1000.0_wp) then
       h_01 = 0.8_wp
     elseif(hgt(1) >= 2500.0_wp) then
@@ -56,21 +69,60 @@ module module_mp_tempo_aerosols
   end subroutine init_ice_friendly_aerosols
 
 
-  subroutine init_aerosol_emissions(deltaz, area, nwfa, nifa, nwfa2d, nifa2d)
-    !! aerosol emissions calculated from lowest-model aerosol values
-    ! scale the lowest level aerosol data into an emissions rate
-    ! where: Nwfa=50 per cc, emit 0.875E4 aerosols per second per grid box unit
-    ! that was tested as ~(20kmx20kmx50m = 2.e10 m**3) 
-    real(wp), intent(in) :: deltaz, area, nwfa, nifa
-    real(wp), intent(out) :: nwfa2d, nifa2d
-    real(wp) :: deltaz_
-    real(wp), parameter :: min_deltaz = 9._wp
+  function aerosol_collection_efficiency(d, da, visc, rhoa, temp, species) result(eff_a)
+    use module_mp_tempo_params, only : rho_w, rho_s, av_s, bv_s, &
+      idx_bg1, pi, av_g, bv_g, rho_g
 
-    deltaz_ = deltaz
-    if (deltaz < min_deltaz) deltaz_ = min_deltaz
-    nwfa2d = max(nwfa_default, min(aero_max, nwfa)) * &
-      0.000196_wp * (5._wp / deltaz_) * (area / 9.e6_wp)
-    nifa2d = 0._wp
-  end subroutine init_aerosol_emissions
+    real(dp), intent(in) :: d
+    real(wp), intent(in) :: da, visc, rhoa, temp
+    character(len=1), intent(in) :: species
+    real(wp) :: aval, cc, diff, re, sc, st, st2, vt, eff, rho_p
+    real(wp), parameter :: boltzman = 1.3806503e-23_wp
+    real(wp), parameter :: meanpath = 0.0256e-6_wp
+    real(wp) :: eff_a
+
+    vt = 1._wp
+    rho_p = rho_w
+    if (species == 'r') then
+      vt = -0.1021 + 4.932e3_wp*d - 0.9551e6_wp*d*d + &
+        0.07934e9_wp*d*d*d - 0.002362e12_wp*d*d*d*d
+      rho_p = rho_w
+    elseif (species == 's') then
+      vt = av_s*d**bv_s
+      rho_p = rho_s
+    elseif (species .eq. 'g') then
+      vt = av_g(idx_bg1)*d**bv_g(idx_bg1)
+      rho_p = rho_g(idx_bg1)
+    endif
+    cc = 1._wp + 2._wp*meanpath/da *(1.257_wp+0.4_wp*exp(-0.55*da/meanpath))
+    diff = boltzman*temp*cc/(3._wp*pi*visc*da)
+    re = 0.5_wp*rhoa*d*vt/visc
+    sc = visc/(rhoa*diff)
+    st = (rho_p-rhoa)*da*da*vt*cc/(9._wp*visc*d)
+    aval = log(1._wp + re)
+    st2 = (1.2_wp + 1._wp/12._wp*aval)/(1._wp+aval)
+    eff = 4._wp/(re*sc) * (1._wp + 0.4_wp*sqrt(re)*sc**0.3333_wp + &
+      0.16_wp*sqrt(re)*sqrt(sc)) + 4._wp*da/d * &
+      (0.02_wp + da/d*(1._wp+2._wp*sqrt(re)))
+    if (st > st2) eff = eff + ((st-st2)/(st-st2+0.666667_wp))**1.5_wp
+    eff_a = max(1.e-5_wp, min(eff, 1._wp))
+  end function aerosol_collection_efficiency
+
+  ! subroutine init_aerosol_emissions(deltaz, area, nwfa, nifa, nwfa2d, nifa2d)
+  !   !! aerosol emissions calculated from lowest-model aerosol values
+  !   ! scale the lowest level aerosol data into an emissions rate
+  !   ! where: Nwfa=50 per cc, emit 0.875E4 aerosols per second per grid box unit
+  !   ! that was tested as ~(20kmx20kmx50m = 2.e10 m**3) 
+  !   real(wp), intent(in) :: deltaz, area, nwfa, nifa
+  !   real(wp), intent(out) :: nwfa2d, nifa2d
+  !   real(wp) :: deltaz_
+  !   real(wp), parameter :: min_deltaz = 9._wp
+
+  !   deltaz_ = deltaz
+  !   if (deltaz < min_deltaz) deltaz_ = min_deltaz
+  !   nwfa2d = max(nwfa_default, min(aero_max, nwfa)) * &
+  !     0.000196_wp * (5._wp / deltaz_) * (area / 9.e6_wp)
+  !   nifa2d = 0._wp
+  ! end subroutine init_aerosol_emissions
 
 end module module_mp_tempo_aerosols

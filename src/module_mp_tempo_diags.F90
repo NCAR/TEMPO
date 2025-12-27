@@ -9,7 +9,9 @@ module module_mp_tempo_diags
   
   public :: reflectivity_10cm, effective_radius ! hail_size_diagnostics
 
+
   !! logical, save :: melted_refl_init = .false.
+
   contains 
 
   subroutine effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &

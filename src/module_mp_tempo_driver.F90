@@ -2,27 +2,22 @@ module module_mp_tempo_driver
 
   use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
-
   implicit none
   private
 
-  public :: tempo_driver, ty_tempo_driver_cfgs, ty_tempo_driver_diags
-  
-  ! tempo configuration flags for the driver
-  type :: ty_tempo_driver_cfgs
-    logical :: semi_sedi = .false. !! flag for semi-lagrangian sedimentation
-  end type
+  public :: tempo_driver, ty_tempo_driver_diags
 
   type :: ty_tempo_driver_diags
-    real(wp), allocatable, dimension(:,:) :: rain_precipitation
-    real(wp), allocatable, dimension(:,:) :: ice_liquid_equiv_precipitation
-    real(wp), allocatable, dimension(:,:) :: snow_liquid_equiv_precipitation
-    real(wp), allocatable, dimension(:,:) :: graupel_liquid_equiv_precipitation
-    real(wp), allocatable, dimension(:,:) :: frozen_fraction
-    real(wp), allocatable, dimension(:,:,:) :: reflectivity
-    real(wp), allocatable, dimension(:,:,:) :: re_cloud
-    real(wp), allocatable, dimension(:,:,:) :: re_ice
-    real(wp), allocatable, dimension(:,:,:) :: re_snow
+    real(wp), dimension(:,:), allocatable :: rain_precipitation
+    real(wp), dimension(:,:), allocatable :: ice_liquid_equiv_precipitation
+    real(wp), dimension(:,:), allocatable :: snow_liquid_equiv_precipitation
+    real(wp), dimension(:,:), allocatable :: graupel_liquid_equiv_precipitation
+    real(wp), dimension(:,:), allocatable :: frozen_fraction
+    real(wp), dimension(:,:,:), allocatable :: reflectivity
+    real(wp), dimension(:,:,:), allocatable :: re_cloud
+    real(wp), dimension(:,:,:), allocatable :: re_ice
+    real(wp), dimension(:,:,:), allocatable :: re_snow
+    real(wp), dimension(:,:,:), allocatable :: mvd_r
   end type
 
   contains
@@ -34,7 +29,7 @@ module module_mp_tempo_driver
     nwfa2d, nifa2d, &
     ids, ide, jds, jde, kds, kde, &
     ims, ime, jms, jme, kms, kme, &
-    its, ite, jts, jte, kts, kte, tempo_driver_cfgs, tempo_driver_diags)
+    its, ite, jts, jte, kts, kte, tempo_driver_diags)
 
     real(wp), intent(in) :: dt !! timestep \([s]]\)
     integer, intent(in) :: itimestep !! integer timestep = integration time / dt
@@ -85,12 +80,13 @@ module module_mp_tempo_driver
     real(wp), dimension(:), allocatable :: qb1d !! 1D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\)
     real(wp), dimension(:), allocatable :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\)
     integer :: i, j, k, nz
+    logical :: use_temperature 
 
     type(ty_tempo_main_diags) :: tempo_main_diags
     type(ty_tempo_driver_diags), intent(out) :: tempo_driver_diags
-    type(ty_tempo_driver_cfgs), intent(in) :: tempo_driver_cfgs
 
     nz = kte - kts + 1
+    allocate(tempo_driver_diags%mvd_r(its:ite, kts:kte, jts:jte), source=0._wp)
     allocate(tempo_driver_diags%reflectivity(its:ite, kts:kte, jts:jte), source=-35._wp)
     allocate(tempo_driver_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
     allocate(tempo_driver_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
@@ -106,11 +102,24 @@ module module_mp_tempo_driver
     if (present(nc)) allocate(nc1d(nz), source=0._wp)
     if (present(ng)) allocate(ng1d(nz), source=0._wp)
     if (present(qb)) allocate(qb1d(nz), source=0._wp)
+
+    if (present(t)) then
+      use_temperature = .true.
+    elseif (present(th) .and. present(pii)) then
+      use_temperature = .false.
+    else  
+      error stop "tempo_driver() --- requires either temperature or theta and Exner function"
+    endif 
+
     do j = jts, jte
       do i = its, ite
         ! Begin k loop
         do k = kts, kte
-          t1d(k) = th(i,k,j) * pii(i,k,j)
+          if (use_temperature) then
+            t1d(k) = t(i,k,j)
+          else  
+            t1d(k) = th(i,k,j) * pii(i,k,j)
+          endif 
           p1d(k) = p(i,k,j)
           w1d(k) = w(i,k,j)
           dz1d(k) = dz(i,k,j)
@@ -153,6 +162,9 @@ module module_mp_tempo_driver
         tempo_driver_diags%graupel_liquid_equiv_precipitation(i,j) = tempo_main_diags%graupel_precip
         tempo_driver_diags%frozen_fraction(i,j) = tempo_main_diags%frozen_frac
 
+        if (allocated(tempo_main_diags%mvd_r)) then
+          tempo_driver_diags%mvd_r(i,:,j) = tempo_main_diags%mvd_r
+        endif
         if (allocated(tempo_main_diags%refl)) then
           tempo_driver_diags%reflectivity(i,:,j) = tempo_main_diags%refl
         endif
@@ -182,7 +194,13 @@ module module_mp_tempo_driver
           qg(i,k,j) = qg1d(k)
           ni(i,k,j) = ni1d(k)
           nr(i,k,j) = nr1d(k)
-          th(i,k,j) = t1d(k) / pii(i,k,j)
+          
+          ! tempo returns temperature (t1d)
+          if (use_temperature) then
+            t(i,k,j) = t1d(k)
+          else  
+            th(i,k,j) = t1d(k) / pii(i,k,j)
+          endif 
         enddo
       enddo
     enddo 

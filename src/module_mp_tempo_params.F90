@@ -17,9 +17,21 @@ module module_mp_tempo_params
   character(len=11) :: tempo_version !! tempo version string (max is xxx.xxx.xxx)
 
   ! tempo configuration flags for init
-  type :: ty_tempo_init_cfgs
+  type :: ty_tempo_cfgs
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
+    logical :: semi_sedi = .false. !! semi-lagrangian sedimentation
+    logical :: diag_freezing_rain = .false.
+
+    logical :: warm_rain = .true.
+    logical :: ice_nucleation = .true.
+    logical :: riming = .true.
+    logical :: rain_evaporation = .true.
+    logical :: cloud_condensation = .true.
+    logical :: rainsnow_raingraupel_collection = .true.
+    logical :: ice_processes = .true.
+    logical :: ice_homogeneous_freeze_instant_melt = .true.
+    logical :: all_processes_off = .false. !! override all settings
   end type
 
   ! tempo lookup table filenames
@@ -31,7 +43,7 @@ module module_mp_tempo_params
   end type
 
   ! tempo configurations
-  type(ty_tempo_init_cfgs) :: tempo_init_cfgs
+  type(ty_tempo_cfgs) :: tempo_cfgs
   type(ty_tempo_table_cfgs) :: tempo_table_cfgs
 
   ! parameters that can be changed ------------------------------------------------------------------------

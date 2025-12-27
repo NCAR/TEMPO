@@ -2,7 +2,7 @@ module module_mp_tempo_init
   !! initialize variables for tempo microphysics
   !!
   !! includes a procedure to build and save lookup tables
-  use module_mp_tempo_params, only : wp, sp, dp, tempo_init_cfgs, tempo_table_cfgs
+  use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs, tempo_table_cfgs
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
 
 #ifdef tempo_intel
@@ -45,16 +45,16 @@ module module_mp_tempo_init
     if (allocated(t_efrw)) initialize_mp_vars = .false.
 
     if (initialize_mp_vars) then
-      if (present(aerosolaware_flag)) tempo_init_cfgs%aerosolaware_flag = aerosolaware_flag
-      if (present(hailaware_flag)) tempo_init_cfgs%hailaware_flag = hailaware_flag
+      if (present(aerosolaware_flag)) tempo_cfgs%aerosolaware_flag = aerosolaware_flag
+      if (present(hailaware_flag)) tempo_cfgs%hailaware_flag = hailaware_flag
 
       write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
-      write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_init_cfgs%aerosolaware_flag
-      write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_init_cfgs%hailaware_flag
+      write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
+      write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
 
       ! set graupel variables from hail_aware_flag
-      call initialize_graupel_vars(tempo_init_cfgs%hailaware_flag) 
-      write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_init_cfgs%hailaware_flag
+      call initialize_graupel_vars(tempo_cfgs%hailaware_flag) 
+      write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_cfgs%hailaware_flag
 
       ! set parameters that can depend on the host model
       call initialize_parameters() 
