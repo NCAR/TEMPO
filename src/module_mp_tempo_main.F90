@@ -103,7 +103,7 @@ module module_mp_tempo_main
     real(dp), dimension(kts:kte) :: smob, smo2, smo1, smo0, smoc, smoe, smof, smog, ns, smoz
     
     ! temporary arrays
-    real(wp), dimension(kts:kte) :: xrx, xnx, xbx
+    real(wp), dimension(kts:kte) :: xrx, xnx, xbx, xten
 
     ! fall speed
     real(wp), dimension(kts:kte+1) :: vtrr, vtnr, vtrs, vtri, vtni, vtrg, vtng, vtrc, vtnc
@@ -261,12 +261,12 @@ module module_mp_tempo_main
       rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
     enddo
     
-    if (.not. present(nwfa1d)) then
-      call init_water_friendly_aerosols(dz1d, nwfa)
-    endif 
-    if (.not. present(nifa1d)) then
-      call init_ice_friendly_aerosols(dz1d, nifa)
-    endif 
+    ! if (.not. present(nwfa1d)) then
+    !   call init_water_friendly_aerosols(dz1d, nwfa)
+    ! endif 
+    ! if (.not. present(nifa1d)) then
+    !   call init_ice_friendly_aerosols(dz1d, nifa)
+    ! endif 
 
     call aerosol_check_and_update(rho=rho, nwfa1d=nwfa1d, nifa1d=nifa1d, &
       nwfa=nwfa, nifa=nifa, nwfaten=nwfaten, nifaten=nifaten)
@@ -319,8 +319,8 @@ module module_mp_tempo_main
       vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
       rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend)
 
-    call aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, l_qr, nr, ilamr, &
-      mvd_r, l_qs, rs, smob, smoc, smoe, l_qg, rg, ng, ilamg, idx_bg, tend)
+    !call aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, l_qr, nr, ilamr, &
+    !  mvd_r, l_qs, rs, smob, smoc, smoe, l_qg, rg, ng, ilamg, idx_bg, tend)
   
     call check_over_depletion(rho, temp, qvsi, qv, l_qc, rc, l_qi, ri, &
       l_qr, rr, l_qs, rs, l_qg, rg, tend)
@@ -379,18 +379,18 @@ module module_mp_tempo_main
       endif 
     enddo
 
-    xrx = qg1d
-    if (present(ng1d) .and. present(qb1d)) then
-      xnx = ng1d
-      xbx = qb1d
-      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xnx, &
-        qb1d=xbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-    else  
-      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, &
-        rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-    endif 
+    ! xrx = qg1d
+    ! if (present(ng1d) .and. present(qb1d)) then
+    !   xnx = ng1d
+    !   xbx = qb1d
+    !   call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xnx, &
+    !     qb1d=xbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+    !     qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+    ! else  
+    !   call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, &
+    !     rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+    !     qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+    ! endif 
 
     call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
@@ -488,10 +488,76 @@ module module_mp_tempo_main
             steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%rain_precip)
           call sedimentation(xr=nr, vt=vtnr, dz1d=dz1d, rho=rho, xten=nrten, limit=r2, &
             steps=substeps_sedi, ktop_sedi=ktop_sedi)
+          vtrr = 0._wp
+          vtnr = 0._wp
+          xrx = qr1d
+          xnx = nr1d
+          call rain_check_and_update(rho, l_qr, xrx, xnx, rr, nr, qrten, nrten, ilamr, mvd_r) 
+          call rain_fallspeed(rhof=rhof, l_qr=l_qr, rr=rr, ilamr=ilamr, dz1d=dz1d, &
+            vt=vtrr, vtn=vtnr)
         enddo
       endif 
     endif 
    
+    ! graupel
+   ! Sedimentation
+    ktop_sedi = 1
+    substeps_sedi = 1
+    semi_sedi_factor = 10._wp
+    if (any(l_qg)) then
+      call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, vtrr=vtrr, &
+        l_qg=l_qg, rg=rg, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, vt=vtrg, vtn=vtng, &
+        substeps_sedi=substeps_sedi, ktop_sedi=ktop_sedi)
+
+      if (semi_sedi) then 
+        substeps_sedi = max(int(substeps_sedi/semi_sedi_factor) + 1, 1)
+        do n = 1, substeps_sedi
+          ! note: if stability issues arise either change the limit in the second call
+          ! to limit=r2*10 and change the semi_sedi_factor from 10 to 7
+          call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=rg, xten=qgten, &
+            vt=vtrg, steps=substeps_sedi, limit=r1, precip=tempo_main_diags%graupel_precip)
+          call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=ng, xten=ngten, &
+            vt=vtng, steps=substeps_sedi, limit=r2)
+          call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=rb, xten=qbten, &
+            vt=vtrg, steps=substeps_sedi, limit=1000.*r1/rho_g(nrhg))
+          vtrg = 0._wp
+          vtng = 0._wp
+          xrx = qg1d
+          xnx = ng1d
+          xbx = qb1d
+          call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xnx, &
+            qb1d=xbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+            qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+          call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, vtrr=vtrr, &
+            l_qg=l_qg, rg=rg, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, vt=vtrg, vtn=vtng)
+
+          !call rain_check_and_update(rho, l_qr, xrx, xnx, rr, nr, qrten, nrten, ilamr, mvd_r) 
+          !call rain_fallspeed(rhof=rhof, l_qr=l_qr, rr=rr, ilamr=ilamr, dz1d=dz1d, &
+          !  vt=vtrr, vtn=vtnr)
+        enddo 
+      else
+        write(*,*), global_dt, substeps_sedi
+        do n = 1, substeps_sedi
+          call sedimentation(xr=rg, vt=vtrg, dz1d=dz1d, rho=rho, xten=qgten, limit=r1, &
+            steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%graupel_precip)
+          call sedimentation(xr=ng, vt=vtng, dz1d=dz1d, rho=rho, xten=ngten, limit=r2, &
+            steps=substeps_sedi, ktop_sedi=ktop_sedi)
+          call sedimentation(xr=rb, vt=vtrg, dz1d=dz1d, rho=rho, xten=qbten, &
+            limit=1000.*r1/rho_g(nrhg), steps=substeps_sedi, ktop_sedi=ktop_sedi)
+                  vtrg = 0._wp
+          vtng = 0._wp
+          xrx = qg1d
+          xnx = ng1d
+          xbx = qb1d
+          call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xnx, &
+            qb1d=xbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+            qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+          call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, vtrr=vtrr, &
+            l_qg=l_qg, rg=rg, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, vt=vtrg, vtn=vtng)
+        enddo
+      endif 
+    endif
+
     ! kvt = 1
     ! substeps = 1
     ! if (any(l_qg)) then
@@ -580,15 +646,15 @@ module module_mp_tempo_main
       endif 
     enddo
     
-    if (present(ng1d) .and. present(qb1d)) then
+    ! if (present(ng1d) .and. present(qb1d)) then
       call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
         qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
         qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-    else
-      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, &
-        rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-    endif 
+    ! else
+    !   call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, &
+    !     rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+    !     qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+    ! endif 
 
     ! diags
     allocate(tempo_main_diags%mvd_r(nz), source=0._wp)
@@ -838,10 +904,14 @@ module module_mp_tempo_main
         !update number and density
         if (present(ng1d) .and. present(qb1d)) then
           ng(k) = max(r2, (ng1d(k)+ngten(k)*global_dt)*rho(k))
-          rb(k) = min(max(rg(k)/rho(k)/rho_g(nrhg), &
-            qb1d(k)+qbten(k)*global_dt), rg(k)/rho(k)/rho_g(1))
-          qb1d(k) = rb(k)
-          idx(k) = max(1, min(nint(rg(k)/rho(k)/rb(k)*0.01_wp)+1, nrhg))
+          ! qb1d is L/kg
+          rb(k) = min(max(rg(k)*1000./rho_g(nrhg), &
+            (qb1d(k)+qbten(k)*global_dt)*rho(k)), rg(k)*1000./rho_g(1))
+          !! rb(k) = min(max(rg(k)/rho(k)/rho_g(nrhg), &
+          !! qb1d(k)+qbten(k)*global_dt), rg(k)/rho(k)/rho_g(1))
+          ! qb1d(k) = rb(k)/rho(k)
+          idx(k) = max(1, min(nint(rg(k)/rb(k)/1000.*0.01_wp)+1, nrhg))
+          ! idx(k) = max(1, min(nint(rg(k)/rho(k)/rb(k)*0.01_wp)+1, nrhg))
 
           ! check number
           if (ng(k) <= r2) then
@@ -868,8 +938,8 @@ module module_mp_tempo_main
 
           if (hit_limit) ngten(k) = (ng(k)/rho(k) - ng1d(k)) * global_inverse_dt
           ng1d(k) = cgg(2,1)*ogg3*qg1d(k)*lamg**bm_g / am_g(idx(k))
-          qb1d(k) = min(max(qg1d(k)/rho_g(nrhg), qb1d(k)+qbten(k)*global_dt), qg1d(k)/rho_g(1))
-          idx(k) = max(1, min(nint(qg1d(k)/qb1d(k)*0.01_wp)+1, nrhg))
+          qb1d(k) = min(max(qg1d(k)*1000./rho_g(nrhg), qb1d(k)+qbten(k)*global_dt), 1000.*qg1d(k)/rho_g(1))
+          idx(k) = max(1, min(nint(qg1d(k)/qb1d(k)/1000.*0.01_wp)+1, nrhg))
         else
           idx(k) = idx_bg1
           ygra1 = log10(max(1.e-9_dp, real(rg(k), kind=dp)))
@@ -878,7 +948,7 @@ module module_mp_tempo_main
           lam_exp = (n0_exp*am_g(idx(k))*cgg(1,1)/rg(k))**oge1
           lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
           ng(k) = cgg(2,1)*ogg3*rg(k)*lamg**bm_g / am_g(idx(k))
-          rb(k) = rg(k)/rho(k)/rho_g(idx(k))
+          rb(k) = 1000.*rg(k)/rho_g(idx(k))
         endif
         ilamg(k) = 1._dp / lamg
         mvd_g(k) = (3.0_wp + mu_g + 0.672_wp) * ilamg(k)
@@ -889,7 +959,7 @@ module module_mp_tempo_main
         mvd_g(k) = d0g
         ilamg(k) = 0._dp
         idx(k) = idx_bg1
-        rb(k) = r1/rho(k)/rho_g(idx(k))
+        rb(k) = 1000.*r1/rho_g(idx(k))
         qgten(k) = -qg1d(k) * global_inverse_dt
         qg1d(k) = 0.0_wp
         if (present(ng1d) .and. present(qb1d)) then
@@ -899,6 +969,7 @@ module module_mp_tempo_main
           qb1d(k) = 0.0_wp
         endif 
       endif
+      ! write(*,*) k, rg(k), ng(k), rb(k), idx(k), 1000.*rg(k)/rb(k)
     enddo 
   end subroutine graupel_check_and_update
 
@@ -1750,6 +1821,48 @@ module module_mp_tempo_main
   end subroutine sedimentation
 
 
+subroutine sedimentation2(xr, vt, dz1d, rho, xten, limit, steps, ktop_sedi, precip)
+
+    integer, intent(in) :: steps
+    integer, intent(in), optional :: ktop_sedi
+    real(wp), dimension(:), intent(inout) :: xr, xten
+    real(wp), dimension(:), intent(in) :: dz1d, rho
+    real(wp), dimension(:), intent(in) :: vt
+    real(wp), intent(in) :: limit
+    real(wp), intent(out), optional :: precip
+    real(wp) :: odz, orho
+    real(wp), allocatable, dimension(:) :: sed_r
+    integer :: n, k, nz, ktop, kb, kt
+
+    nz = size(xr)
+    allocate(sed_r(nz), source=0._wp)
+    ktop = nz-1
+    if (present(ktop_sedi)) ktop = ktop_sedi
+
+    do k = nz, 1, -1
+      sed_r(k) = vt(k)*xr(k)
+    enddo
+    k = nz
+    odz = 1._wp/dz1d(k)
+    orho = 1._wp/rho(k)
+    xten(k) = xten(k) - sed_r(k)*odz*(1._wp/real(steps, kind=wp))! *orho
+    xr(k) = max(limit, xr(k) - sed_r(k)*odz*global_dt*(1._wp/real(steps, kind=wp)))
+
+    do k = ktop, 1, -1
+      odz = 1._wp/dz1d(k)
+      orho = 1._wp/rho(k)
+      xten(k) = xten(k) + (sed_r(k+1)-sed_r(k))*odz*(1._wp/real(steps, kind=wp))! *orho
+      xr(k) = max(limit, xr(k) + &
+        (sed_r(k+1)-sed_r(k))*odz*global_dt*(1._wp/real(steps, kind=wp)))
+    enddo
+    if (present(precip)) then 
+      if (xr(1) > r1*1000._wp) then
+        precip = precip + sed_r(1)*global_dt*(1._wp/real(steps, kind=wp))
+      endif 
+    endif 
+  end subroutine sedimentation2
+
+
   subroutine semilagrangian_sedimentation(dz1d, rho, xr, xten, vt, steps, limit, precip)
 
     integer, intent(in) :: steps
@@ -2325,7 +2438,7 @@ module module_mp_tempo_main
 
 
   subroutine graupel_fallspeed(rhof, rho, temp, visco, vtrr, l_qg, rg, qb1d, idx, ilamg, &
-      dz1d, vt, vtn, substeps, kvt)
+      dz1d, vt, vtn, substeps_sedi, ktop_sedi)
     !! mass and number weighted fall speeds for rain
     use module_mp_tempo_params, only : nrhg, rho_g, av_g_old, bv_g_old, &
       cgg, t0, mu_g, ogg2, ogg3, a_coeff, b_coeff
@@ -2337,17 +2450,17 @@ module module_mp_tempo_main
     logical, dimension(:), intent(in) :: l_qg
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(inout) :: vt, vtn
-    integer, intent(out) :: substeps, kvt
+    integer, intent(out), optional :: substeps_sedi, ktop_sedi
     real(wp) :: dz_by_vt, dens_g, afall, bfall
     integer :: k, nz
 
     nz = size(l_qg)
-    kvt = 1
-    substeps = 1
+    if (present(ktop_sedi)) ktop_sedi = 1
+    if (present(substeps_sedi)) substeps_sedi = 1
     do k = nz, 1, -1
       if (rg(k) > r1) then
         if (present(qb1d)) then
-          dens_g = max(rho_g(1), min(rg(k)/rho(k)/qb1d(k), rho_g(nrhg)))
+          dens_g = max(rho_g(1), min(1000.*rg(k)/rho(k)/qb1d(k), rho_g(nrhg)))
           afall = a_coeff*((4._wp*dens_g*9.8_wp)/(3._wp*rho(k)))**b_coeff
           afall = afall * visco(k)**(1._wp-2._wp*b_coeff)
           bfall = 3._wp*b_coeff - 1._wp
@@ -2356,24 +2469,27 @@ module module_mp_tempo_main
           bfall = bv_g_old
         endif
         vt(k) = rhof(k)*afall*cgg(6,idx(k))*ogg3 * ilamg(k)**bfall
-        if (temp(k) > t0) vt(k) = max(vt(k), vtrr(k))
+        ! if (temp(k) > t0) vt(k) = max(vt(k), vtrr(k))
 
         if (mu_g == 0) then
           vtn(k) = rhof(k)*afall*cgg(7,idx(k))/cgg(12,idx(k)) * ilamg(k)**bfall
         else
           vtn(k) = rhof(k)*afall*cgg(8,idx(k))*ogg2 * ilamg(k)**bfall
         endif
+        ! write(*,*) k, vt(k), vtn(k)
       else
         vt(k) = vt(k+1)
         vtn(k) = vtn(k+1)
       endif
       if (vt(k) > 1.e-3_wp) then
-        kvt = max(kvt, k)
+        if (present(ktop_sedi)) ktop_sedi = max(ktop_sedi, k)
         dz_by_vt = dz1d(k) / vt(k)
-        substeps = int(global_dt/dz_by_vt + 1._wp)
+        if (present(substeps_sedi)) substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
       endif
     enddo
-    if (kvt == nz) kvt = nz-1 
+    if (present(ktop_sedi)) then
+      if (ktop_sedi == nz) ktop_sedi = nz-1 
+    endif 
   end subroutine graupel_fallspeed
 
 
@@ -2957,75 +3073,75 @@ module module_mp_tempo_main
   end subroutine check_over_depletion
 
 
-  subroutine aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, &
-    l_qr, nr, ilamr, mvd_r, l_qs, rs, smob, smoc, smoe, &
-    l_qg, rg, ng, ilamg, idx, tend)
-    use module_mp_tempo_params, only : d0r, t1_qr_qc, fv_r, cre, &
-      org2, r_s, t1_qs_qc, r_g, bm_g, mu_g, av_g, cge, cgg, pi, ogg2
+  ! subroutine aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, &
+  !   l_qr, nr, ilamr, mvd_r, l_qs, rs, smob, smoc, smoe, &
+  !   l_qg, rg, ng, ilamg, idx, tend)
+  !   use module_mp_tempo_params, only : d0r, t1_qr_qc, fv_r, cre, &
+  !     org2, r_s, t1_qs_qc, r_g, bm_g, mu_g, av_g, cge, cgg, pi, ogg2
 
-    real(wp), dimension(:), intent(in) :: temp, rho,rhof, visco, nr, mvd_r, &
-      nwfa, nifa, rs, rg, ng
-    real(dp), dimension(:), intent(in) :: smob, smoc, smoe, ilamg, ilamr
-    integer, dimension(:), intent(in) :: idx
-    logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
-    type(ty_tend), intent(inout) :: tend
-    real(wp) :: ef_ra, ef_sa, ef_ga, t1_qg_qc 
-    real(dp) :: n0_r, xds, xdg, n0_g, lamr
-    real(wp), parameter :: wf_aerosol_size = 0.04e-6_wp
-    real(wp), parameter :: if_aerosol_size = 0.8e-6_wp
-    integer :: k, nz
+  !   real(wp), dimension(:), intent(in) :: temp, rho,rhof, visco, nr, mvd_r, &
+  !     nwfa, nifa, rs, rg, ng
+  !   real(dp), dimension(:), intent(in) :: smob, smoc, smoe, ilamg, ilamr
+  !   integer, dimension(:), intent(in) :: idx
+  !   logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
+  !   type(ty_tend), intent(inout) :: tend
+  !   real(wp) :: ef_ra, ef_sa, ef_ga, t1_qg_qc 
+  !   real(dp) :: n0_r, xds, xdg, n0_g, lamr
+  !   real(wp), parameter :: wf_aerosol_size = 0.04e-6_wp
+  !   real(wp), parameter :: if_aerosol_size = 0.8e-6_wp
+  !   integer :: k, nz
 
-    nz = size(l_qr)
-    do k = 1, nz
-      if (l_qr(k) .and. mvd_r(k).gt. d0r) then
-        ef_ra = aerosol_collection_efficiency(real(mvd_r(k), kind=dp), &
-          wf_aerosol_size, visco(k), rho(k), temp(k), 'r')
-        lamr = 1._dp/ilamr(k)
-        n0_r = nr(k)*org2*lamr**cre(2)
-        tend%pna_rca(k) = rhof(k)*t1_qr_qc*ef_ra*nwfa(k)*n0_r * &
-          ((lamr+fv_r)**(-cre(9)))
-        tend%pna_rca(k) = min(real(nwfa(k)*global_inverse_dt, kind=dp), &
-          tend%pna_rca(k))
-        ef_ra = aerosol_collection_efficiency(real(mvd_r(k), kind=dp), &
-          if_aerosol_size, visco(k), rho(k), temp(k), 'r')
-        tend%pnd_rcd(k) = rhof(k)*t1_qr_qc*ef_ra*nifa(k)*n0_r * &
-          ((lamr+fv_r)**(-cre(9)))
-        tend%pnd_rcd(k) = min(real(nifa(k)*global_inverse_dt, kind=dp), &
-          tend%pnd_rcd(k))
-      endif
+  !   nz = size(l_qr)
+  !   do k = 1, nz
+  !     if (l_qr(k) .and. mvd_r(k).gt. d0r) then
+  !       ef_ra = aerosol_collection_efficiency(real(mvd_r(k), kind=dp), &
+  !         wf_aerosol_size, visco(k), rho(k), temp(k), 'r')
+  !       lamr = 1._dp/ilamr(k)
+  !       n0_r = nr(k)*org2*lamr**cre(2)
+  !       tend%pna_rca(k) = rhof(k)*t1_qr_qc*ef_ra*nwfa(k)*n0_r * &
+  !         ((lamr+fv_r)**(-cre(9)))
+  !       tend%pna_rca(k) = min(real(nwfa(k)*global_inverse_dt, kind=dp), &
+  !         tend%pna_rca(k))
+  !       ef_ra = aerosol_collection_efficiency(real(mvd_r(k), kind=dp), &
+  !         if_aerosol_size, visco(k), rho(k), temp(k), 'r')
+  !       tend%pnd_rcd(k) = rhof(k)*t1_qr_qc*ef_ra*nifa(k)*n0_r * &
+  !         ((lamr+fv_r)**(-cre(9)))
+  !       tend%pnd_rcd(k) = min(real(nifa(k)*global_inverse_dt, kind=dp), &
+  !         tend%pnd_rcd(k))
+  !     endif
 
-      if (l_qs(k) .and. rs(k) > r_s(1)) then
-        xds = smoc(k) / smob(k)
-        ef_sa = aerosol_collection_efficiency(xds,wf_aerosol_size, &
-          visco(k), rho(k), temp(k), 's')
-        tend%pna_sca(k) = rhof(k)*t1_qs_qc*ef_sa*nwfa(k)*smoe(k)
-        tend%pna_sca(k) = min(real(nwfa(k)*global_inverse_dt, kind=dp), &
-          tend%pna_sca(k))
-        ef_sa = aerosol_collection_efficiency(xds, if_aerosol_size, &
-          visco(k), rho(k), temp(k), 's')
-        tend%pnd_scd(k) = rhof(k)*t1_qs_qc*Ef_sa*nifa(k)*smoe(k)
-        tend%pnd_scd(k) = min(real(nifa(k)*global_inverse_dt, kind=dp), &
-          tend%pnd_scd(k))
-      endif
+  !     if (l_qs(k) .and. rs(k) > r_s(1)) then
+  !       xds = smoc(k) / smob(k)
+  !       ef_sa = aerosol_collection_efficiency(xds,wf_aerosol_size, &
+  !         visco(k), rho(k), temp(k), 's')
+  !       tend%pna_sca(k) = rhof(k)*t1_qs_qc*ef_sa*nwfa(k)*smoe(k)
+  !       tend%pna_sca(k) = min(real(nwfa(k)*global_inverse_dt, kind=dp), &
+  !         tend%pna_sca(k))
+  !       ef_sa = aerosol_collection_efficiency(xds, if_aerosol_size, &
+  !         visco(k), rho(k), temp(k), 's')
+  !       tend%pnd_scd(k) = rhof(k)*t1_qs_qc*Ef_sa*nifa(k)*smoe(k)
+  !       tend%pnd_scd(k) = min(real(nifa(k)*global_inverse_dt, kind=dp), &
+  !         tend%pnd_scd(k))
+  !     endif
 
-      if (l_qg(k) .and. rg(k) > r_g(1)) then
-        xdg = (bm_g + mu_g + 1._dp) * ilamg(k)
-        ef_ga = aerosol_collection_efficiency(xdg, wf_aerosol_size, &
-          visco(k), rho(k), temp(k), 'g')
-        t1_qg_qc = pi*.25_wp*av_g(idx(k)) * cgg(9,idx(k))
-        n0_g = ng(k)*ogg2*(1._wp/ilamg(k))**cge(2,1)
-        tend%pna_gca(k) = rhof(k)*t1_qg_qc*ef_ga*nwfa(k)*n0_g * &
-          ilamg(k)**cge(9,idx(k))
-        tend%pna_gca(k) = min(real(nwfa(k)*global_inverse_dt, kind=dp), &
-          tend%pna_gca(k))
-        ef_ga = aerosol_collection_efficiency(xdg, if_aerosol_size, &
-          visco(k), rho(k), temp(k), 'g')
-        tend%pnd_gcd(k) = rhof(k)*t1_qg_qc*ef_ga*nifa(k)*n0_g * &
-          ilamg(k)**cge(9,idx(k))
-        tend%pnd_gcd(k) = min(real(nifa(k)*global_inverse_dt, kind=dp), &
-          tend%pnd_gcd(k))
-      endif
-    enddo
-  end subroutine aerosol_scavenging
+  !     if (l_qg(k) .and. rg(k) > r_g(1)) then
+  !       xdg = (bm_g + mu_g + 1._dp) * ilamg(k)
+  !       ef_ga = aerosol_collection_efficiency(xdg, wf_aerosol_size, &
+  !         visco(k), rho(k), temp(k), 'g')
+  !       t1_qg_qc = pi*.25_wp*av_g(idx(k)) * cgg(9,idx(k))
+  !       n0_g = ng(k)*ogg2*(1._wp/ilamg(k))**cge(2,1)
+  !       tend%pna_gca(k) = rhof(k)*t1_qg_qc*ef_ga*nwfa(k)*n0_g * &
+  !         ilamg(k)**cge(9,idx(k))
+  !       tend%pna_gca(k) = min(real(nwfa(k)*global_inverse_dt, kind=dp), &
+  !         tend%pna_gca(k))
+  !       ef_ga = aerosol_collection_efficiency(xdg, if_aerosol_size, &
+  !         visco(k), rho(k), temp(k), 'g')
+  !       tend%pnd_gcd(k) = rhof(k)*t1_qg_qc*ef_ga*nifa(k)*n0_g * &
+  !         ilamg(k)**cge(9,idx(k))
+  !       tend%pnd_gcd(k) = min(real(nifa(k)*global_inverse_dt, kind=dp), &
+  !         tend%pnd_gcd(k))
+  !     endif
+  !   enddo
+  ! end subroutine aerosol_scavenging
 
 end module module_mp_tempo_main

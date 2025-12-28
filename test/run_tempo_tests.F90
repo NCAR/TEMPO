@@ -1,7 +1,7 @@
 program run_tempo_tests
   !! This program runs TEMPO tests
   use tests, only : test_tempo_init, test_tempo_driver, &
-    test_rain_sedimentation
+    test_rain_sedimentation, test_graupel_sedimentation
   implicit none
 
   call test_tempo_init()
@@ -13,4 +13,12 @@ program run_tempo_tests
   call test_rain_sedimentation(dt=120.)
   call test_rain_sedimentation(dt=300.)
   call test_rain_sedimentation(dt=600.)
+
+  ! call test_graupel_sedimentation(dt=1.)
+  ! call test_graupel_sedimentation(dt=10.)
+  ! call test_graupel_sedimentation(dt=20.)
+  ! call test_graupel_sedimentation(dt=60.)
+  ! call test_graupel_sedimentation(dt=120.)
+  ! call test_graupel_sedimentation(dt=300.)
+  ! call test_graupel_sedimentation(dt=600.)
 end program run_tempo_tests

@@ -14,7 +14,7 @@ module module_mp_tempo_aerosols
   subroutine init_water_friendly_aerosols(dz1d, nwfa)
     !! exponential profile of aerosols if nothing else is available
     real(wp), dimension(:), intent(in) :: dz1d
-    real(wp), dimension(:), intent(out) :: nwfa
+    real(wp), dimension(:), intent(inout) :: nwfa
     real(wp), dimension(:), allocatable :: hgt
     real(wp) :: h_01, niccn3
     integer :: k, nz
@@ -43,7 +43,7 @@ module module_mp_tempo_aerosols
   subroutine init_ice_friendly_aerosols(dz1d, nifa)
     !! exponential profile of aerosols if nothing else is available
     real(wp), dimension(:), intent(in) :: dz1d
-    real(wp), dimension(:), intent(out) :: nifa
+    real(wp), dimension(:), intent(inout) :: nifa
     real(wp), dimension(:), allocatable :: hgt
     real(wp) :: h_01, niin3
     integer :: k, nz
