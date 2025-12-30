@@ -20,18 +20,15 @@ module module_mp_tempo_params
   type :: ty_tempo_cfgs
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
-    logical :: semi_sedi = .false. !! semi-lagrangian sedimentation
-    logical :: diag_freezing_rain = .false.
-
-    logical :: warm_rain = .true.
-    logical :: ice_nucleation = .true.
-    logical :: riming = .true.
-    logical :: rain_evaporation = .true.
-    logical :: cloud_condensation = .true.
-    logical :: rainsnow_raingraupel_collection = .true.
-    logical :: ice_processes = .true.
-    logical :: ice_homogeneous_freeze_instant_melt = .true.
-    logical :: all_processes_off = .false. !! override all settings
+    logical :: semi_sedi = .false. !! flag for semi-lagrangian sedimentation
+    logical :: all_mp_processes_off = .false. !! flag to turn off all microphysical processes
+    !>  flags to control diagnostic output below
+    logical :: refl10cm = .true.
+    logical :: re_cloud = .true.
+    logical :: re_ice = .true.
+    logical :: re_snow = .true.
+    logical :: rain_med_vol_diam = .false.
+    logical :: graupel_med_vol_diam = .false.
   end type
 
   ! tempo lookup table filenames
@@ -143,7 +140,7 @@ module module_mp_tempo_params
   real(wp), parameter :: r1 = 1.e-12_wp !! minimum hydrometeor mass \([kg\, m^{-3}]\) 
   real(wp), parameter :: r2 = 1.e-6_wp !! minimum hydrometeor number \([kg\, m^{-3}]\)
   real(wp), parameter :: eps = 1.e-15_wp !! small non-zero number
-
+  real(wp), parameter :: meters3_to_liters = 1000._wp !! number of liters in 1 \(m^{3}\)
   real(dp), parameter :: gonv_min = 1.e2_dp !! minimum graupel y-intercept \([m^{-4}]\)
   real(dp), parameter :: gonv_max = 1.e6_dp !! maximum graupel y-intercept \([m^{-4}]\)
 

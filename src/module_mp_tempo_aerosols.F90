@@ -12,7 +12,7 @@ module module_mp_tempo_aerosols
   contains
 
   subroutine init_water_friendly_aerosols(dz1d, nwfa)
-    !! exponential profile of aerosols if nothing else is available
+    !! exponential profile of aerosols as a last resort
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nwfa
     real(wp), dimension(:), allocatable :: hgt
@@ -41,7 +41,7 @@ module module_mp_tempo_aerosols
 
 
   subroutine init_ice_friendly_aerosols(dz1d, nifa)
-    !! exponential profile of aerosols if nothing else is available
+    !! exponential profile of aerosols as a last resort
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nifa
     real(wp), dimension(:), allocatable :: hgt
@@ -107,22 +107,5 @@ module module_mp_tempo_aerosols
     if (st > st2) eff = eff + ((st-st2)/(st-st2+0.666667_wp))**1.5_wp
     eff_a = max(1.e-5_wp, min(eff, 1._wp))
   end function aerosol_collection_efficiency
-
-  ! subroutine init_aerosol_emissions(deltaz, area, nwfa, nifa, nwfa2d, nifa2d)
-  !   !! aerosol emissions calculated from lowest-model aerosol values
-  !   ! scale the lowest level aerosol data into an emissions rate
-  !   ! where: Nwfa=50 per cc, emit 0.875E4 aerosols per second per grid box unit
-  !   ! that was tested as ~(20kmx20kmx50m = 2.e10 m**3) 
-  !   real(wp), intent(in) :: deltaz, area, nwfa, nifa
-  !   real(wp), intent(out) :: nwfa2d, nifa2d
-  !   real(wp) :: deltaz_
-  !   real(wp), parameter :: min_deltaz = 9._wp
-
-  !   deltaz_ = deltaz
-  !   if (deltaz < min_deltaz) deltaz_ = min_deltaz
-  !   nwfa2d = max(nwfa_default, min(aero_max, nwfa)) * &
-  !     0.000196_wp * (5._wp / deltaz_) * (area / 9.e6_wp)
-  !   nifa2d = 0._wp
-  ! end subroutine init_aerosol_emissions
 
 end module module_mp_tempo_aerosols

@@ -1,24 +1,28 @@
 program run_tempo_tests
   !! This program runs TEMPO tests
-  use tests, only : test_tempo_init, test_tempo_driver, &
-    test_rain_sedimentation, test_graupel_sedimentation
+  use tests, only : test_tempo_init, test_graupel_sedimentation, &
+    test_snow_sedimentation
   implicit none
 
-  call test_tempo_init()
-  !call test_tempo_driver()
-  call test_rain_sedimentation(dt=1.)
-  call test_rain_sedimentation(dt=10.)
-  call test_rain_sedimentation(dt=20.)
-  call test_rain_sedimentation(dt=60.)
-  call test_rain_sedimentation(dt=120.)
-  call test_rain_sedimentation(dt=300.)
-  call test_rain_sedimentation(dt=600.)
+  real, dimension(7) :: sedi_tests = &
+    [1., 10., 20., 60., 120., 300., 600.]
 
-  ! call test_graupel_sedimentation(dt=1.)
-  ! call test_graupel_sedimentation(dt=10.)
-  ! call test_graupel_sedimentation(dt=20.)
-  ! call test_graupel_sedimentation(dt=60.)
-  ! call test_graupel_sedimentation(dt=120.)
-  ! call test_graupel_sedimentation(dt=300.)
-  ! call test_graupel_sedimentation(dt=600.)
+  integer :: t
+
+  call test_tempo_init()
+  
+  ! graupel sedimentation
+  do t = 1, size(sedi_tests)
+    call test_graupel_sedimentation(dt=sedi_tests(t), semi_sedi=.false.)
+  enddo
+  do t = 1, size(sedi_tests)
+    call test_graupel_sedimentation(dt=sedi_tests(t), semi_sedi=.true.)
+  enddo
+
+  ! snow sedimentation
+  do t = 1, size(sedi_tests)
+    call test_snow_sedimentation(dt=sedi_tests(t))
+  enddo
+  ! test_tempo_driver()
+
 end program run_tempo_tests
