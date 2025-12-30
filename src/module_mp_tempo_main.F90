@@ -1,7 +1,7 @@
 module module_mp_tempo_main
   !! main tempo microphysics code
   use module_mp_tempo_params, only : wp, sp, dp, &
-    min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, tempo_cfgs, meters3_to_liters
+    min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, tempo_cfgs, meters3_to_liters, eps
   use module_mp_tempo_utils, only : get_nuc, get_cloud_number, snow_moments, calc_rslf, calc_rsif
   use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius
   use module_mp_tempo_aerosols, only : init_ice_friendly_aerosols, init_water_friendly_aerosols, aerosol_collection_efficiency
@@ -20,6 +20,7 @@ module module_mp_tempo_main
 
   type :: ty_tempo_main_diags
     real(wp) :: rain_precip
+    real(wp) :: cloud_precip
     real(wp) :: ice_liquid_equiv_precip
     real(wp) :: snow_liquid_equiv_precip
     real(wp) :: graupel_liquid_equiv_precip
@@ -58,7 +59,6 @@ module module_mp_tempo_main
 
     type(ty_tend) :: tend
     type(ty_tempo_main_diags), intent(out) :: tempo_main_diags
-    logical :: do_process
 
     integer, intent(in) :: kts, kte, ii, jj
     real(wp), intent(in) :: dt
@@ -88,7 +88,7 @@ module module_mp_tempo_main
 
     ! thermo vars
     real(wp), dimension(kts:kte) :: temp, pres, qv
-    real(wp), dimension(kts:kte) :: rc, ri, rr, rs, rg, rb
+    real(wp), dimension(kts:kte) :: rc, ri, rr, rs, rg, rb, qcsave, qssave
     real(wp), dimension(kts:kte) :: ni, nr, nc, ng, nwfa, nifa
     real(wp), dimension(kts:kte) :: rho, rhof, rhof2
     real(wp), dimension(kts:kte) :: qvs, qvsi, delqvs
@@ -114,6 +114,7 @@ module module_mp_tempo_main
     logical :: do_micro, supersaturated
     logical, save :: main_called = .false.
     real(wp) :: tempc, tc0
+    real(wp) :: qv0, qv1, qc0, qc1, qr0, qr1, qi0, qi1, qs0, qs1, qg0, qg1, mass_check0, mass_check1, max_clip_qv, max_clip
     integer :: k, nz
     integer :: nu_c
 
@@ -252,6 +253,26 @@ module module_mp_tempo_main
       vtng(k) = 0._wp
     enddo
 
+    qv0 = sum(qv1d)
+    qc0 = sum(qc1d)
+    qr0 = sum(qr1d)
+    qi0 = sum(qi1d)
+    qs0 = sum(qs1d)
+    qg0 = sum(qg1d)
+    max_clip_qv = real(nz, kind=wp) * min_qv
+    max_clip = real(nz, kind=wp) * r1
+
+    mass_check0 = sum(qv1d) + sum(qc1d) + sum(qr1d) + sum(qi1d) + sum(qs1d) + sum(qg1d)
+    do k = 1, nz
+      if (qc1d(k) < 0._wp) then
+        write(*,*) 'negative qc', qc1d(k)
+      endif 
+      if (qs1d(k) < 0._wp) then
+        write(*,*) 'negative qs', qs1d(k)
+      endif 
+    enddo
+    qcsave = qc1d
+    qssave = qs1d
     ! initialization -----------------------------------------------------------------------------
     do k = 1, nz
       temp(k) = t1d(k)
@@ -288,7 +309,21 @@ module module_mp_tempo_main
     call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
       qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
       qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-    
+
+    ! re-zero tendencies after initial check zero tendencies
+    do k = 1, nz
+      qcten(k) = 0._wp
+      qiten(k) = 0._wp
+      qrten(k) = 0._wp
+      qsten(k) = 0._wp
+      qgten(k) = 0._wp
+      ngten(k) = 0._wp
+      qbten(k) = 0._wp
+      niten(k) = 0._wp
+      nrten(k) = 0._wp
+      ncten(k) = 0._wp
+    enddo
+
     call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
       supersaturated)
@@ -297,6 +332,7 @@ module module_mp_tempo_main
     do_micro = any(l_qc) .or. any(l_qr) .or. any(l_qi) .or. any(l_qs) .or. any(l_qg)
     if (.not. do_micro .and. .not. supersaturated) return
 
+    ! main microphysical processes ---------------------------------------------------------------
     if (.not. tempo_cfgs%all_mp_processes_off) then
       call warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend)  
     endif 
@@ -304,14 +340,14 @@ module module_mp_tempo_main
       call riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
         smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif 
-    if (.not. tempo_cfgs%all_mp_processes_off) then
-      call rain_snow_rain_graupel(temp, l_qr, rr, nr, ilamr, l_qs, rs, &
-        l_qg, rg, ng, ilamg, idx_bg, tend)
-    endif 
-    if (.not. tempo_cfgs%all_mp_processes_off) then
-      call ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-        nifa, nwfa, ni, smo0, rc, nc, rr, nr, ilamr, tend)
-    endif 
+    ! if (.not. tempo_cfgs%all_mp_processes_off) then
+    !   call rain_snow_rain_graupel(temp, l_qr, rr, nr, ilamr, l_qs, rs, &
+    !     l_qg, rg, ng, ilamg, idx_bg, tend)
+    ! endif 
+    ! if (.not. tempo_cfgs%all_mp_processes_off) then
+    !   call ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
+    !     nifa, nwfa, ni, smo0, rc, nc, rr, nr, ilamr, tend)
+    ! endif 
 
     !call ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
     !  vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
@@ -427,8 +463,8 @@ module module_mp_tempo_main
 
     ! rain evaporation
     if (.not. tempo_cfgs%all_mp_processes_off) then
-      call rain_evaporation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
-        vsc2, rhof2, qv, qvs, l_qr, rr, nr, ilamr, tend)
+      call rain_evaporation(rho, temp, ssatw, lvap, tcond, diffu, vsc2, rhof2, &
+        qv, qvs, l_qr, rr, nr, ilamr, tend)
 
       do k = 1, nz
         qrten(k) = qrten(k) - tend%prv_rev(k)
@@ -454,6 +490,12 @@ module module_mp_tempo_main
     endif 
 
     ! sedimentation ------------------------------------------------------------------------------
+    tempo_main_diags%rain_precip = 0._wp
+    tempo_main_diags%cloud_precip = 0._wp
+    tempo_main_diags%ice_liquid_equiv_precip = 0._wp
+    tempo_main_diags%snow_liquid_equiv_precip = 0._wp
+    tempo_main_diags%graupel_liquid_equiv_precip = 0._wp
+    
     ! rain
     ktop_sedi = 1
     substeps_sedi = 1
@@ -462,11 +504,9 @@ module module_mp_tempo_main
       call rain_fallspeed(rhof=rhof, l_qr=l_qr, rr=rr, ilamr=ilamr, dz1d=dz1d, &
         vt=vtrr, vtn=vtnr, substeps_sedi=substeps_sedi, ktop_sedi=ktop_sedi)
 
-      if (tempo_cfgs%semi_sedi) then 
+      if (tempo_cfgs%semi_sedi) then
         substeps_sedi = max(int(substeps_sedi/semi_sedi_factor) + 1, 1)
         do n = 1, substeps_sedi
-          ! note: if stability issues arise, change the limit in the second call
-          ! to limit=r2*10 and change the semi_sedi_factor from 10 to 7
           call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=rr, xten=qrten, &
             vt=vtrr, steps=substeps_sedi, limit=r1, precip=tempo_main_diags%rain_precip)
           call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=nr, xten=nrten, &
@@ -508,8 +548,6 @@ module module_mp_tempo_main
       if (tempo_cfgs%semi_sedi) then 
         substeps_sedi = max(int(substeps_sedi/semi_sedi_factor) + 1, 1)
         do n = 1, substeps_sedi
-          ! note: if stability issues arise either change the limit in the second call
-          ! to limit=r2*10 and change the semi_sedi_factor from 10 to 7
           call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=rg, xten=qgten, &
             vt=vtrg, steps=substeps_sedi, limit=r1, precip=tempo_main_diags%graupel_liquid_equiv_precip)
           call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=ng, xten=ngten, &
@@ -563,10 +601,12 @@ module module_mp_tempo_main
     ktop_sedi = 1
     substeps_sedi = 1
     if (any(l_qs)) then
-      call snow_fallspeed(rhof, l_qs, rs, tend%prr_sml, smob, smoc, rr, vtrr, &
-        dz1d, vtrs, vtboost, substeps_sedi, ktop_sedi)
-      call sedimentation(xr=rs, vt=vtrs, dz1d=dz1d, rho=rho, xten=qsten, limit=r1, &
-      steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%snow_liquid_equiv_precip)
+      call snow_fallspeed(rhof=rhof, l_qs=l_qs, rs=rs, prr_sml=tend%prr_sml, smob=smob, smoc=smoc, &
+        rr=rr, vtrr=vtrr, dz1d=dz1d, vt=vtrs, vtboost=vtboost, substeps_sedi=substeps_sedi, ktop_sedi=ktop_sedi)
+      do n = 1, substeps_sedi
+        call sedimentation(xr=rs, vt=vtrs, dz1d=dz1d, rho=rho, xten=qsten, limit=r1, &
+        steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%snow_liquid_equiv_precip)
+      enddo
     endif 
 
     ! ice
@@ -587,11 +627,13 @@ module module_mp_tempo_main
     if (any(l_qc)) then
       call cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vtrc, vtnc, ktop_sedi)
       call sedimentation(xr=rc, vt=vtrc, dz1d=dz1d, rho=rho, xten=qcten, limit=r1, &
-        steps=substeps_sedi, ktop_sedi=ktop_sedi)
+        steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%cloud_precip)
       call sedimentation(xr=nc, vt=vtnc, dz1d=dz1d, rho=rho, xten=ncten, limit=r2, &
         steps=substeps_sedi, ktop_sedi=ktop_sedi)
     endif 
 
+    ! After sedimentation freeze all cloud water below hgfrz temperature
+    ! and melt all cloud ice above freezing
     if (.not. tempo_cfgs%all_mp_processes_off) then
       call freeze_cloud_melt_ice(temp=temp, rho=rho, ocp=ocp, lvap=lvap, &
         qi1d=qi1d, ni1d=ni1d, qiten=qiten, niten=niten, qc1d=qc1d, nc1d=nc1d, &
@@ -601,7 +643,7 @@ module module_mp_tempo_main
     ! final update -------------------------------------------------------------------------------
     do k = 1, nz
       t1d(k)  = t1d(k) + tten(k)*global_dt
-      qv1d(k) = max(min_qv, qv1d(k) + qvten(k)*global_dt)
+      qv1d(k) = max(min_qv, (qv1d(k) + qvten(k)*global_dt))
       rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
     enddo
     
@@ -636,6 +678,32 @@ module module_mp_tempo_main
     call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
       qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
       qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
+
+    mass_check1 = sum(qv1d) + sum(qc1d) + sum(qr1d) + sum(qi1d) + sum(qs1d) + sum(qg1d) + &
+      (tempo_main_diags%ice_liquid_equiv_precip)/dz1d(1)/rho(1) + &
+      (tempo_main_diags%snow_liquid_equiv_precip)/dz1d(1)/rho(1) + &
+      (tempo_main_diags%graupel_liquid_equiv_precip)/dz1d(1)/rho(1) + &
+      (tempo_main_diags%rain_precip)/dz1d(1)/rho(1)
+
+    if ((mass_check0 < eps) .and. (mass_check1 > eps)) then
+      write(*,*) 'mass check warning positive', mass_check0, mass_check1
+    endif 
+    if ((mass_check1 < eps) .and. (mass_check0 > eps)) then
+      write(*,*) 'mass check warning negative', mass_check0, mass_check1
+    endif 
+
+    qv1 = sum(qv1d)
+    qc1 = sum(qc1d) + tempo_main_diags%cloud_precip/dz1d(1)/rho(1)
+    qr1 = sum(qr1d) + tempo_main_diags%rain_precip/dz1d(1)/rho(1)
+    qi1 = sum(qi1d) + tempo_main_diags%ice_liquid_equiv_precip/dz1d(1)/rho(1)
+    qs1 = sum(qs1d) + tempo_main_diags%snow_liquid_equiv_precip/dz1d(1)/rho(1)
+    qg1 = sum(qg1d) + tempo_main_diags%graupel_liquid_equiv_precip/dz1d(1)/rho(1)
+    ! if (abs(qv1-qv0) > max_clip_qv) write(*,*) 'qv check', qv0, qv1, max_clip_qv
+    ! if (abs(qc1-qc0) > max_clip) write(*,*) 'qc check', qc0, qc1, max_clip, abs(qc1-qc0)
+    ! if (abs(qr1-qr0) > max_clip) write(*,*) 'qr check', qr0, qr1, max_clip, abs(qr1-qr0)
+    ! if (abs(qi1-qi0) > max_clip) write(*,*) 'qi check', qi0, qi1, max_clip, abs(qi1-qi0)
+    ! if (abs(qs1-qs0) > max_clip) write(*,*) 'qs check', qs0, qs1, max_clip, abs(qs1-qs0)
+    ! if (abs(qg1-qg0) > max_clip) write(*,*) 'qg check', qg0, qg1, max_clip, abs(qg1-qg0)
 
     ! diagnostic output --------------------------------------------------------------------------
     ! frozen fraction
@@ -674,7 +742,7 @@ module module_mp_tempo_main
   end subroutine tempo_main
 
 
- subroutine aerosol_check_and_update(rho, nwfa1d, nifa1d, nwfa, nifa, nwfaten, nifaten)
+  subroutine aerosol_check_and_update(rho, nwfa1d, nifa1d, nwfa, nifa, nwfaten, nifaten)
     !! sets aerosol number concentrations and checks bounds
     use module_mp_tempo_params, only : nwfa_default, aero_max, nifa_default
 
@@ -766,6 +834,7 @@ module module_mp_tempo_main
         nc(k) = nt_c_min
         mvd_c(k) = d0c
         ilamc(k) = 0._dp
+        qcten(k) = -qc1d(k) * global_inverse_dt
         qc1d(k) = 0.0_wp
         if (present(nc1d)) then
           ncten(k) = -nc1d(k) * global_inverse_dt
@@ -899,6 +968,7 @@ module module_mp_tempo_main
         ri(k) = r1
         ni(k) = r2
         ilami(k) = 0._dp
+        qiten(k) = -qi1d(k) * global_inverse_dt
         niten(k) = -ni1d(k) * global_inverse_dt
         qi1d(k) = 0.0_wp
         ni1d(k) = 0.0_wp
@@ -911,8 +981,8 @@ module module_mp_tempo_main
     !! computes snow mass
     use module_mp_tempo_params, only : max_ni, r1, r2
 
-    real(wp), dimension(:), intent(in) :: rho, qsten
-    real(wp), dimension(:), intent(inout) :: qs1d, rs
+    real(wp), dimension(:), intent(in) :: rho
+    real(wp), dimension(:), intent(inout) :: qs1d, rs, qsten
     logical, dimension(:), intent(inout) :: l_qs
     integer :: k, nz
 
@@ -926,6 +996,7 @@ module module_mp_tempo_main
       else
         l_qs(k) = .false.
         rs(k) = r1
+        qsten(k) = -qs1d(k) * global_inverse_dt
         qs1d(k) = 0.0_wp
       endif
     enddo 
@@ -1003,7 +1074,7 @@ module module_mp_tempo_main
           lam_exp = (n0_exp*am_g(idx(k))*cgg(1,1)/rg(k))**oge1
           lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
           ng(k) = cgg(2,1)*ogg3*rg(k)*lamg**bm_g / am_g(idx(k))
-          rb(k) = 1000.*rg(k)/rho_g(idx(k))
+          rb(k) = meters3_to_liters*rg(k)/rho_g(idx(k))
         endif
         ilamg(k) = 1._dp / lamg
         mvd_g(k) = (3.0_wp + mu_g + 0.672_wp) * ilamg(k)
@@ -1082,7 +1153,7 @@ module module_mp_tempo_main
     l_qr, rr, l_qs, rs, l_qg, rg, tend)
     !! check to ensure that loss terms don't over-deplete a category
     !! adjust tendencies if needed
-    use module_mp_tempo_params, only : eps, rho_i, t0
+    use module_mp_tempo_params, only : eps, rho_i, t0, meters3_to_liters
 
     type(ty_tend), intent(inout) :: tend
     logical, dimension(:), intent(in) :: l_qc, l_qi, l_qr, l_qs, l_qg
@@ -1194,7 +1265,7 @@ module module_mp_tempo_main
       ratio = min(abs(tend%prr_rcg(k)), abs(tend%prg_rcg(k)))
       tend%prr_rcg(k) = ratio * sign(1.0_dp, tend%prr_rcg(k))
       tend%prg_rcg(k) = -tend%prr_rcg(k)
-      tend%pbg_rcg(k) = tend%prg_rcg(k)/rho_i ! scale density change
+      tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_i ! scale density change
       ! reset total rain-snow collection amount if reduced
       if (temp(k) > t0) then
         ratio = min(abs(tend%prr_rcs(k)), abs(tend%prs_rcs(k)))
@@ -1208,7 +1279,7 @@ module module_mp_tempo_main
   subroutine sum_tendencies(rho, temp, idx, lvap, ocp, tend, tten, qvten, qcten, &
     ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten)
     !! sums tendencies for each microphysical category and temperature
-    use module_mp_tempo_params, only : lsub, rho_g, t0, lfus
+    use module_mp_tempo_params, only : lsub, rho_g, t0, lfus, meters3_to_liters
 
     type(ty_tend), intent(in) :: tend
     real(wp), dimension(:), intent(in) :: rho, temp, lvap, ocp
@@ -1261,7 +1332,7 @@ module module_mp_tempo_main
 
       qbten(k) = qbten(k) + (tend%pbg_scw(k) + tend%pbg_rfz(k) + tend%pbg_gcw(k) + &
         tend%pbg_rci(k) + tend%pbg_rcs(k) + tend%pbg_rcg(k) + tend%pbg_sml(k) - &
-        tend%pbg_gml(k) + (tend%prg_gde(k) - tend%prg_ihm(k)) /rho_g(idx(k))) * orho
+        tend%pbg_gml(k) + meters3_to_liters * (tend%prg_gde(k) - tend%prg_ihm(k)) / rho_g(idx(k))) * orho
 
       if (temp(k) < t0) then
         tten(k) = tten(k) + &
@@ -1287,7 +1358,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(in) :: dz1d, rho
     real(wp), dimension(:), intent(in) :: vt
     real(wp), intent(in) :: limit
-    real(wp), intent(out), optional :: precip
+    real(wp), intent(inout), optional :: precip
     real(wp) :: odz, orho
     real(wp), allocatable, dimension(:) :: sed_r
     integer :: n, k, nz, ktop, kb, kt
@@ -1306,15 +1377,27 @@ module module_mp_tempo_main
     xten(k) = xten(k) - sed_r(k)*odz*(1._wp/real(steps, kind=wp))*orho
     xr(k) = max(limit, xr(k) - sed_r(k)*odz*global_dt*(1._wp/real(steps, kind=wp)))
 
+    ! do k = ktop, 1, -1
+    !   odz = 1._wp/dz1d(k)
+    !   orho = 1._wp/rho(k)
+    !   xten(k) = xten(k) + (sed_r(k+1)-sed_r(k))*odz*(1._wp/real(steps, kind=wp))*orho
+    !   xr(k) = max(limit, xr(k) + &
+    !     (sed_r(k+1)-sed_r(k))*odz*global_dt*(1._wp/real(steps, kind=wp)))
+    ! enddo
+
     do k = ktop, 1, -1
       odz = 1._wp/dz1d(k)
       orho = 1._wp/rho(k)
-      xten(k) = xten(k) + (sed_r(k+1)-sed_r(k))*odz*(1._wp/real(steps, kind=wp))*orho
-      xr(k) = max(limit, xr(k) + &
-        (sed_r(k+1)-sed_r(k))*odz*global_dt*(1._wp/real(steps, kind=wp)))
+      xten(k) = xten(k) + (sed_r(k+1))*(1._wp/dz1d(k+1))*(1._wp/real(steps, kind=wp))/rho(k+1)
+      xten(k) = xten(k) - (sed_r(k))*odz*(1._wp/real(steps, kind=wp))*orho
+
+      xr(k) = max(limit, xr(k) + (sed_r(k+1))*(1._wp/dz1d(k+1))*global_dt*(1._wp/real(steps, kind=wp)))
+      xr(k) = max(limit, xr(k) - (sed_r(k))*odz*global_dt*(1._wp/real(steps, kind=wp)))
     enddo
+
     if (present(precip)) then 
-      if (xr(1) > r1*1000._wp) then
+      ! if (xr(1) > r1*1000._wp) then
+      if (xr(1) > r1) then
         precip = precip + sed_r(1)*global_dt*(1._wp/real(steps, kind=wp))
       endif 
     endif 
@@ -1612,18 +1695,18 @@ module module_mp_tempo_main
       cse, csg, av_s
 
     real(wp), dimension(:), intent(in) :: rhof, dz1d, rs, rr, vtboost
-    real(wp), dimension(:), intent(In) :: vtrr
+    real(wp), dimension(:), intent(in) :: vtrr
     logical, dimension(:), intent(in) :: l_qs
     real(wp), dimension(:), intent(inout) :: vt
-    real(dp), dimension(:) :: smob, smoc, prr_sml
-    integer, intent(out) :: substeps_sedi, ktop_sedi
+    real(dp), dimension(:), intent(in) :: smob, smoc, prr_sml
+    integer, intent(out), optional :: substeps_sedi, ktop_sedi
     real(wp) :: dz_by_vt, vts, sr
     real(dp) :: xds, mrat, ils1, ils2, t1_vts, t2_vts, t3_vts, t4_vts
     integer :: k, nz
 
     nz = size(l_qs)
-    ktop_sedi = 1
-    substeps_sedi = 1
+    if (present(ktop_sedi)) ktop_sedi = 1
+    if (present(substeps_sedi)) substeps_sedi = 1
     do k = nz, 1, -1
       if (rs(k) > r1) then
         xds = smoc(k) / smob(k)
@@ -1648,12 +1731,14 @@ module module_mp_tempo_main
         vt(k) = vt(k+1)
       endif
       if (vt(k) > 1.e-3_wp) then
-        ktop_sedi = max(ktop_sedi, k)
+        if (present(ktop_sedi)) ktop_sedi = max(ktop_sedi, k)
         dz_by_vt = dz1d(k) / vt(k)
-        substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
+        if (present(substeps_sedi)) substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
       endif
     enddo
-    if (ktop_sedi == nz) ktop_sedi = nz-1 
+    if (present(ktop_sedi)) then
+      if (ktop_sedi == nz) ktop_sedi = nz-1
+    endif 
   end subroutine snow_fallspeed
 
 
@@ -1797,20 +1882,20 @@ module module_mp_tempo_main
   end subroutine cloud_condensation
 
 
-  subroutine rain_evaporation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
+  subroutine rain_evaporation(rho, temp, ssatw, lvap, tcond, diffu, &
     vsc2, rhof2, qv, qvs, l_qr, rr, nr, ilamr, tend)
     use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, tnc_wev, &
       org2, cre, t1_qr_ev, t2_qr_ev, fv_r
 
     type(ty_tend), intent(inout) :: tend
-    real(wp), dimension(:), intent(in) :: rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, vsc2, rhof2, &
+    real(wp), dimension(:), intent(in) :: rho, temp, ssatw, lvap, tcond, diffu, vsc2, rhof2, &
       qv, qvs, rr, nr
     logical, dimension(:), intent(in) :: l_qr
     real(dp), dimension(:), intent(in) :: ilamr
-    real(wp) :: clap, fcd, dfcd, xrc, xnc, orho, tempc, otemp, &
+    real(wp) :: orho, tempc, otemp, &
       rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat, t1_evap, rate_max, eva_factor
     real(dp) :: lamr, n0_r
-    integer :: k, nz, n, idx_d, idx_n, idx_c
+    integer :: k, nz
 
     nz = size(qv)
     do k = 1, nz
@@ -1862,9 +1947,9 @@ module module_mp_tempo_main
     ! freeze or melt all 
     use module_mp_tempo_params, only : t0, lfus, lsub, hgfrz
 
-    real(wp), dimension(:), intent(in) :: temp, rho, ocp, lvap
-    real(wp), dimension(:), intent(inout) :: qi1d, ni1d, qiten, niten, qc1d, qcten, ncten, tten
-    real(wp), dimension(:), intent(inout), optional :: nc1d
+    real(wp), dimension(:), intent(in) :: temp, rho, ocp, lvap, qi1d, ni1d, qc1d
+    real(wp), dimension(:), intent(inout) :: qiten, niten, qcten, ncten, tten
+    real(wp), dimension(:), intent(in), optional :: nc1d
     real(wp) :: xri, xrc, lfus2, xnc
     integer :: k, nz
 
@@ -1881,7 +1966,7 @@ module module_mp_tempo_main
       endif
       ! instantly freeze all cloud water
       xrc = max(0._wp, qc1d(k)+qcten(k)*global_dt)
-      if ((temp(k) <  hgfrz) .and. (xrc > 0._wp)) then
+      if ((temp(k) < hgfrz) .and. (xrc > 0._wp)) then
         lfus2 = lsub - lvap(k)
         if (present(nc1d)) then
           xnc = nc1d(k) + ncten(k)*global_dt
@@ -2017,7 +2102,6 @@ module module_mp_tempo_main
     integer :: k, nz, nu_c, idx
 
     nz = size(l_qc)
-
     !> @note
     !> rain self-collection follows Seifert (1994) and drop break-up
     !> follows Verlinde and Cotton (1993)
@@ -2190,6 +2274,16 @@ module module_mp_tempo_main
         endif
       endif 
     end do 
+    ! !.. This change will be required if users run adaptive time step that
+    ! !.. results in delta-t that is generally too long to allow cloud water
+    ! !.. collection by snow/graupel above melting temperature.
+    ! !.. Credit to Bjorn-Egil Nygaard for discovering.
+
+    ! if (global_dt > 120._wp) then
+    !   tend%prr_rcw(k)=tend%prr_rcw(k)+tend%prs_scw(k)+tend%prg_gcw(k)
+    !   tend%prs_scw(k)=0._dp
+    !   tend%prg_gcw(k)=0._dp
+    ! endif
   end subroutine riming
 
 
@@ -2334,7 +2428,7 @@ module module_mp_tempo_main
 
   subroutine rain_snow_rain_graupel(temp, l_qr, rr, nr, ilamr, l_qs, rs, &
       l_qg, rg, ng, ilamg, idx, tend)
-    use module_mp_tempo_params, only : t0, r_r, r_s, r_g, rho_i, rho_g, &
+    use module_mp_tempo_params, only : t0, r_r, r_s, r_g, rho_i, rho_g, meters3_to_liters, &
       tmr_racs2, tcr_sacr2, tmr_racs1, tcr_sacr1, tms_sacr1, tcs_racs1, &
       tnr_sacr1, tnr_sacr2, tnr_racs1, tnr_racs2, &
       tcr_gacr, tmr_racg, tcg_racg, tnr_gacr, tnr_racg
@@ -2376,7 +2470,7 @@ module module_mp_tempo_main
               + tnr_sacr2(idx_s,idx_t,idx_r1,idx_r)
             tend%pnr_rcs(k) = min(real(nr(k)*global_inverse_dt, kind=dp), tend%pnr_rcs(k))
             tend%png_rcs(k) = tend%pnr_rcs(k)
-            tend%pbg_rcs(k) = tend%prg_rcs(k)/rho_i
+            tend%pbg_rcs(k) = meters3_to_liters*tend%prg_rcs(k)/rho_i
           else
             tend%prs_rcs(k) = -tcs_racs1(idx_s,idx_t,idx_r1,idx_r) &
                 - tms_sacr1(idx_s,idx_t,idx_r1,idx_r) &
@@ -2401,14 +2495,14 @@ module module_mp_tempo_main
             tend%pnr_rcg(k) = tnr_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r) &
               + tnr_gacr(idx_g1,idx_g,idx(k),idx_r1,idx_r)
             tend%pnr_rcg(k) = min(real(nr(k)*global_inverse_dt, kind=dp), tend%pnr_rcg(k))
-            tend%pbg_rcg(k) = tend%prg_rcg(k)/rho_i
+            tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_i
           else
             tend%prr_rcg(k) = tcg_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r)
             tend%prr_rcg(k) = min(real(rg(k)*global_inverse_dt, kind=dp), tend%prr_rcg(k))
             tend%prg_rcg(k) = -tend%prr_rcg(k)
             tend%png_rcg(k) = tnr_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r)
             tend%png_rcg(k) = min(real(ng(k)*global_inverse_dt, kind=dp), tend%png_rcg(k))
-            tend%pbg_rcg(k) = tend%prg_rcg(k)/rho_g(idx(k))
+            tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(idx(k))
             ! explicit drop break-up due to collisions
             tend%pnr_rcg(k) = -1.5_wp*tnr_gacr(idx_g1,idx_g,idx(k),idx_r1,idx_r)
           endif
@@ -2422,7 +2516,7 @@ module module_mp_tempo_main
       nifa, nwfa, ni, smo0, rc, nc, rr, nr, ilamr, tend)
     use module_mp_tempo_params, only : r_r, r_c, hgfrz, rho_i, xm0i, &
       tpg_qrfz, tpi_qrfz, tni_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz, &
-      demott_nuc_ssati, eps, icenuc_max, tno, ato, max_ni
+      demott_nuc_ssati, eps, icenuc_max, tno, ato, max_ni, meters3_to_liters
 
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: qv, temp, rho, qvsi, rr, nr, rc, nc, w1d, &
@@ -2454,13 +2548,14 @@ module module_mp_tempo_main
           tend%pnr_rfz(k) = tnr_qrfz(idx_r,idx_r1,idx_tc,idx_in)*global_inverse_dt
           tend%prg_rfz(k) = min(real(rr(k)*global_inverse_dt, kind=dp), tend%prg_rfz(k))
           tend%pnr_rfz(k) = min(real(nr(k)*global_inverse_dt, kind=dp), tend%pnr_rfz(k))
-          tend%png_rfz(k) = tend%pnr_rfz(k) * &
-            max(min((10._wp**(-0.1_wp*w1d(k)) + 0.1_wp), 1._wp), 0.1_wp)
+          ! tend%png_rfz(k) = tend%pnr_rfz(k) * &
+          !   max(min((10._wp**(-0.1_wp*w1d(k)) + 0.1_wp), 1._wp), 0.1_wp)
+          tend%png_rfz(k) = tend%pnr_rfz(k)
         elseif (rr(k) > r1 .and. temp(k) < hgfrz) then
           tend%pri_rfz(k) = rr(k)*global_inverse_dt
           tend%pni_rfz(k) = nr(k)*global_inverse_dt
         endif
-        tend%pbg_rfz(k) = tend%prg_rfz(k)/rho_i
+        tend%pbg_rfz(k) = meters3_to_liters*tend%prg_rfz(k)/rho_i
 
         if (rc(k) > r_c(1)) then
           call get_cloud_table_index(rc(k), nc(k), idx_c, idx_n)
@@ -2563,19 +2658,19 @@ module module_mp_tempo_main
 
     nz = size(l_qi)
     do k = 1, nz
-          otemp = 1._wp/temp(k)
-          rvs = rho(k)*qvsi(k)
-          rvs_p = rvs*otemp*(lsub*otemp*orv - 1._wp)
-          rvs_pp = rvs * (otemp*(lsub*otemp*orv - 1._wp) * otemp*(lsub*otemp*orv - 1._wp) + &
-            (-2.*lsub*otemp*otemp*otemp*orv) + otemp*otemp)
-          gamsc = lsub*diffu(k)/tcond(k) * rvs_p
-          alphsc = 0.5_wp*(gamsc/(1._wp+gamsc))*(gamsc/(1._wp+gamsc)) * &
-            rvs_pp/rvs_p * rvs/rvs_p
-          alphsc = max(1.e9_wp, alphsc)
-          xsat = ssati(k)
-          if (abs(xsat) < 1.e-9_wp) xsat = 0._wp
-          t1_subl = 4._wp*pi*(1._wp - alphsc*xsat + 2._wp*alphsc*alphsc*xsat*xsat &
-              - 5._wp*alphsc*alphsc*alphsc*xsat*xsat*xsat ) / (1._wp+gamsc)
+      otemp = 1._wp/temp(k)
+      rvs = rho(k)*qvsi(k)
+      rvs_p = rvs*otemp*(lsub*otemp*orv - 1._wp)
+      rvs_pp = rvs * (otemp*(lsub*otemp*orv - 1._wp) * otemp*(lsub*otemp*orv - 1._wp) + &
+        (-2.*lsub*otemp*otemp*otemp*orv) + otemp*otemp)
+      gamsc = lsub*diffu(k)/tcond(k) * rvs_p
+      alphsc = 0.5_wp*(gamsc/(1._wp+gamsc))*(gamsc/(1._wp+gamsc)) * &
+        rvs_pp/rvs_p * rvs/rvs_p
+      alphsc = max(1.e9_wp, alphsc)
+      xsat = ssati(k)
+      if (abs(xsat) < 1.e-9_wp) xsat = 0._wp
+      t1_subl = 4._wp*pi*(1._wp - alphsc*xsat + 2._wp*alphsc*alphsc*xsat*xsat &
+          - 5._wp*alphsc*alphsc*alphsc*xsat*xsat*xsat ) / (1._wp+gamsc)
 
 
       if (temp(k) < t0) then
@@ -2586,8 +2681,6 @@ module module_mp_tempo_main
 !           xdi = max(real(d0i, kind=dp), (bm_i + mu_i + 1.) * ilami(k))
 !           xmi = am_i*xDi**bm_i
 !           oxmi = 1._wp/xmi
-
-
 
 !           tend%pri_ide(k) = c_cube*t1_subl*diffu(k)*ssati(k)*rvs &
 !             *oig1*cig(5)*ni(k)*ilami(k)
@@ -2737,16 +2830,7 @@ module module_mp_tempo_main
       endif 
     enddo
 
-      ! !.. This change will be required if users run adaptive time step that
-    ! !.. results in delta-t that is generally too long to allow cloud water
-    ! !.. collection by snow/graupel above melting temperature.
-    ! !.. Credit to Bjorn-Egil Nygaard for discovering.
 
-    ! if (global_dt > 120._wp) then
-    !   tend%prr_rcw(k)=tend%prr_rcw(k)+tend%prs_scw(k)+tend%prg_gcw(k)
-    !   tend%prs_scw(k)=0._dp
-    !   tend%prg_gcw(k)=0._dp
-    ! endif
   end subroutine ice_processes
 
 
