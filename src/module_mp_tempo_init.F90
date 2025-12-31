@@ -29,7 +29,8 @@ module module_mp_tempo_init
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
       initialize_array_efrw, initialize_array_efsw, initialize_arrays_drop_evap, initialize_arrays_ccn, initialize_arrays_qi_aut_qs, &
-      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater
+      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater, &
+      initialize_bins_for_hail_size, initialize_bins_for_radar
 
     logical, intent(in), optional :: aerosolaware_flag, hailaware_flag
 
@@ -105,6 +106,22 @@ module module_mp_tempo_init
       call initialize_arrays_qr_acr_qg(table_size)
       call read_table_qr_acr_qg(trim(table_filename), table_size)
       write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
+
+      ! bins used for refl10cm calculation with melting
+      if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+        call initialize_bins_for_radar()
+        write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
+          tempo_cfgs%refl10cm_with_melting_snow_graupel
+        write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
+      endif
+
+      ! bins used for hail size calculation
+      if (tempo_cfgs%maximum_hail_size) then
+        call initialize_bins_for_hail_size()
+        write(*,'(A,L)') 'tempo_init() ---  flag to calcuate hail size = ', &
+          tempo_cfgs%maximum_hail_size
+        write(*,'(A)') 'tempo_init() --- initialized bins for hail size calcuation'
+      endif
     endif
   end subroutine tempo_init
 

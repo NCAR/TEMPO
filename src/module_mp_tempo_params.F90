@@ -21,14 +21,16 @@ module module_mp_tempo_params
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
     logical :: semi_sedi = .false. !! flag for semi-lagrangian sedimentation
+    logical :: refl10cm_with_melting_snow_graupel = .false. !! calculate reflectivity for melting snow and graupel
     logical :: all_mp_processes_off = .false. !! flag to turn off all microphysical processes
-    !>  flags to control diagnostic output below
     logical :: refl10cm = .true.
     logical :: re_cloud = .true.
     logical :: re_ice = .true.
     logical :: re_snow = .true.
+    logical :: maximum_hail_size = .true.
     logical :: rain_med_vol_diam = .false.
     logical :: graupel_med_vol_diam = .false.
+    logical :: one_minute_max_precip = .false.
   end type
 
   ! tempo lookup table filenames
@@ -362,6 +364,13 @@ module module_mp_tempo_params
   real(dp), protected, dimension(nbg) :: dg, dtg !! diameter and bin space for graupel bins \([m]\)
   real(dp), protected, dimension(nbc) :: t_nc !! cloud droplet number concentration bins \([cm^{-3}]\)
 
+  integer, parameter :: nhbins = 50 !! used for hail size calculation
+  real(dp), protected, dimension(:), allocatable :: hbins, dhbins !! used for hail size calculation
+
+  integer, parameter :: radar_bins = 50 !! used for radar caculation
+  real(dp), protected, dimension(:), allocatable :: sbins_radar, dsbins_radar !! used for radar calculation
+  real(dp), protected, dimension(:), allocatable :: gbins_radar, dgbins_radar !! used for radar calculation
+
   ! lookup table data set in module_mp_tempo_init and cannot be protected
   real(dp), allocatable, dimension(:,:) :: t_efrw, t_efsw !! collection efficiency data arrays
   real(dp), allocatable, dimension(:,:,:) :: tpc_wev, tnc_wev !! evaporation data arrays
@@ -626,7 +635,43 @@ module module_mp_tempo_params
   end subroutine initialize_bins_for_tables
 
 
- subroutine create_bins(numbins, lowbin, highbin, bins, deltabins)
+  subroutine initialize_bins_for_hail_size()
+    !! initialize log-spaced bins for hail size calculation
+
+    real(dp), parameter :: lowbin = 500.e-6_dp
+    real(dp), parameter :: highbin = 0.075_dp
+  
+    if (.not. allocated(hbins)) allocate(hbins(nhbins), source=0._dp)
+    if (.not. allocated(dhbins)) allocate(dhbins(nhbins), source=0._dp)
+    ! binned number distribution method (this can be done once)
+    call create_bins(numbins=nhbins, lowbin=lowbin, highbin=highbin, &
+      bins=hbins, deltabins=dhbins)
+  end subroutine initialize_bins_for_hail_size
+
+
+  subroutine initialize_bins_for_radar()
+    !! initialize log-spaced bins for radar
+
+    real(dp), parameter :: lowbin = 100.e-6_dp
+    real(dp), parameter :: s_highbin = 0.02_dp
+    real(dp), parameter :: g_highbin = 0.05_dp
+  
+    if (.not. allocated(sbins_radar)) allocate(sbins_radar(radar_bins), source=0._dp)
+    if (.not. allocated(dsbins_radar)) allocate(dsbins_radar(radar_bins), source=0._dp)
+    ! bins of snow (from 100 microns up to 2 cm).
+    call create_bins(numbins=radar_bins, lowbin=lowbin, &
+      highbin=s_highbin, bins=sbins_radar, deltabins=dsbins_radar)
+
+  
+    if (.not. allocated(gbins_radar)) allocate(gbins_radar(radar_bins), source=0._dp)
+    if (.not. allocated(dgbins_radar)) allocate(dgbins_radar(radar_bins), source=0._dp)
+      ! bins of graupel (from 100 microns up to 5 cm).
+    call create_bins(numbins=radar_bins, lowbin=lowbin, &
+      highbin=g_highbin, bins=gbins_radar, deltabins=dgbins_radar)
+  end subroutine initialize_bins_for_radar
+
+
+  subroutine create_bins(numbins, lowbin, highbin, bins, deltabins)
     !! calculates log-spaced bins of hydrometer sizes to simplify calculations later
   
     integer, intent(in) :: numbins

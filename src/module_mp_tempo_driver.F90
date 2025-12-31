@@ -13,6 +13,7 @@ module module_mp_tempo_driver
     real(wp), dimension(:,:), allocatable :: snow_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: graupel_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: frozen_fraction
+    real(wp), dimension(:,:), allocatable :: one_minute_max_precip
     real(wp), dimension(:,:,:), allocatable :: refl10cm
     real(wp), dimension(:,:,:), allocatable :: re_cloud
     real(wp), dimension(:,:,:), allocatable :: re_ice
@@ -29,7 +30,7 @@ module module_mp_tempo_driver
     nc, nwfa, nifa, ng, qb, &
     ids, ide, jds, jde, kds, kde, &
     ims, ime, jms, jme, kms, kme, &
-    its, ite, jts, jte, kts, kte, tempo_driver_diags)
+    its, ite, jts, jte, kts, kte, tempo_diags)
 
     real(wp), intent(in) :: dt !! timestep \([s]]\)
     integer, intent(in) :: itimestep !! integer timestep = integration time / dt
@@ -79,27 +80,16 @@ module module_mp_tempo_driver
     real(wp), dimension(:), allocatable :: nifa1d !! 1D ice-friendly aerosol number mixing ratio \([kg^{-1}]\)
     real(wp), dimension(:), allocatable :: qb1d !! 1D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\)
     real(wp), dimension(:), allocatable :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\)
-    integer :: i, j, k, nz
+    integer :: i, j, k, nz, reset_time_one_minute_max_precip
     logical :: use_temperature 
 
     type(ty_tempo_main_diags) :: tempo_main_diags
-    type(ty_tempo_driver_diags), intent(out) :: tempo_driver_diags
+    type(ty_tempo_driver_diags), intent(out) :: tempo_diags
 
-    ! allocate diagnostics based on configuration flags (3d variable can be turned off)
+    ! local arrays used for accumulation
+    real(wp), dimension(:,:), allocatable, save :: local_one_minute_max_precip
+
     nz = kte - kts + 1
-    if (tempo_cfgs%rain_med_vol_diam) allocate(tempo_driver_diags%rain_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%graupel_med_vol_diam) allocate(tempo_driver_diags%graupel_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%refl10cm) allocate(tempo_driver_diags%refl10cm(its:ite, kts:kte, jts:jte), source=-35._wp)
-    if (tempo_cfgs%re_cloud) allocate(tempo_driver_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%re_ice) allocate(tempo_driver_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%re_snow) allocate(tempo_driver_diags%re_snow(its:ite, kts:kte, jts:jte), source=0._wp)
-    
-    allocate(tempo_driver_diags%rain_precip(its:ite, jts:jte), source=0._wp)
-    allocate(tempo_driver_diags%ice_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
-    allocate(tempo_driver_diags%snow_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
-    allocate(tempo_driver_diags%graupel_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
-    allocate(tempo_driver_diags%frozen_fraction(its:ite, jts:jte), source=0._wp)
-  
     ! allocate 1d arrays if 3d arrays are present
     if (present(nwfa)) allocate(nwfa1d(nz), source=0._wp)
     if (present(nifa)) allocate(nifa1d(nz), source=0._wp)
@@ -107,6 +97,30 @@ module module_mp_tempo_driver
     if (present(ng)) allocate(ng1d(nz), source=0._wp)
     if (present(qb)) allocate(qb1d(nz), source=0._wp)
 
+    ! allocate diagnostics
+    ! 3d diagnostics have configuration flags
+    if (tempo_cfgs%rain_med_vol_diam) allocate(tempo_diags%rain_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%graupel_med_vol_diam) allocate(tempo_diags%graupel_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%refl10cm) allocate(tempo_diags%refl10cm(its:ite, kts:kte, jts:jte), source=-35._wp)
+    if (tempo_cfgs%re_cloud) allocate(tempo_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%re_ice) allocate(tempo_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%re_snow) allocate(tempo_diags%re_snow(its:ite, kts:kte, jts:jte), source=0._wp)
+
+    ! precipitation
+    allocate(tempo_diags%rain_precip(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_diags%ice_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_diags%snow_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_diags%graupel_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_diags%frozen_fraction(its:ite, jts:jte), source=0._wp)
+
+    ! one-minute maximum precipitation
+    if (tempo_cfgs%one_minute_max_precip) then
+      allocate(tempo_diags%one_minute_max_precip(its:ite, jts:jte), source=0._wp)
+      if (.not. allocated(local_one_minute_max_precip)) allocate(local_one_minute_max_precip(its:ite, jts:jte), source=0._wp)
+      reset_time_one_minute_max_precip = int(60._wp/dt)
+    endif 
+
+    ! temperature or theta and exner
     if (present(t)) then
       use_temperature = .true.
     elseif (present(th) .and. present(pii)) then
@@ -115,9 +129,9 @@ module module_mp_tempo_driver
       error stop "tempo_driver() --- requires either temperature or theta and Exner function"
     endif 
 
+    ! tempo driver code
     do j = jts, jte
       do i = its, ite
-        ! Begin k loop
         do k = kts, kte
           if (use_temperature) then
             t1d(k) = t(i,k,j)
@@ -153,31 +167,50 @@ module module_mp_tempo_driver
           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
           w1d=w1d, dz1d=dz1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags)
           
-        ! diagnostics
-        tempo_driver_diags%rain_precip(i,j) = tempo_main_diags%rain_precip
-        tempo_driver_diags%ice_liquid_equiv_precip(i,j) = tempo_main_diags%ice_liquid_equiv_precip
-        tempo_driver_diags%snow_liquid_equiv_precip(i,j) = tempo_main_diags%snow_liquid_equiv_precip
-        tempo_driver_diags%graupel_liquid_equiv_precip(i,j) = tempo_main_diags%graupel_liquid_equiv_precip
-        tempo_driver_diags%frozen_fraction(i,j) = tempo_main_diags%frozen_fraction
-        if (allocated(tempo_driver_diags%rain_med_vol_diam) .and. allocated(tempo_main_diags%rain_med_vol_diam)) then
-          tempo_driver_diags%rain_med_vol_diam(i,:,j) = tempo_main_diags%rain_med_vol_diam
+        ! precipitation
+        tempo_diags%rain_precip(i,j) = tempo_main_diags%rain_precip
+        tempo_diags%ice_liquid_equiv_precip(i,j) = tempo_main_diags%ice_liquid_equiv_precip
+        tempo_diags%snow_liquid_equiv_precip(i,j) = tempo_main_diags%snow_liquid_equiv_precip
+        tempo_diags%graupel_liquid_equiv_precip(i,j) = tempo_main_diags%graupel_liquid_equiv_precip
+        tempo_diags%frozen_fraction(i,j) = tempo_main_diags%frozen_fraction
+
+        ! one-minute maximum precipitation
+        if (allocated(local_one_minute_max_precip)) then
+          ! reset
+          if (mod(itimestep, reset_time_one_minute_max_precip) == 1 .and. itimestep > 1) then
+            local_one_minute_max_precip(i,j) = 0._wp  
+          endif 
+          local_one_minute_max_precip(i,j) = local_one_minute_max_precip(i,j) + &
+            tempo_main_diags%rain_precip + tempo_main_diags%ice_liquid_equiv_precip + &
+            tempo_main_diags%snow_liquid_equiv_precip + tempo_main_diags%graupel_liquid_equiv_precip
+          
+          if (mod(itimestep, reset_time_one_minute_max_precip) == 0 .and. itimestep > 1) then
+            tempo_diags%one_minute_max_precip(i,j) = max(tempo_diags%one_minute_max_precip(i,j), &
+              local_one_minute_max_precip(i,j))
+          endif
         endif 
-        if (allocated(tempo_driver_diags%graupel_med_vol_diam) .and. allocated(tempo_main_diags%graupel_med_vol_diam)) then
-          tempo_driver_diags%graupel_med_vol_diam(i,:,j) = tempo_main_diags%graupel_med_vol_diam
+
+        ! 3d diagnostics
+        if (allocated(tempo_diags%rain_med_vol_diam) .and. allocated(tempo_main_diags%rain_med_vol_diam)) then
+          tempo_diags%rain_med_vol_diam(i,:,j) = tempo_main_diags%rain_med_vol_diam
         endif 
-        if (allocated(tempo_driver_diags%re_cloud) .and. allocated(tempo_main_diags%re_cloud)) then
-          tempo_driver_diags%re_cloud(i,:,j) = tempo_main_diags%re_cloud
+        if (allocated(tempo_diags%graupel_med_vol_diam) .and. allocated(tempo_main_diags%graupel_med_vol_diam)) then
+          tempo_diags%graupel_med_vol_diam(i,:,j) = tempo_main_diags%graupel_med_vol_diam
         endif 
-        if (allocated(tempo_driver_diags%re_ice) .and. allocated(tempo_main_diags%re_ice)) then
-          tempo_driver_diags%re_ice(i,:,j) = tempo_main_diags%re_ice
+        if (allocated(tempo_diags%re_cloud) .and. allocated(tempo_main_diags%re_cloud)) then
+          tempo_diags%re_cloud(i,:,j) = tempo_main_diags%re_cloud
         endif 
-        if (allocated(tempo_driver_diags%re_snow) .and. allocated(tempo_main_diags%re_snow)) then
-          tempo_driver_diags%re_snow(i,:,j) = tempo_main_diags%re_snow
+        if (allocated(tempo_diags%re_ice) .and. allocated(tempo_main_diags%re_ice)) then
+          tempo_diags%re_ice(i,:,j) = tempo_main_diags%re_ice
         endif 
-        if (allocated(tempo_driver_diags%refl10cm) .and. allocated(tempo_main_diags%refl10cm)) then
-          tempo_driver_diags%refl10cm(i,:,j) = tempo_main_diags%refl10cm
+        if (allocated(tempo_diags%re_snow) .and. allocated(tempo_main_diags%re_snow)) then
+          tempo_diags%re_snow(i,:,j) = tempo_main_diags%re_snow
+        endif 
+        if (allocated(tempo_diags%refl10cm) .and. allocated(tempo_main_diags%refl10cm)) then
+          tempo_diags%refl10cm(i,:,j) = tempo_main_diags%refl10cm
         endif
 
+        ! return variables to model
         do k = kts, kte
           if (present(nc)) nc(i,k,j) = nc1d(k)
           if (present(nwfa)) nwfa(i,k,j) = nwfa1d(k)
@@ -195,7 +228,7 @@ module module_mp_tempo_driver
           ni(i,k,j) = ni1d(k)
           nr(i,k,j) = nr1d(k)
           
-          ! tempo returns temperature (t1d)
+          ! tempo main returns temperature (t1d), so convert to theta if needed
           if (use_temperature) then
             t(i,k,j) = t1d(k)
           else  
@@ -203,7 +236,7 @@ module module_mp_tempo_driver
           endif 
         enddo
       enddo
-    enddo 
+    enddo
   end subroutine tempo_driver
 
 

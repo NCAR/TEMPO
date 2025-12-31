@@ -1,16 +1,12 @@
 module module_mp_tempo_diags
   !! diagnostic output for tempo microphysics
-  use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi
+  use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi, tempo_cfgs
   use module_mp_tempo_utils, only : get_nuc, snow_moments
-  !! use module_mp_radar
   
   implicit none
   private
   
-  public :: reflectivity_10cm, effective_radius ! hail_size_diagnostics
-
-
-  !! logical, save :: melted_refl_init = .false.
+  public :: reflectivity_10cm, effective_radius, hail_size
 
   contains 
 
@@ -69,7 +65,9 @@ module module_mp_tempo_diags
     allocate(ze_snow(nz), source=1.e-22_wp)
     allocate(ze_graupel(nz), source=1.e-22_wp)
 
-    ! k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
+    if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+      k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
+    endif
 
     do k = nz, 1, -1
       if (l_qr(k)) then
@@ -80,19 +78,25 @@ module module_mp_tempo_diags
       if (l_qs(k)) then
         ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_s/900._wp)*(am_s/900._wp)*smoz(k)
-        ! if (k_melt > 2 .and. k < k_melt-1) then
-        !   ze_snow(k) = reflectivity_from_melting_snow(temp(k), rs(k), &
-        !     smob(k), smoc(k), rr(k))
-        ! endif 
+        ! melting
+        if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+          if (k_melt > 2 .and. k < k_melt-1) then
+            ze_snow(k) = reflectivity_from_melting_snow(temp(k), rs(k), &
+              smob(k), smoc(k), rr(k))
+          endif
+        endif 
       endif
       if (l_qg(k)) then
         n0_g = ng(k)*ogg2*(1._dp/ilamg(k))**cge(2,1)
         ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_g(idx(k))/900._wp)*(am_g(idx(k))/900._wp) * n0_g*cgg(4,1)*ilamg(k)**cge(4,1)
-        ! if (k_melt > 2 .and. k < k_melt-1) then
-        !   ze_graupel(k) = reflectivity_from_melting_graupel(temp(k), rg(k), ng(k), &
-        !     ilamg(k), idx(k), rr(k))
-        ! endif 
+        ! melting
+        if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+          if (k_melt > 2 .and. k < k_melt-1) then
+            ze_graupel(k) = reflectivity_from_melting_graupel(temp(k), rg(k), ng(k), &
+              ilamg(k), idx(k), rr(k))
+          endif
+        endif 
       endif
 
       dbz(k) = max(-35._wp, 10._wp*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp))
@@ -186,16 +190,17 @@ module module_mp_tempo_diags
 
 
   function reflectivity_from_melting_graupel(temp, rg, ng, ilamg, idx, rr) result(ze_graupel)
-    use module_mp_tempo_params, only : am_g, bm_g, obmg, ocmg, mu_g, ogg2, cge
+    use module_mp_tempo_params, only : am_g, bm_g, obmg, ocmg, mu_g, ogg2, cge, &
+      gbins_radar, dgbins_radar, radar_bins
 
     real(wp), intent(in) :: temp, rg, ng, rr 
     real(dp), intent(in) :: ilamg
     integer, intent(in) :: idx
-    integer, parameter :: radar_bins = 50
+    ! integer, parameter :: radar_bins = 50
     real(dp), parameter :: melt_outside = 0.9_dp
     real(dp), parameter :: lambda_radar = 0.10_dp  ! in meters
     complex(dp) :: m_w_0, m_i_0
-    real(dp), dimension(radar_bins) :: xdg, xdtg
+    ! real(dp), dimension(radar_bins) :: xdg, xdtg
     real(dp), dimension(radar_bins+1) :: simpson
     real(dp), dimension(3), parameter :: basis = [1._dp/3._dp, 4._dp/3._dp, 1._dp/3._dp]
     real(dp) :: sr, fmelt, eta, lamg, backscatter, f_d, n0_g, mass, k_w
@@ -211,9 +216,9 @@ module module_mp_tempo_diags
       simpson(n+2) = simpson(n+2) + basis(3)
     enddo
 
-    ! bins of graupel (from 100 microns up to 5 cm).
-    call create_bins(numbins=radar_bins, lowbin=100.e-6_dp, &
-      highbin=0.05_dp, bins=xdg, deltabins=xdtg)
+    ! ! bins of graupel (from 100 microns up to 5 cm).
+    ! call create_bins(numbins=radar_bins, lowbin=100.e-6_dp, &
+    !   highbin=0.05_dp, bins=xdg, deltabins=xdtg)
 
     m_w_0 = complex_water_ray(lambda_radar, 0._dp)
     m_i_0 = complex_ice_maetzler(lambda_radar, 0._dp)
@@ -226,12 +231,12 @@ module module_mp_tempo_diags
     n0_g = ng*ogg2*lamg**cge(2,1)
 
     do n = 1, radar_bins
-      mass = am_g(idx) * xdg(n)**bm_g
+      mass = am_g(idx) * gbins_radar(n)**bm_g
       call rayleigh_soak_wetgraupel(x_g=mass, a_geo=real(ocmg(idx), kind=dp), b_geo=real(obmg, kind=dp), &
         fmelt=fmelt, lambda_radar=lambda_radar, meltratio_outside=melt_outside, &
         m_w=m_w_0, m_i=m_i_0, backscatter=backscatter)
-      f_d = n0_g*xdg(n)**mu_g * exp(-lamg*xdg(n))
-      eta = eta + f_d * backscatter * simpson(n) * xdtg(n)
+      f_d = n0_g*gbins_radar(n)**mu_g * exp(-lamg*gbins_radar(n))
+      eta = eta + f_d * backscatter * simpson(n) * dgbins_radar(n)
     enddo
     ze_graupel = lambda_radar*lambda_radar*lambda_radar*lambda_radar / &
       (pi*pi*pi*pi*pi * k_w) * eta
@@ -239,15 +244,16 @@ module module_mp_tempo_diags
 
 
   function reflectivity_from_melting_snow(temp, rs, smob, smoc, rr) result(ze_snow)
-    use module_mp_tempo_params, only : am_s, bm_s, lam0, lam1, obms, ocms, kap0, kap1, mu_s
+    use module_mp_tempo_params, only : am_s, bm_s, lam0, lam1, obms, ocms, kap0, kap1, mu_s, &
+      sbins_radar, dsbins_radar, radar_bins
 
     real(wp), intent(in) :: temp, rs, rr 
     real(dp), intent(in) :: smob, smoc
-    integer, parameter :: radar_bins = 50
+    ! integer, parameter :: radar_bins = 50
     real(dp), parameter :: melt_outside = 0.9_dp
     real(dp), parameter :: lambda_radar = 0.10_dp  ! in meters
     complex(dp) :: m_w_0, m_i_0
-    real(dp), dimension(radar_bins) :: xds, xdts
+    ! real(dp), dimension(radar_bins) :: xds, xdts
     real(dp), dimension(radar_bins+1) :: simpson
     real(dp), dimension(3), parameter :: basis = [1._dp/3._dp, 4._dp/3._dp, 1._dp/3._dp]
     real(dp) :: sr, fmelt, eta, lamg, backscatter, f_d, mass, k_w, om3, m0, mrat, slam1, slam2
@@ -263,9 +269,9 @@ module module_mp_tempo_diags
       simpson(n+2) = simpson(n+2) + basis(3)
     enddo
 
-    ! bins of snow (from 100 microns up to 2 cm).
-    call create_bins(numbins=radar_bins, lowbin=100.e-6_dp, &
-      highbin=0.02_dp, bins=xds, deltabins=xdts)
+    ! ! bins of snow (from 100 microns up to 2 cm).
+    ! call create_bins(numbins=radar_bins, lowbin=100.e-6_dp, &
+    !   highbin=0.02_dp, bins=xds, deltabins=xdts)
 
     m_w_0 = complex_water_ray(lambda_radar, 0._dp)
     m_i_0 = complex_ice_maetzler(lambda_radar, 0._dp)
@@ -281,13 +287,13 @@ module module_mp_tempo_diags
     slam1 = m0 * lam0
     slam2 = m0 * lam1
     do n = 1, radar_bins
-      mass = am_s * xds(n)**bm_s
+      mass = am_s * sbins_radar(n)**bm_s
 
       call rayleigh_soak_wetgraupel(x_g=mass, a_geo=real(ocms, kind=dp), b_geo=real(obms, kind=dp), &
         fmelt=fmelt, lambda_radar=lambda_radar, meltratio_outside=melt_outside, &
         m_w=m_w_0, m_i=m_i_0, backscatter=backscatter)
-      f_d = mrat*(kap0*exp(-slam1*xds(n)) + kap1*(m0*xds(n))**mu_s * exp(-slam2*xds(n)))
-      eta = eta + f_d * backscatter * simpson(n) * xdts(n)
+      f_d = mrat*(kap0*exp(-slam1*sbins_radar(n)) + kap1*(m0*sbins_radar(n))**mu_s * exp(-slam2*sbins_radar(n)))
+      eta = eta + f_d * backscatter * simpson(n) * dsbins_radar(n)
     enddo
     ze_snow = lambda_radar*lambda_radar*lambda_radar*lambda_radar / &
       (pi*pi*pi*pi*pi * k_w) * eta
@@ -370,66 +376,46 @@ module module_mp_tempo_diags
     endif
   end subroutine rayleigh_soak_wetgraupel
 
-!     !=================================================================================================================
-!     !..Compute max hail size aloft and at the ground (both 2D fields)
 
-!     subroutine hail_size_diagnostics(kts, kte, qg1d, ng1d, qb1d, t1d, p1d, qv1d, qg_max_diam1d)
+  subroutine hail_size(rho, rg, ng, ilamg, idx, max_hail_diameter)
+    use module_mp_tempo_params, only : hbins, dhbins, rho_g, ogg2, cge, nhbins, mu_g
 
-!       implicit none
+    real(wp), dimension(:), intent(in) :: rho, rg, ng
+    real(dp), dimension(:), intent(in) :: ilamg
+    integer, dimension(:), intent(in) :: idx
+    real(wp), dimension(:), allocatable, intent(out) :: max_hail_diameter
+    real(dp) :: lamg, n0_g, sum_nh, sum_t, f_d, hail_max
+    integer :: k, nz, n
+    real(dp), parameter :: threshold_conc = 0.0005
 
-!       integer, intent(in) :: kts, kte
-!       real(wp), dimension(kts:kte), intent(in) :: qg1d, ng1d, qb1d, t1d, p1d, qv1d
-!       real(wp), dimension(kts:kte), intent(out) :: qg_max_diam1d
+    nz = size(rho)
+    allocate(max_hail_diameter(nz), source=0._wp)
+    do k = 1, nz
+      if(rg(k)/rho(k) >= 1.e-6_wp) then
+        if (rho_g(idx(k)) < 350._wp) cycle
+        lamg = 1._dp / ilamg(k)
+        n0_g = ng(k)*ogg2*lamg**cge(2,1)
 
-!       ! local variables
-!       real(wp), dimension(kts:kte) :: rho, rg, ng, rb
-!       integer, dimension(kts:kte) :: idx_bg
-!       real(dp) :: lamg, N0_g, f_d, sum_nh, sum_t, hail_max
-!       integer :: k, n
-!       integer, parameter :: nhbins = 50
-!       real(dp), dimension(nhbins):: hbins, dhbins
-!       real(dp), parameter :: lowbin = 500.e-6
-!       real(dp), parameter :: highbin = 0.075
-!       real(dp), parameter :: threshold_conc = 0.0005
+        sum_nh = 0._dp
+        sum_t = 0._dp
+        do n = nhbins, 1, -1
+          f_d = n0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
+          sum_nh = sum_nh + f_d
+          if (sum_nh > threshold_conc) exit
+          sum_t = sum_nh
+        enddo
 
-!       ! Binned number distribution method
-!       call create_bins(numbins=nhbins, lowbin=lowbin, highbin=highbin, bins=hbins, deltabins=dhbins)
+        if (n >= nhbins) then
+          hail_max = hbins(nhbins)
+        elseif (hbins(n+1) > 1.e-3_wp) then
+          hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
+        else
+          hail_max = 1.e-4_wp
+        endif
 
-!       do k = kts, kte
-!          qg_max_diam1d(k) = 0.
-!          if(qg1d(k) >= 1.e-6) then
-!             rho(k) = 0.622*p1d(k)/(R*t1d(k)*(qv1d(k)+0.622))
-!             rg(k) = qg1d(k)*rho(k)
-!             ng(k) = max(R2, ng1d(k)*rho(k))
-!             rb(k) = max(qg1d(k)/rho_g(nrhg), qb1d(k))
-!             rb(k) = min(qg1d(k)/rho_g(1), rb(k))
-!             idx_bg(k) = max(1,min(nint(qg1d(k)/rb(k) *0.01)+1,nrhg))
-!             if (.not. tempo_init_cfgs%hailaware_flag) idx_bg(k) = idx_bg1
-!             if (rho_g(idx_bg(k)) < 350.) cycle
-
-!             lamg = (am_g(idx_bg(k))*cgg(3,1)*ogg2*ng(k)/rg(k))**obmg
-!             N0_g = ng(k)*ogg2*lamg**cge(2,1)
-
-!             sum_nh = 0.
-!             sum_t = 0.
-!             do n = nhbins, 1, -1
-!                f_d = N0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
-!                sum_nh = sum_nh + f_d
-!                if (sum_nh > threshold_conc) exit
-!                sum_t = sum_nh
-!             enddo
-
-!             if (n >= nhbins) then
-!                hail_max = hbins(nhbins)
-!             elseif (hbins(n+1) .gt. 1.e-3) then
-!                hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
-!             else
-!                hail_max = 1.e-4
-!             endif
-!             qg_max_diam1d(k) = 1000. * hail_max ! convert to mm
-!          endif
-!       enddo
-
-!     end subroutine hail_size_diagnostics
+        max_hail_diameter(k) = 1000._wp * hail_max ! convert to mm
+      endif
+    enddo
+  end subroutine hail_size
 
 end module module_mp_tempo_diags
