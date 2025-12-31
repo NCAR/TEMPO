@@ -10,7 +10,7 @@
     <meta name="author" content="Anders A. Jensen" >
     <link rel="icon" href="../favicon.png">
 
-    <title>tempo_aerosol_surface_emissions &ndash; TEMPO Microphysics</title>
+    <title>ty_tempo_driver_diags &ndash; TEMPO Microphysics </title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -80,8 +80,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>tempo_aerosol_surface_emissions
-      <small>Subroutine</small>
+    <h1>ty_tempo_driver_diags
+      <small>Derived Type</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for procedures.">12 statements</a>
+                 title="<p>23.3% of total for derived types.</p>Including implementation: 14 statements, 23.3% of total for derived types.">14 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -105,7 +105,7 @@
           <ol class="breadcrumb justify-content-end mb-0">
                 <li class="breadcrumb-item"><a href='../sourcefile/module_mp_tempo_driver.f90.html'>module_mp_tempo_driver.F90</a></li>
                 <li class="breadcrumb-item"><a href='../module/module_mp_tempo_driver.html'>module_mp_tempo_driver</a></li>
-            <li class="breadcrumb-item active" aria-current="page">tempo_aerosol_surface_emissions</li>
+            <li class="breadcrumb-item active" aria-current="page">ty_tempo_driver_diags</li>
           </ol>
         </nav>
       </div>
@@ -126,7 +126,29 @@
       <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-rain_precip~2">rain_precip</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-ice_liquid_equiv_precip~2">ice_liquid_equiv_precip</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-snow_liquid_equiv_precip~2">snow_liquid_equiv_precip</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-graupel_liquid_equiv_precip~2">graupel_liquid_equiv_precip</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-frozen_fraction~2">frozen_fraction</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-one_minute_max_precip~2">one_minute_max_precip</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-refl10cm~3">refl10cm</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-re_cloud~3">re_cloud</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-re_ice~3">re_ice</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-re_snow~3">re_snow</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-rain_med_vol_diam~3">rain_med_vol_diam</a>
+            <a class="list-group-item" href="../type/ty_tempo_driver_diags.html#variable-graupel_med_vol_diam~3">graupel_med_vol_diam</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -152,170 +174,223 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine tempo_aerosol_surface_emissions(dt, nwfa, nwfa2d, ims, ime, jms, jme, kms, kme, kts)  
-</h2>
+      <h2 id="type-def-statement">
+        type, public :: ty_tempo_driver_diags</h2>
     
+    <br>
 
-    <p>aerosol surface emissions for tempo</p>
-
-
-    <h3>Arguments</h3>
-        <table class="table table-striped varlist">
+    <section>
+    <h2>Components</h2>
+      <table class="table table-striped varlist">
     <thead>
       <tr>
         <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
         <th scope="col"></th>
         <th scope="col">Name</th>
-        <th scope="col"></th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
     </thead>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dt~3"></span>
+              <span class="anchor" id="variable-rain_precip~2"></span>
               real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>dt</strong></td>
+            <td><strong>rain_precip</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~9"></span>
+              <span class="anchor" id="variable-ice_liquid_equiv_precip~2"></span>
               real(kind=wp),
             </td>
-<td>intent(inout),</td>
-              <td></td>            <td>
-              dimension(ims:ime, kms:kme, jms:jme)
+              <td>public,</td>
+            <td>
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>nwfa</strong></td>
+            <td><strong>ice_liquid_equiv_precip</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa2d"></span>
+              <span class="anchor" id="variable-snow_liquid_equiv_precip~2"></span>
               real(kind=wp),
             </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(ims:ime, jms:jme)
+              <td>public,</td>
+            <td>
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>nwfa2d</strong></td>
+            <td><strong>snow_liquid_equiv_precip</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ims~2"></span>
-              integer,
+              <span class="anchor" id="variable-graupel_liquid_equiv_precip~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>ims</strong></td>
+            <td><strong>graupel_liquid_equiv_precip</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ime~2"></span>
-              integer,
+              <span class="anchor" id="variable-frozen_fraction~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>ime</strong></td>
+            <td><strong>frozen_fraction</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jms~2"></span>
-              integer,
+              <span class="anchor" id="variable-one_minute_max_precip~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>jms</strong></td>
+            <td><strong>one_minute_max_precip</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jme~2"></span>
-              integer,
+              <span class="anchor" id="variable-refl10cm~3"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>jme</strong></td>
+            <td><strong>refl10cm</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kms~2"></span>
-              integer,
+              <span class="anchor" id="variable-re_cloud~3"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>kms</strong></td>
+            <td><strong>re_cloud</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kme~2"></span>
-              integer,
+              <span class="anchor" id="variable-re_ice~3"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>kme</strong></td>
+            <td><strong>re_ice</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts~4"></span>
-              integer,
+              <span class="anchor" id="variable-re_snow~3"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>kts</strong></td>
+            <td><strong>re_snow</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rain_med_vol_diam~3"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
+            </td>
+            <td>::</td>
+            <td><strong>rain_med_vol_diam</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-graupel_med_vol_diam~3"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
+            </td>
+            <td>::</td>
+            <td><strong>graupel_med_vol_diam</strong></td>
+                <td></td>
+                <td></td>
             <td>
                 
             </td>
@@ -323,18 +398,12 @@
     </tbody>
   </table>
 
+    </section>
     <br>
-
-
-    
-    
-
-    
     
 
 
 
-    
     
     </div>
   </div>

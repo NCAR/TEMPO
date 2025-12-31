@@ -2,7 +2,7 @@ module module_mp_tempo_init
   !! initialize variables for tempo microphysics
   !!
   !! includes a procedure to build and save lookup tables
-  use module_mp_tempo_params, only : wp, sp, dp, tempo_init_cfgs, tempo_table_cfgs
+  use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs, tempo_table_cfgs
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
 
 #ifdef tempo_intel
@@ -29,7 +29,8 @@ module module_mp_tempo_init
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
       initialize_array_efrw, initialize_array_efsw, initialize_arrays_drop_evap, initialize_arrays_ccn, initialize_arrays_qi_aut_qs, &
-      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater
+      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater, &
+      initialize_bins_for_hail_size, initialize_bins_for_radar
 
     logical, intent(in), optional :: aerosolaware_flag, hailaware_flag
 
@@ -45,16 +46,16 @@ module module_mp_tempo_init
     if (allocated(t_efrw)) initialize_mp_vars = .false.
 
     if (initialize_mp_vars) then
-      if (present(aerosolaware_flag)) tempo_init_cfgs%aerosolaware_flag = aerosolaware_flag
-      if (present(hailaware_flag)) tempo_init_cfgs%hailaware_flag = hailaware_flag
+      if (present(aerosolaware_flag)) tempo_cfgs%aerosolaware_flag = aerosolaware_flag
+      if (present(hailaware_flag)) tempo_cfgs%hailaware_flag = hailaware_flag
 
       write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
-      write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_init_cfgs%aerosolaware_flag
-      write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_init_cfgs%hailaware_flag
+      write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
+      write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
 
       ! set graupel variables from hail_aware_flag
-      call initialize_graupel_vars(tempo_init_cfgs%hailaware_flag) 
-      write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_init_cfgs%hailaware_flag
+      call initialize_graupel_vars(tempo_cfgs%hailaware_flag) 
+      write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_cfgs%hailaware_flag
 
       ! set parameters that can depend on the host model
       call initialize_parameters() 
@@ -104,7 +105,23 @@ module module_mp_tempo_init
       table_filename = tempo_table_cfgs%qrqg_table_name
       call initialize_arrays_qr_acr_qg(table_size)
       call read_table_qr_acr_qg(trim(table_filename), table_size)
-      write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
+      write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
+
+      ! bins used for refl10cm calculation with melting
+      if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+        call initialize_bins_for_radar()
+        write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
+          tempo_cfgs%refl10cm_with_melting_snow_graupel
+        write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
+      endif
+
+      ! bins used for hail size calculation
+      if (tempo_cfgs%maximum_hail_size) then
+        call initialize_bins_for_hail_size()
+        write(*,'(A,L)') 'tempo_init() ---  flag to calcuate hail size = ', &
+          tempo_cfgs%maximum_hail_size
+        write(*,'(A)') 'tempo_init() --- initialized bins for hail size calcuation'
+      endif
     endif
   end subroutine tempo_init
 
