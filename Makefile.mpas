@@ -18,24 +18,16 @@ OBJS = \
 microphysics: $(OBJS)
 	ar -ru ./../../libphys.a $(OBJS)
 
-# # dependencies
-# module_mp_tempo.o: \
-# 	module_mp_tempo_params.o \
-# 	module_mp_tempo_utils.o \
-# 	module_mp_tempo_ml.o \
-# 	module_mp_tempo_main.o
-
 module_mp_tempo_ml.o: module_mp_tempo_params.o
 module_mp_tempo_utils.o: module_mp_tempo_params.o
 module_mp_tempo_aerosols.o: module_mp_tempo_params.o
 module_mp_tempo_init.o: module_mp_tempo_params.o \
-						module_mp_tempo_utils.o \
-						module_mp_radar.o
+						module_mp_tempo_utils.o
 module_mp_tempo_main.o : module_mp_tempo_params.o \
 						 module_mp_tempo_utils.o \
-						 module_mp_tempo_diags.o
-module_mp_tempo_diags.o: module_mp_tempo_params.o \
-   						 module_mp_radar.o
+						 module_mp_tempo_diags.o \
+						 module_mp_tempo_aerosols.o
+module_mp_tempo_diags.o: module_mp_tempo_params.o
 module_mp_tempo_driver.o : module_mp_tempo_params.o \
 						   module_mp_tempo_diags.o \
 						   module_mp_tempo_main.o \

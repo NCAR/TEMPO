@@ -25,7 +25,7 @@ tables_exe := run_build_tables
 fc := ifort
 fc_mpi := mpiifort
 ar := ar rcs
-fcflags := -c -Dstandalone -fp-model consistent -Dtempo_intel -r8 -module ./src
+fcflags := -c -Dstandalone -fp-model consistent -Dtempo_intel -g -O0 -check all -traceback -r8 -module ./src
 
 # tempo library
 tempo_lib := $(patsubst %, lib%.a, $(name))
@@ -98,6 +98,8 @@ $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_utils.o
 $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_radar.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_utils.o
+$(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_diags.o
+$(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_aerosols.o
 $(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_radar.o
 $(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_params.o
