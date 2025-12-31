@@ -1,0 +1,4926 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="Documentation for TEMPO Microphysics">
+    <meta name="author" content="Anders A. Jensen" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>module_mp_tempo_params &ndash; TEMPO Microphysics</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">TEMPO Microphysics </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/build_tables.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>module_mp_tempo_params
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title="11.0% of total for modules and submodules.">491 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/module_mp_tempo_params.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/module_mp_tempo_params.f90.html'>module_mp_tempo_params.F90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">module_mp_tempo_params</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tempo_version">tempo_version</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tempo_cfgs">tempo_cfgs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tempo_table_cfgs">tempo_table_cfgs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-idx_bg1">idx_bg1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-av_r">av_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bv_r">bv_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-av_s">av_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bv_s">bv_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-fv_s">fv_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bv_c">bv_c</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bv_i">bv_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-av_g_old">av_g_old</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bv_g_old">bv_g_old</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-fv_r">fv_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-av_c">av_c</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-a_coeff">a_coeff</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-b_coeff">b_coeff</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-av_i">av_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-am_s">am_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bm_s">bm_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bm_g">bm_g</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bm_i">bm_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-bm_r">bm_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_i">rho_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-xm0i">xm0i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-d0c">d0c</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-d0r">d0r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-d0s">d0s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-d0g">d0g</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-d0r_max">d0r_max</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-c_cube">c_cube</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-c_sqrd">c_sqrd</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-mu_r">mu_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-mu_s">mu_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-mu_g">mu_g</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-mu_i">mu_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nu_c_scale">nu_c_scale</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nu_c_max">nu_c_max</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nu_c_min">nu_c_min</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-naccn0">naccn0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-naccn1">naccn1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nain0">nain0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nain1">nain1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nwfa_default">nwfa_default</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nifa_default">nifa_default</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-aero_max">aero_max</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-hgfrz">hgfrz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nt_c_o">nt_c_o</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nt_c_l">nt_c_l</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nt_c_max">nt_c_max</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nt_c_min">nt_c_min</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tno">tno</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ato">ato</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_s">rho_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-demott_nuc_ssati">demott_nuc_ssati</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-max_ni">max_ni</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-icenuc_max">icenuc_max</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rime_threshold">rime_threshold</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rime_conversion">rime_conversion</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ef_si">ef_si</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ef_rs">ef_rs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ef_rg">ef_rg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ef_ri">ef_ri</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-autocon_nr_factor">autocon_nr_factor</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-table_sp">table_sp</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-table_dp">table_dp</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nrhg">nrhg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nrhg1">nrhg1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-min_qv">min_qv</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r1">r1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r2">r2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-eps">eps</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-meters3_to_liters">meters3_to_liters</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-gonv_min">gonv_min</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-gonv_max">gonv_max</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-t0">t0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_w">rho_w</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_g">rho_g</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-sc~2">sc</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-pi">pi</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-lsub">lsub</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-lvap0">lvap0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rv">rv</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rdry">rdry</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-roverrv">roverrv</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r">r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_not">rho_not</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_not0">rho_not0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-cp">cp</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r_uni">r_uni</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-kap0">kap0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-kap1">kap1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-lam0">lam0</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-lam1">lam1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nbins">nbins</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nbc">nbc</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nbr">nbr</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nbs">nbs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nbi">nbi</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nbg">nbg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_i">ntb_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_i1">ntb_i1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_c">ntb_c</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_t">ntb_t</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_g1">ntb_g1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_s">ntb_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_g">ntb_g</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_r">ntb_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_r1">ntb_r1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_t1">ntb_t1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_in">ntb_in</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_arc">ntb_arc</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_arw">ntb_arw</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_art">ntb_art</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_arr">ntb_arr</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ntb_ark">ntb_ark</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r_c">r_c</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r_i">r_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r_r">r_r</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r_s">r_s</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-r_g">r_g</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-n0r_exp">n0r_exp</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-n0g_exp">n0g_exp</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nt_i">nt_i</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nt_in">nt_in</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ta_na">ta_na</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ta_ww">ta_ww</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ta_tk">ta_tk</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ta_ra">ta_ra</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-ta_ka">ta_ka</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-sa">sa</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-sb">sb</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tc~2">tc</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nic2">nic2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nii2">nii2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nii3">nii3</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nir2">nir2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nir3">nir3</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nis2">nis2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nig2">nig2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nig3">nig3</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-niin2">niin2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nic1">nic1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-nhbins">nhbins</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-radar_bins">radar_bins</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-t_efrw">t_efrw</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-t_efsw">t_efsw</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tpc_wev">tpc_wev</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnc_wev">tnc_wev</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnccn_act">tnccn_act</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tcg_racg">tcg_racg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tmr_racg">tmr_racg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tcr_gacr">tcr_gacr</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_racg">tnr_racg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_gacr">tnr_gacr</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tcs_racs1">tcs_racs1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tmr_racs1">tmr_racs1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tcs_racs2">tcs_racs2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tmr_racs2">tmr_racs2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tcr_sacr1">tcr_sacr1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tms_sacr1">tms_sacr1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tcr_sacr2">tcr_sacr2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tms_sacr2">tms_sacr2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_racs1">tnr_racs1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_racs2">tnr_racs2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_sacr1">tnr_sacr1</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_sacr2">tnr_sacr2</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tpi_qcfz">tpi_qcfz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tni_qcfz">tni_qcfz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tpi_qrfz">tpi_qrfz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tpg_qrfz">tpg_qrfz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tni_qrfz">tni_qrfz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tnr_qrfz">tnr_qrfz</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tps_iaus">tps_iaus</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tni_iaus">tni_iaus</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-tpi_ide">tpi_ide</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#types-0"
+         aria-expanded="false" aria-controls="types-0">
+         <h4 class="card-header bg-primary text-white">Derived Types</h4>
+      </a>
+      <div id="types-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#type-ty_tempo_cfgs">ty_tempo_cfgs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#type-ty_tempo_table_cfgs">ty_tempo_table_cfgs</a>
+        </div>
+      </div>
+    </div>
+
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_graupel_vars">initialize_graupel_vars</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_parameters">initialize_parameters</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_bins_for_tables">initialize_bins_for_tables</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_bins_for_hail_size">initialize_bins_for_hail_size</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_bins_for_radar">initialize_bins_for_radar</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-create_bins">create_bins</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_arrays_freezewater">initialize_arrays_freezewater</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_arrays_qr_acr_qs">initialize_arrays_qr_acr_qs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_arrays_qr_acr_qg">initialize_arrays_qr_acr_qg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_arrays_ccn">initialize_arrays_ccn</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_arrays_drop_evap">initialize_arrays_drop_evap</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_array_efsw">initialize_array_efsw</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_array_efrw">initialize_array_efrw</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_arrays_qi_aut_qs">initialize_arrays_qi_aut_qs</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      <p>parameters and variables used in tempo microphysics</p>
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item">mpas_kind_types</li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
+                  <li class="list-inline-item"><a href='machine.html'>machine</a></li>
+              </ul>
+            </li>
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: module~~module_mp_tempo_params~~UsesGraph Pages: 1 -->
+<svg id="modulemodule_mp_tempo_paramsUsesGraph" width="285pt" height="113pt"
+ viewBox="0.00 0.00 285.00 113.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~module_mp_tempo_params~~UsesGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 108.77)">
+<title>module~~module_mp_tempo_params~~UsesGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-108.77 280.54,-108.77 280.54,4 -4,4"/>
+<!-- module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_node1" class="node">
+<title>module~module_mp_tempo_params</title>
+<polygon fill="none" stroke="black" points="276.54,-63.77 130.77,-63.77 130.77,-41 276.54,-41 276.54,-63.77"/>
+<text xml:space="preserve" text-anchor="middle" x="203.66" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50">module_mp_tempo_params</text>
+</g>
+<!-- iso_fortran_env -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_node2" class="node">
+<title>iso_fortran_env</title>
+<g id="a_module~~module_mp_tempo_params~~UsesGraph_node2"><a xlink:href="http://fortranwiki.org/fortran/show/iso_fortran_env" xlink:title="iso_fortran_env">
+<polygon fill="#337ab7" stroke="#337ab7" points="90.27,-104.77 4.5,-104.77 4.5,-82 90.27,-82 90.27,-104.77"/>
+<text xml:space="preserve" text-anchor="middle" x="47.38" y="-89.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">iso_fortran_env</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_params&#45;&gt;iso_fortran_env -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_edge1" class="edge">
+<title>module~module_mp_tempo_params&#45;&gt;iso_fortran_env</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M158.03,-64.24C140.34,-68.95 119.85,-74.39 101.4,-79.29"/>
+<polygon fill="#000000" stroke="#000000" points="100.75,-75.85 91.99,-81.8 102.55,-82.61 100.75,-75.85"/>
+</g>
+<!-- module~machine -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_node3" class="node">
+<title>module~machine</title>
+<g id="a_module~~module_mp_tempo_params~~UsesGraph_node3"><a xlink:href="../module/machine.html" xlink:title="machine">
+<polygon fill="#337ab7" stroke="#337ab7" points="74.38,-63.77 20.38,-63.77 20.38,-41 74.38,-41 74.38,-63.77"/>
+<text xml:space="preserve" text-anchor="middle" x="47.38" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">machine</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_params&#45;&gt;module~machine -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_edge2" class="edge">
+<title>module~module_mp_tempo_params&#45;&gt;module~machine</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M130.49,-52.39C115.08,-52.39 99.41,-52.39 85.95,-52.39"/>
+<polygon fill="#000000" stroke="#000000" points="86.26,-48.89 76.26,-52.39 86.26,-55.89 86.26,-48.89"/>
+</g>
+<!-- mpas_kind_types -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_node4" class="node">
+<title>mpas_kind_types</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="94.77,-22.77 0,-22.77 0,0 94.77,0 94.77,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="47.38" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">mpas_kind_types</text>
+</g>
+<!-- module~module_mp_tempo_params&#45;&gt;mpas_kind_types -->
+<g id="module~~module_mp_tempo_params~~UsesGraph_edge3" class="edge">
+<title>module~module_mp_tempo_params&#45;&gt;mpas_kind_types</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M158.03,-40.53C141.16,-36.04 121.76,-30.88 104,-26.17"/>
+<polygon fill="#000000" stroke="#000000" points="104.93,-22.79 94.37,-23.61 103.13,-29.56 104.93,-22.79"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsesGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsesGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="485pt" height="31pt"
+ viewBox="0.00 0.00 485.00 31.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 26.77)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-26.77 481.13,-26.77 481.13,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-22.77 0,-22.77 0,0 54,0 54,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="27" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="137.76,-22.77 72.24,-22.77 72.24,0 137.76,0 137.76,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="105" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="218.63,-22.77 155.37,-22.77 155.37,0 218.63,0 218.63,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="187" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="291,-22.77 237,-22.77 237,0 291,0 291,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="264" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="363,-22.77 309,-22.77 309,0 363,0 363,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="477.13,-22.77 380.87,-22.77 380.87,0 477.13,0 477.13,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="429" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+          <div class="card">
+      <h3 class="card-header card-title bg-light">Used by</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: module~~module_mp_tempo_params~~UsedByGraph Pages: 1 -->
+<svg id="modulemodule_mp_tempo_paramsUsedByGraph" width="641pt" height="686pt"
+ viewBox="0.00 0.00 641.00 686.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="module~~module_mp_tempo_params~~UsedByGraph" class="graph" transform="scale(0.737121 0.737121) rotate(0) translate(4 926.79)">
+<title>module~~module_mp_tempo_params~~UsedByGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-926.79 865.6,-926.79 865.6,4 -4,4"/>
+<!-- module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node1" class="node">
+<title>module~module_mp_tempo_params</title>
+<polygon fill="none" stroke="black" points="145.77,-449.72 0,-449.72 0,-426.95 145.77,-426.95 145.77,-449.72"/>
+<text xml:space="preserve" text-anchor="middle" x="72.89" y="-433.98" font-family="Helvetica,sans-Serif" font-size="10.50">module_mp_tempo_params</text>
+</g>
+<!-- module~module_mp_tempo_aerosols -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node2" class="node">
+<title>module~module_mp_tempo_aerosols</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node2"><a xlink:href="../module/module_mp_tempo_aerosols.html" xlink:title="module_mp_tempo_aerosols">
+<polygon fill="#337ab7" stroke="#337ab7" points="519.81,-876.72 369.54,-876.72 369.54,-853.95 519.81,-853.95 519.81,-876.72"/>
+<text xml:space="preserve" text-anchor="middle" x="444.68" y="-860.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_aerosols</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_aerosols&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge1" class="edge">
+<title>module~module_mp_tempo_aerosols&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M401.45,-877.21C350.8,-890.99 271.13,-911.02 258.66,-904.33"/>
+</g>
+<!-- module~module_mp_tempo_diags -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node3" class="node">
+<title>module~module_mp_tempo_diags</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node3"><a xlink:href="../module/module_mp_tempo_diags.html" xlink:title="module_mp_tempo_diags">
+<polygon fill="#337ab7" stroke="#337ab7" points="512.31,-835.72 377.04,-835.72 377.04,-812.95 512.31,-812.95 512.31,-835.72"/>
+<text xml:space="preserve" text-anchor="middle" x="444.68" y="-819.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_diags</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_diags&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge2" class="edge">
+<title>module~module_mp_tempo_diags&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M256.66,-904.33C219.07,-884.18 205.05,-880.06 181.77,-844.33 98.53,-716.59 79.29,-526.72 75.04,-461.39"/>
+<polygon fill="#000000" stroke="#000000" points="78.54,-461.33 74.46,-451.55 71.55,-461.74 78.54,-461.33"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M396.11,-836.18C387.17,-838.86 377.98,-841.94 369.54,-845.33 317.75,-866.17 307.85,-930.71 258.66,-904.33"/>
+</g>
+<!-- module~module_mp_tempo_utils -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node8" class="node">
+<title>module~module_mp_tempo_utils</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node8"><a xlink:href="../module/module_mp_tempo_utils.html" xlink:title="module_mp_tempo_utils">
+<polygon fill="#337ab7" stroke="#337ab7" points="321.92,-835.72 193.4,-835.72 193.4,-812.95 321.92,-812.95 321.92,-835.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-819.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_utils</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_diags&#45;&gt;module~module_mp_tempo_utils -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge30" class="edge">
+<title>module~module_mp_tempo_diags&#45;&gt;module~module_mp_tempo_utils</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M376.62,-824.33C362.66,-824.33 347.87,-824.33 333.65,-824.33"/>
+<polygon fill="#000000" stroke="#000000" points="333.91,-820.83 323.91,-824.33 333.91,-827.83 333.91,-820.83"/>
+</g>
+<!-- module~module_mp_tempo_driver -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node4" class="node">
+<title>module~module_mp_tempo_driver</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node4"><a xlink:href="../module/module_mp_tempo_driver.html" xlink:title="module_mp_tempo_driver">
+<polygon fill="#337ab7" stroke="#337ab7" points="861.6,-895.72 724.83,-895.72 724.83,-872.95 861.6,-872.95 861.6,-895.72"/>
+<text xml:space="preserve" text-anchor="middle" x="793.22" y="-879.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_driver</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge3" class="edge">
+<title>module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M724.49,-888.36C654.64,-892.49 542.55,-899.03 445.68,-904.33"/>
+</g>
+<!-- module~module_mp_tempo_main -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node6" class="node">
+<title>module~module_mp_tempo_main</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node6"><a xlink:href="../module/module_mp_tempo_main.html" xlink:title="module_mp_tempo_main">
+<polygon fill="#337ab7" stroke="#337ab7" points="688.83,-876.72 555.81,-876.72 555.81,-853.95 688.83,-853.95 688.83,-876.72"/>
+<text xml:space="preserve" text-anchor="middle" x="622.32" y="-860.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_main</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_main -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge29" class="edge">
+<title>module~module_mp_tempo_driver&#45;&gt;module~module_mp_tempo_main</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M724.49,-876.71C716.57,-875.82 708.44,-874.91 700.41,-874"/>
+<polygon fill="#000000" stroke="#000000" points="700.97,-870.55 690.64,-872.91 700.19,-877.5 700.97,-870.55"/>
+</g>
+<!-- module~module_mp_tempo_init -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node5" class="node">
+<title>module~module_mp_tempo_init</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node5"><a xlink:href="../module/module_mp_tempo_init.html" xlink:title="module_mp_tempo_init">
+<polygon fill="#337ab7" stroke="#337ab7" points="506.31,-755.72 383.04,-755.72 383.04,-732.95 506.31,-732.95 506.31,-755.72"/>
+<text xml:space="preserve" text-anchor="middle" x="444.68" y="-739.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_init</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge4" class="edge">
+<title>module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M388.93,-756.2C331.47,-765.34 241.38,-769.89 181.77,-725.33 95.14,-660.59 78.06,-517.84 74.7,-461.68"/>
+<polygon fill="#000000" stroke="#000000" points="78.2,-461.54 74.22,-451.72 71.21,-461.88 78.2,-461.54"/>
+</g>
+<!-- module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_utils -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge31" class="edge">
+<title>module~module_mp_tempo_init&#45;&gt;module~module_mp_tempo_utils</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M402.79,-756.11C391.61,-760.15 379.77,-765.23 369.54,-771.33 351.16,-782.3 352.33,-793.07 333.54,-803.33 330.12,-805.2 326.52,-806.92 322.82,-808.49"/>
+<polygon fill="#000000" stroke="#000000" points="321.71,-805.16 313.62,-812.01 324.21,-811.7 321.71,-805.16"/>
+</g>
+<!-- module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge5" class="edge">
+<title>module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M443.68,-904.33C361.57,-908.83 331.13,-943.19 258.66,-904.33"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M584.47,-877.22C549.26,-887.68 494.49,-901.66 445.68,-904.33"/>
+</g>
+<!-- module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_aerosols -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge26" class="edge">
+<title>module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_aerosols</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M555.42,-865.33C547.61,-865.33 539.56,-865.33 531.52,-865.33"/>
+<polygon fill="#000000" stroke="#000000" points="531.72,-861.83 521.72,-865.33 531.72,-868.83 531.72,-861.83"/>
+</g>
+<!-- module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_diags -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge27" class="edge">
+<title>module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_diags</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M570.52,-853.47C550.85,-848.88 528.16,-843.59 507.56,-838.78"/>
+<polygon fill="#000000" stroke="#000000" points="508.37,-835.37 497.84,-836.51 506.78,-842.19 508.37,-835.37"/>
+</g>
+<!-- module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_utils -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge32" class="edge">
+<title>module~module_mp_tempo_main&#45;&gt;module~module_mp_tempo_utils</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M607.36,-853.51C588.79,-838.64 554.28,-813.89 519.81,-804.33 449.45,-784.82 364.6,-797.65 311.13,-809.93"/>
+<polygon fill="#000000" stroke="#000000" points="310.6,-806.46 301.68,-812.18 312.22,-813.27 310.6,-806.46"/>
+</g>
+<!-- module~module_mp_tempo_ml -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node7" class="node">
+<title>module~module_mp_tempo_ml</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node7"><a xlink:href="../module/module_mp_tempo_ml.html" xlink:title="module_mp_tempo_ml">
+<polygon fill="#337ab7" stroke="#337ab7" points="318.17,-794.72 197.15,-794.72 197.15,-771.95 318.17,-771.95 318.17,-794.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-778.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_ml</text>
+</a>
+</g>
+</g>
+<!-- module~module_mp_tempo_ml&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge6" class="edge">
+<title>module~module_mp_tempo_ml&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M201.28,-771.5C194.08,-768.15 187.3,-763.85 181.77,-758.33 96.68,-673.49 78.68,-519.38 74.89,-461.3"/>
+<polygon fill="#000000" stroke="#000000" points="78.41,-461.43 74.35,-451.65 71.42,-461.83 78.41,-461.43"/>
+</g>
+<!-- module~module_mp_tempo_utils&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge7" class="edge">
+<title>module~module_mp_tempo_utils&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M194.54,-812.62C189.86,-810.09 185.52,-807.03 181.77,-803.33 83.63,-706.55 73.79,-525.15 73.52,-461.29"/>
+<polygon fill="#000000" stroke="#000000" points="77.02,-461.67 73.56,-451.66 70.02,-461.64 77.02,-461.67"/>
+</g>
+<!-- proc~aerosol_collection_efficiency -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node9" class="node">
+<title>proc~aerosol_collection_efficiency</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node9"><a xlink:href="../proc/aerosol_collection_efficiency.html" xlink:title="aerosol_collection_efficiency">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="331.29,-716.72 184.02,-716.72 184.02,-693.95 331.29,-693.95 331.29,-716.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-700.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">aerosol_collection_efficiency</text>
+</a>
+</g>
+</g>
+<!-- proc~aerosol_collection_efficiency&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge8" class="edge">
+<title>proc~aerosol_collection_efficiency&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M195.76,-693.46C190.71,-690.97 185.95,-687.96 181.77,-684.33 112.15,-623.83 85.71,-509.98 77.28,-461.33"/>
+<polygon fill="#000000" stroke="#000000" points="80.77,-460.99 75.72,-451.67 73.87,-462.11 80.77,-460.99"/>
+</g>
+<!-- proc~compute_efrw -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node10" class="node">
+<title>proc~compute_efrw</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node10"><a xlink:href="../proc/compute_efrw.html" xlink:title="compute_efrw">
+<polygon fill="#d9534f" stroke="#d9534f" points="297.17,-675.72 218.15,-675.72 218.15,-652.95 297.17,-652.95 297.17,-675.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-659.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compute_efrw</text>
+</a>
+</g>
+</g>
+<!-- proc~compute_efrw&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge9" class="edge">
+<title>proc~compute_efrw&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M217.66,-659.62C205.17,-656.58 191.96,-651.57 181.77,-643.33 121.71,-594.77 91.05,-503.71 79.48,-461.23"/>
+<polygon fill="#000000" stroke="#000000" points="82.88,-460.43 76.98,-451.63 76.11,-462.19 82.88,-460.43"/>
+</g>
+<!-- proc~compute_efsw -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node11" class="node">
+<title>proc~compute_efsw</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node11"><a xlink:href="../proc/compute_efsw.html" xlink:title="compute_efsw">
+<polygon fill="#d9534f" stroke="#d9534f" points="297.92,-634.72 217.4,-634.72 217.4,-611.95 297.92,-611.95 297.92,-634.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-618.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">compute_efsw</text>
+</a>
+</g>
+</g>
+<!-- proc~compute_efsw&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge10" class="edge">
+<title>proc~compute_efsw&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M216.96,-617.75C204.84,-614.64 192.02,-609.82 181.77,-602.33 130.85,-565.11 97.17,-495.99 82.41,-460.55"/>
+<polygon fill="#000000" stroke="#000000" points="85.68,-459.29 78.7,-451.32 79.19,-461.9 85.68,-459.29"/>
+</g>
+<!-- proc~effective_radius -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node12" class="node">
+<title>proc~effective_radius</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node12"><a xlink:href="../proc/effective_radius.html" xlink:title="effective_radius">
+<polygon fill="#d9534f" stroke="#d9534f" points="300.92,-593.72 214.4,-593.72 214.4,-570.95 300.92,-570.95 300.92,-593.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-577.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">effective_radius</text>
+</a>
+</g>
+</g>
+<!-- proc~effective_radius&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge11" class="edge">
+<title>proc~effective_radius&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M214.05,-574.93C203,-571.82 191.48,-567.45 181.77,-561.33 139.79,-534.89 104.87,-487.26 86.92,-459.68"/>
+<polygon fill="#000000" stroke="#000000" points="90.01,-458.02 81.7,-451.45 84.1,-461.77 90.01,-458.02"/>
+</g>
+<!-- proc~get_cloud_number -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node13" class="node">
+<title>proc~get_cloud_number</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node13"><a xlink:href="../proc/get_cloud_number.html" xlink:title="get_cloud_number">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="308.04,-552.72 207.27,-552.72 207.27,-529.95 308.04,-529.95 308.04,-552.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-536.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_cloud_number</text>
+</a>
+</g>
+</g>
+<!-- proc~get_cloud_number&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge12" class="edge">
+<title>proc~get_cloud_number&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M206.92,-530.24C198.32,-527.52 189.63,-524.24 181.77,-520.33 148.38,-503.72 114.97,-476.23 94.37,-457.71"/>
+<polygon fill="#000000" stroke="#000000" points="96.96,-455.34 87.22,-451.17 92.23,-460.5 96.96,-455.34"/>
+</g>
+<!-- proc~get_cloud_table_index -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node14" class="node">
+<title>proc~get_cloud_table_index</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node14"><a xlink:href="../proc/get_cloud_table_index.html" xlink:title="get_cloud_table_index">
+<polygon fill="#d9534f" stroke="#d9534f" points="317.04,-511.72 198.27,-511.72 198.27,-488.95 317.04,-488.95 317.04,-511.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-495.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_cloud_table_index</text>
+</a>
+</g>
+</g>
+<!-- proc~get_cloud_table_index&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge13" class="edge">
+<title>proc~get_cloud_table_index&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M212.11,-488.55C202.08,-485.7 191.52,-482.54 181.77,-479.33 158.97,-471.82 133.88,-462.36 113.64,-454.42"/>
+<polygon fill="#000000" stroke="#000000" points="114.93,-451.17 104.34,-450.74 112.36,-457.68 114.93,-451.17"/>
+</g>
+<!-- proc~get_graupel_table_index -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node15" class="node">
+<title>proc~get_graupel_table_index</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node15"><a xlink:href="../proc/get_graupel_table_index.html" xlink:title="get_graupel_table_index">
+<polygon fill="#d9534f" stroke="#d9534f" points="322.29,-470.72 193.02,-470.72 193.02,-447.95 322.29,-447.95 322.29,-470.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-454.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_graupel_table_index</text>
+</a>
+</g>
+</g>
+<!-- proc~get_graupel_table_index&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge14" class="edge">
+<title>proc~get_graupel_table_index&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M192.73,-451.99C181.34,-450.68 169.32,-449.3 157.48,-447.94"/>
+<polygon fill="#000000" stroke="#000000" points="158.05,-444.48 147.71,-446.82 157.25,-451.43 158.05,-444.48"/>
+</g>
+<!-- proc~get_ice_table_index -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node16" class="node">
+<title>proc~get_ice_table_index</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node16"><a xlink:href="../proc/get_ice_table_index.html" xlink:title="get_ice_table_index">
+<polygon fill="#d9534f" stroke="#d9534f" points="311.04,-429.72 204.27,-429.72 204.27,-406.95 311.04,-406.95 311.04,-429.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-413.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_ice_table_index</text>
+</a>
+</g>
+</g>
+<!-- proc~get_ice_table_index&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge15" class="edge">
+<title>proc~get_ice_table_index&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M203.79,-424.12C189.28,-425.71 173.19,-427.47 157.41,-429.19"/>
+<polygon fill="#000000" stroke="#000000" points="157.07,-425.71 147.51,-430.28 157.83,-432.67 157.07,-425.71"/>
+</g>
+<!-- proc~get_nuc -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node17" class="node">
+<title>proc~get_nuc</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node17"><a xlink:href="../proc/get_nuc.html" xlink:title="get_nuc">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="284.66,-388.72 230.66,-388.72 230.66,-365.95 284.66,-365.95 284.66,-388.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-372.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_nuc</text>
+</a>
+</g>
+</g>
+<!-- proc~get_nuc&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge16" class="edge">
+<title>proc~get_nuc&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M230.16,-384.2C215.76,-388.07 197.69,-393.16 181.77,-398.33 159.33,-405.63 134.63,-414.71 114.53,-422.37"/>
+<polygon fill="#000000" stroke="#000000" points="113.37,-419.06 105.29,-425.92 115.88,-425.6 113.37,-419.06"/>
+</g>
+<!-- proc~get_rain_table_index -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node18" class="node">
+<title>proc~get_rain_table_index</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node18"><a xlink:href="../proc/get_rain_table_index.html" xlink:title="get_rain_table_index">
+<polygon fill="#d9534f" stroke="#d9534f" points="313.29,-347.72 202.02,-347.72 202.02,-324.95 313.29,-324.95 313.29,-347.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-331.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_rain_table_index</text>
+</a>
+</g>
+</g>
+<!-- proc~get_rain_table_index&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge17" class="edge">
+<title>proc~get_rain_table_index&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M204.96,-348.1C197.01,-350.69 189.03,-353.75 181.77,-357.33 148.48,-373.77 115.04,-400.92 94.41,-419.2"/>
+<polygon fill="#000000" stroke="#000000" points="92.34,-416.36 87.26,-425.66 97.03,-421.56 92.34,-416.36"/>
+</g>
+<!-- proc~get_snow_table_index -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node19" class="node">
+<title>proc~get_snow_table_index</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node19"><a xlink:href="../proc/get_snow_table_index.html" xlink:title="get_snow_table_index">
+<polygon fill="#d9534f" stroke="#d9534f" points="316.67,-306.72 198.65,-306.72 198.65,-283.95 316.67,-283.95 316.67,-306.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-290.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_snow_table_index</text>
+</a>
+</g>
+</g>
+<!-- proc~get_snow_table_index&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge18" class="edge">
+<title>proc~get_snow_table_index&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M200.73,-307.13C194.09,-309.64 187.6,-312.67 181.77,-316.33 139.93,-342.57 104.95,-389.81 86.96,-417.17"/>
+<polygon fill="#000000" stroke="#000000" points="84.18,-415.01 81.73,-425.32 90.08,-418.79 84.18,-415.01"/>
+</g>
+<!-- proc~get_temperature_table_index -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node20" class="node">
+<title>proc~get_temperature_table_index</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node20"><a xlink:href="../proc/get_temperature_table_index.html" xlink:title="get_temperature_table_index">
+<polygon fill="#d9534f" stroke="#d9534f" points="333.54,-265.72 181.77,-265.72 181.77,-242.95 333.54,-242.95 333.54,-265.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-249.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">get_temperature_table_index</text>
+</a>
+</g>
+</g>
+<!-- proc~get_temperature_table_index&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge19" class="edge">
+<title>proc~get_temperature_table_index&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M198.29,-266.16C192.42,-268.65 186.79,-271.67 181.77,-275.33 131.01,-312.32 97.26,-381.02 82.45,-416.25"/>
+<polygon fill="#000000" stroke="#000000" points="79.25,-414.84 78.73,-425.42 85.73,-417.47 79.25,-414.84"/>
+</g>
+<!-- proc~hail_size -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node21" class="node">
+<title>proc~hail_size</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node21"><a xlink:href="../proc/hail_size.html" xlink:title="hail_size">
+<polygon fill="#d9534f" stroke="#d9534f" points="284.66,-224.72 230.66,-224.72 230.66,-201.95 284.66,-201.95 284.66,-224.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-208.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">hail_size</text>
+</a>
+</g>
+</g>
+<!-- proc~hail_size&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge20" class="edge">
+<title>proc~hail_size&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M230.38,-215.52C214.82,-217.99 195.54,-223.23 181.77,-234.33 121.89,-282.65 91.14,-373.27 79.51,-415.54"/>
+<polygon fill="#000000" stroke="#000000" points="76.16,-414.53 77,-425.1 82.93,-416.31 76.16,-414.53"/>
+</g>
+<!-- proc~reflectivity_10cm -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node22" class="node">
+<title>proc~reflectivity_10cm</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node22"><a xlink:href="../proc/reflectivity_10cm.html" xlink:title="reflectivity_10cm">
+<polygon fill="#d9534f" stroke="#d9534f" points="303.17,-183.72 212.15,-183.72 212.15,-160.95 303.17,-160.95 303.17,-183.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-167.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reflectivity_10cm</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_10cm&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge21" class="edge">
+<title>proc~reflectivity_10cm&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M211.88,-178.08C201.08,-181.2 190.23,-185.99 181.77,-193.33 112.34,-253.58 85.8,-366.97 77.31,-415.43"/>
+<polygon fill="#000000" stroke="#000000" points="73.9,-414.6 75.74,-425.04 80.81,-415.74 73.9,-414.6"/>
+</g>
+<!-- proc~snow_moments -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node23" class="node">
+<title>proc~snow_moments</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node23"><a xlink:href="../proc/snow_moments.html" xlink:title="snow_moments">
+<polygon fill="#d9534f" stroke="#d9534f" points="300.92,-142.72 214.4,-142.72 214.4,-119.95 300.92,-119.95 300.92,-142.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-126.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">snow_moments</text>
+</a>
+</g>
+</g>
+<!-- proc~snow_moments&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge22" class="edge">
+<title>proc~snow_moments&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M213.94,-136.12C202.38,-139.2 190.63,-144.21 181.77,-152.33 102.8,-224.69 81.29,-360.71 75.73,-415.05"/>
+<polygon fill="#000000" stroke="#000000" points="72.24,-414.68 74.81,-424.96 79.22,-415.32 72.24,-414.68"/>
+</g>
+<!-- proc~tempo_build_tables -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node24" class="node">
+<title>proc~tempo_build_tables</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node24"><a xlink:href="../proc/tempo_build_tables.html" xlink:title="tempo_build_tables">
+<polygon fill="#d9534f" stroke="#d9534f" points="309.92,-101.72 205.4,-101.72 205.4,-78.95 309.92,-78.95 309.92,-101.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-85.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tempo_build_tables</text>
+</a>
+</g>
+</g>
+<!-- proc~tempo_build_tables&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge23" class="edge">
+<title>proc~tempo_build_tables&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M205.17,-97.55C196.56,-100.67 188.31,-105.08 181.77,-111.33 92.99,-196.18 77.22,-355.42 74.46,-415.02"/>
+<polygon fill="#000000" stroke="#000000" points="70.96,-414.83 74.09,-424.95 77.96,-415.09 70.96,-414.83"/>
+</g>
+<!-- proc~tempo_init -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node25" class="node">
+<title>proc~tempo_init</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node25"><a xlink:href="../proc/tempo_init.html" xlink:title="tempo_init">
+<polygon fill="#d9534f" stroke="#d9534f" points="288.17,-60.72 227.15,-60.72 227.15,-37.95 288.17,-37.95 288.17,-60.72"/>
+<text xml:space="preserve" text-anchor="middle" x="257.66" y="-44.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tempo_init</text>
+</a>
+</g>
+</g>
+<!-- proc~tempo_init&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge24" class="edge">
+<title>proc~tempo_init&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M226.96,-50.94C211.62,-53.27 193.68,-58.56 181.77,-70.33 82.77,-168.17 73.52,-351.64 73.45,-415.62"/>
+<polygon fill="#000000" stroke="#000000" points="69.95,-415.28 73.53,-425.25 76.95,-415.23 69.95,-415.28"/>
+</g>
+<!-- program~build_tables -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_node26" class="node">
+<title>program~build_tables</title>
+<g id="a_module~~module_mp_tempo_params~~UsedByGraph_node26"><a xlink:href="../program/build_tables.html" xlink:title="build_tables">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="656.58,-388.72 588.06,-388.72 588.06,-365.95 656.58,-365.95 656.58,-388.72"/>
+<text xml:space="preserve" text-anchor="middle" x="622.32" y="-372.98" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">build_tables</text>
+</a>
+</g>
+</g>
+<!-- program~build_tables&#45;&gt;module~module_mp_tempo_params -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge25" class="edge">
+<title>program~build_tables&#45;&gt;module~module_mp_tempo_params</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M615.42,-365.58C577.24,-291.02 361.03,108.78 181.77,-29.33 118.82,-77.83 85.2,-336.64 76.31,-415.51"/>
+<polygon fill="#000000" stroke="#000000" points="72.87,-414.73 75.26,-425.05 79.83,-415.5 72.87,-414.73"/>
+</g>
+<!-- program~build_tables&#45;&gt;module~module_mp_tempo_init -->
+<g id="module~~module_mp_tempo_params~~UsedByGraph_edge28" class="edge">
+<title>program~build_tables&#45;&gt;module~module_mp_tempo_init</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M615.67,-389.13C590.59,-441.54 489.01,-653.79 456.05,-722.65"/>
+<polygon fill="#000000" stroke="#000000" points="453.02,-720.87 451.86,-731.4 459.34,-723.89 453.02,-720.87"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var panmodulemodule_mp_tempo_paramsUsedByGraph = svgPanZoom('#modulemodule_mp_tempo_paramsUsedByGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#UsedByGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="UsedByGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="485pt" height="31pt"
+ viewBox="0.00 0.00 485.00 31.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 26.77)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-26.77 481.13,-26.77 481.13,4 -4,4"/>
+<!-- Module -->
+<g id="node1" class="node">
+<title>Module</title>
+<polygon fill="#337ab7" stroke="#337ab7" points="54,-22.77 0,-22.77 0,0 54,0 54,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="27" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Module</text>
+</g>
+<!-- Submodule -->
+<g id="node2" class="node">
+<title>Submodule</title>
+<polygon fill="#5bc0de" stroke="#5bc0de" points="137.76,-22.77 72.24,-22.77 72.24,0 137.76,0 137.76,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="105" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Submodule</text>
+</g>
+<!-- Subroutine -->
+<g id="node3" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="218.63,-22.77 155.37,-22.77 155.37,0 218.63,0 218.63,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="187" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node4" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="291,-22.77 237,-22.77 237,0 291,0 291,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="264" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Program -->
+<g id="node5" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="363,-22.77 309,-22.77 309,0 363,0 363,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="336" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node6" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="477.13,-22.77 380.87,-22.77 380.87,0 477.13,0 477.13,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="429" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a submodule to the (sub)module which it is
+descended from. Dashed arrows point from a module or program unit to 
+modules which it uses.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      <br>
+
+
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tempo_version"></span>
+              character(len=11),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tempo_version</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>tempo version string (max is xxx.xxx.xxx)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tempo_cfgs"></span>
+              type(<a href='../type/ty_tempo_cfgs.html'>ty_tempo_cfgs</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tempo_cfgs</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tempo_table_cfgs"></span>
+              type(<a href='../type/ty_tempo_table_cfgs.html'>ty_tempo_table_cfgs</a>),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tempo_table_cfgs</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idx_bg1"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>idx_bg1</strong></td>
+<td> =</td>
+                <td>6</td>
+            <td>
+                <p>index from rho_g when hail_aware = false: density = 500 <script type="math/tex">kg\, m^{-3}</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-av_r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>av_r</strong></td>
+<td> =</td>
+                <td>4854._wp</td>
+            <td>
+                <p>rain fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bv_r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bv_r</strong></td>
+<td> =</td>
+                <td>1.0_wp</td>
+            <td>
+                <p>rain fallspeed power-law coefficient</p>
+<div class="alert alert-info">
+<p class="alert-title h4">Note</p>
+<p>fallspeed power law relations are 
+<script type="math/tex; mode=display"> v =(a_{v}D^{b_{v}})\exp\left(-f_{v}D\right), \textrm{where}\,fv = 0\, \textrm{for graupel/ice} </script>
+and coefficients are from from Ferrier (1994) for rain and 
+Thompson et al. (2008) for ice, snow, and graupel</p>
+</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-av_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>av_s</strong></td>
+<td> =</td>
+                <td>40._wp</td>
+            <td>
+                <p>snow fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bv_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bv_s</strong></td>
+<td> =</td>
+                <td>0.55_wp</td>
+            <td>
+                <p>snow fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fv_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>fv_s</strong></td>
+<td> =</td>
+                <td>100._wp</td>
+            <td>
+                <p>snow fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bv_c"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bv_c</strong></td>
+<td> =</td>
+                <td>2.0_wp</td>
+            <td>
+                <p>cloud fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bv_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bv_i</strong></td>
+<td> =</td>
+                <td>1.0_wp</td>
+            <td>
+                <p>ice fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-av_g_old"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>av_g_old</strong></td>
+<td> =</td>
+                <td>442._wp</td>
+            <td>
+                <p>graupel fallspeed power-law coefficient (hail_aware = false)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bv_g_old"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bv_g_old</strong></td>
+<td> =</td>
+                <td>0.89_wp</td>
+            <td>
+                <p>graupel fallspeed power-law coefficient (hail_aware = false)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fv_r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>fv_r</strong></td>
+<td> =</td>
+                <td>195.0_wp</td>
+            <td>
+                <p>rain fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-av_c"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>av_c</strong></td>
+<td> =</td>
+                <td>0.316946e8_wp</td>
+            <td>
+                <p>cloud fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-a_coeff"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>a_coeff</strong></td>
+<td> =</td>
+                <td>0.47244157_wp</td>
+            <td>
+                <p>graupel fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-b_coeff"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>b_coeff</strong></td>
+<td> =</td>
+                <td>0.54698726_wp</td>
+            <td>
+                <p>grapuel fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-av_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>av_i</strong></td>
+<td> =</td>
+                <td>1493.9</td>
+            <td>
+                <p>ice fallspeed power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-am_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>am_s</strong></td>
+<td> =</td>
+                <td>0.069_wp</td>
+            <td>
+                <p>snow mass power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bm_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bm_s</strong></td>
+<td> =</td>
+                <td>2.0_wp</td>
+            <td>
+                <p>snow mass power-law coefficient</p>
+<div class="alert alert-info">
+<p class="alert-title h4">Note</p>
+<p>mass power law relations are
+<script type="math/tex; mode=display"> m = a_{m}D^{b_{m}} </script>
+and coefficients for snow are from Field et al. (2005) and 
+others assume a spherical form</p>
+</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bm_g"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bm_g</strong></td>
+<td> =</td>
+                <td>3.0_wp</td>
+            <td>
+                <p>graupel mass power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bm_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bm_i</strong></td>
+<td> =</td>
+                <td>3.0_wp</td>
+            <td>
+                <p>ice mass power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bm_r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>bm_r</strong></td>
+<td> =</td>
+                <td>3.0_wp</td>
+            <td>
+                <p>rain mass power-law coefficient</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>rho_i</strong></td>
+<td> =</td>
+                <td>890._wp</td>
+            <td>
+                <p>density of cloud ice <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xm0i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>xm0i</strong></td>
+<td> =</td>
+                <td>1.e-12_wp</td>
+            <td>
+                <p>ice initiates with this mass <script type="math/tex">[kg]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d0c"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>d0c</strong></td>
+<td> =</td>
+                <td>1.e-6_wp</td>
+            <td>
+                <p>minimum diameter of cloud droplets <script type="math/tex">[m]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d0r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>d0r</strong></td>
+<td> =</td>
+                <td>50.e-6_wp</td>
+            <td>
+                <p>minimum diameter of raindrops <script type="math/tex">[m]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d0s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>d0s</strong></td>
+<td> =</td>
+                <td>300.e-6_wp</td>
+            <td>
+                <p>minimum diameter of snow <script type="math/tex">[m]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d0g"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>d0g</strong></td>
+<td> =</td>
+                <td>350.e-6_wp</td>
+            <td>
+                <p>minimum diameter of graupel <script type="math/tex">[m]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d0r_max"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>d0r_max</strong></td>
+<td> =</td>
+                <td>2.5e-3_wp</td>
+            <td>
+                <p>maximum diameter of raindrops <script type="math/tex">[m]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-c_cube"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>c_cube</strong></td>
+<td> =</td>
+                <td>0.5_wp</td>
+            <td>
+                <p>capacitance of a sphere <script type="math/tex">\left(D^{3}\right)</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-c_sqrd"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>c_sqrd</strong></td>
+<td> =</td>
+                <td>0.15_wp</td>
+            <td>
+                <p>capacitance of plates/aggregates <script type="math/tex">\left(D^{2}\right)</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mu_r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>mu_r</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
+            <td>
+                <p>shape parameter for rain</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mu_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>mu_s</strong></td>
+<td> =</td>
+                <td>0.6357_wp</td>
+            <td>
+                <p>shape parameter for snow</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mu_g"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>mu_g</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
+            <td>
+                <p>shape parameter for graupel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mu_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>mu_i</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
+            <td>
+                <p>shape parameter for cloud ice</p>
+<div class="alert alert-info">
+<p class="alert-title h4">Note</p>
+<p>generalized gamma distributions for rain, graupel and cloud ice have the form
+<script type="math/tex; mode=display"> n\left(D\right) = n_{0} D^{\mu}\exp(-\lambda D) </script>
+<script type="math/tex; mode=display"> \textrm{where}\\ \mu = 0 \\ \textrm{is exponential} </script>
+</p>
+</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nu_c_scale"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nu_c_scale</strong></td>
+<td> =</td>
+                <td>1000.e6_wp</td>
+            <td>
+                <p>scaling parameter for nu_c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nu_c_max"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nu_c_max</strong></td>
+<td> =</td>
+                <td>15</td>
+            <td>
+                <p>maximum value for nu_c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nu_c_min"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nu_c_min</strong></td>
+<td> =</td>
+                <td>2</td>
+            <td>
+                <p>minimum value for nu_c</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-naccn0"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>naccn0</strong></td>
+<td> =</td>
+                <td>300.0e6_wp</td>
+            <td>
+                <p>used for water-friendly aerosol initialization</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-naccn1"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>naccn1</strong></td>
+<td> =</td>
+                <td>50.0e6_wp</td>
+            <td>
+                <p>used for water-friendly aerosol initialization</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nain0"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nain0</strong></td>
+<td> =</td>
+                <td>1.5e6_wp</td>
+            <td>
+                <p>used for ice-friendly aerosol initialization</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nain1"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nain1</strong></td>
+<td> =</td>
+                <td>0.5e6_wp</td>
+            <td>
+                <p>used for ice-friendly aerosol initialization</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nwfa_default"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nwfa_default</strong></td>
+<td> =</td>
+                <td>11.1e6_wp</td>
+            <td>
+                <p>default value for water-friendly aerosols</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nifa_default"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nifa_default</strong></td>
+<td> =</td>
+                <td>nain1*0.01_wp</td>
+            <td>
+                <p>default value for ice-friendly aerosols</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aero_max"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>aero_max</strong></td>
+<td> =</td>
+                <td>9999.e6_wp</td>
+            <td>
+                <p>maximum aerosol value</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-hgfrz"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>hgfrz</strong></td>
+<td> =</td>
+                <td>235.16_wp</td>
+            <td>
+                <p>temperature to freeze all liquid <script type="math/tex">[K]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nt_c_o"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nt_c_o</strong></td>
+<td> =</td>
+                <td>50.e6_wp</td>
+            <td>
+                <p>cloud number concentration over ocean (non-aerosol aware) <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nt_c_l"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nt_c_l</strong></td>
+<td> =</td>
+                <td>100.e6_wp</td>
+            <td>
+                <p>cloud number concentration over land (non-aerosol aware) <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nt_c_max"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nt_c_max</strong></td>
+<td> =</td>
+                <td>1999.e6_wp</td>
+            <td>
+                <p>maximum cloud number concentration <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nt_c_min"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nt_c_min</strong></td>
+<td> =</td>
+                <td>2._wp</td>
+            <td>
+                <p>minimum cloud number concentration <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tno"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>tno</strong></td>
+<td> =</td>
+                <td>5.0_wp</td>
+            <td>
+                <p>constant in the Cooper curve for ice nucleation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ato"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ato</strong></td>
+<td> =</td>
+                <td>0.304_wp</td>
+            <td>
+                <p>constant in the Cooper curve for ice nucleation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rho_s</strong></td>
+<td> =</td>
+                <td>100.0_wp</td>
+            <td>
+                <p>density of snow <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-demott_nuc_ssati"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>demott_nuc_ssati</strong></td>
+<td> =</td>
+                <td>0.25_wp</td>
+            <td>
+                <p>ice supersaturation threshold for DeMott nucleation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_ni"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>max_ni</strong></td>
+<td> =</td>
+                <td>4999.e3_wp</td>
+            <td>
+                <p>maximum ice number concentration <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-icenuc_max"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>icenuc_max</strong></td>
+<td> =</td>
+                <td>1000.e3_wp</td>
+            <td>
+                <p>maximum ice nucleation number <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rime_threshold"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>rime_threshold</strong></td>
+<td> =</td>
+                <td>2.0_wp</td>
+            <td>
+                <p>rime threshold parameter</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rime_conversion"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>rime_conversion</strong></td>
+<td> =</td>
+                <td>0.95_wp</td>
+            <td>
+                <p>rime conversion parameter</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ef_si"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ef_si</strong></td>
+<td> =</td>
+                <td>0.05_wp</td>
+            <td>
+                <p>snow-ice collection efficiency</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ef_rs"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ef_rs</strong></td>
+<td> =</td>
+                <td>0.95_wp</td>
+            <td>
+                <p>rain-snow collection efficiency</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ef_rg"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ef_rg</strong></td>
+<td> =</td>
+                <td>0.75_wp</td>
+            <td>
+                <p>rain-graupel collection efficiency</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ef_ri"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ef_ri</strong></td>
+<td> =</td>
+                <td>0.95_wp</td>
+            <td>
+                <p>rain-ice collection efficiency</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-autocon_nr_factor"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>autocon_nr_factor</strong></td>
+<td> =</td>
+                <td>10._wp</td>
+            <td>
+                <p>factor controling rain number tendency from autconversion (larger produces few drops)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_sp"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>table_sp</strong></td>
+<td> =</td>
+                <td>real32</td>
+            <td>
+                <p>precision for lookup tables (machine independent)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_dp"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>table_dp</strong></td>
+<td> =</td>
+                <td>real64</td>
+            <td>
+                <p>precision for lookup tables (machine independent)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nrhg"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nrhg</strong></td>
+<td> =</td>
+                <td>9</td>
+            <td>
+                <p>graupel density array size when hail_aware = true</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nrhg1"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nrhg1</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+                <p>graupel density array size when hail_aware = false</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-min_qv"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>min_qv</strong></td>
+<td> =</td>
+                <td>1.e-10_wp</td>
+            <td>
+                <p>minimum value of water vapor mixing ratio <script type="math/tex">[kg\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r1"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>r1</strong></td>
+<td> =</td>
+                <td>1.e-12_wp</td>
+            <td>
+                <p>minimum hydrometeor mass <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r2"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>r2</strong></td>
+<td> =</td>
+                <td>1.e-6_wp</td>
+            <td>
+                <p>minimum hydrometeor number <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-eps"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>eps</strong></td>
+<td> =</td>
+                <td>1.e-15_wp</td>
+            <td>
+                <p>small non-zero number</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-meters3_to_liters"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>meters3_to_liters</strong></td>
+<td> =</td>
+                <td>1000._wp</td>
+            <td>
+                <p>number of liters in 1 <script type="math/tex">m^{3}</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-gonv_min"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>gonv_min</strong></td>
+<td> =</td>
+                <td>1.e2_dp</td>
+            <td>
+                <p>minimum graupel y-intercept <script type="math/tex">[m^{-4}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-gonv_max"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>gonv_max</strong></td>
+<td> =</td>
+                <td>1.e6_dp</td>
+            <td>
+                <p>maximum graupel y-intercept <script type="math/tex">[m^{-4}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t0"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>t0</strong></td>
+<td> =</td>
+                <td>273.15_wp</td>
+            <td>
+                <p>melting point of ice <script type="math/tex">[K]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho_w"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>rho_w</strong></td>
+<td> =</td>
+                <td>1000._wp</td>
+            <td>
+                <p>density of liquid water <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho_g"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(nrhg)
+            </td>
+            <td>::</td>
+            <td><strong>rho_g</strong></td>
+<td> =</td>
+                <td>[50._wp, 100._wp, 200._wp, 300._wp, 400._wp, 500._wp, 600._wp, 700._wp, 800._wp]</td>
+            <td>
+                <p>!! densities of graupel when hail_aware = true <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sc~2"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>sc</strong></td>
+<td> =</td>
+                <td>0.632_wp</td>
+            <td>
+                <p>schmidt number</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-pi"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pi</strong></td>
+<td> =</td>
+                <td>3.1415926536_wp</td>
+            <td>
+                <p>pi is approximately 355/113</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lsub"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lsub</strong></td>
+<td> =</td>
+                <td>2.834e6_wp</td>
+            <td>
+                <p>enthalpy of sublimation <script type="math/tex">[J\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lvap0"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lvap0</strong></td>
+<td> =</td>
+                <td>2.5e6_wp</td>
+            <td>
+                <p>enthalpy of vaporization <script type="math/tex">[J\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rv"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rv</strong></td>
+<td> =</td>
+                <td>461.5_wp</td>
+            <td>
+                <p>gas constant for water vapor <script type="math/tex">[J\, K^{-1}\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rdry"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rdry</strong></td>
+<td> =</td>
+                <td>287.04_wp</td>
+            <td>
+                <p>gas constant for dry air <script type="math/tex">[J\, K^{-1}\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-roverrv"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>roverrv</strong></td>
+<td> =</td>
+                <td>0.622_wp</td>
+            <td>
+                <p>dry gas constant divided by water vapor gas constant</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r</strong></td>
+<td> =</td>
+                <td>287.04_wp</td>
+            <td>
+                <p>gas constant for dry air <script type="math/tex">[J\, K^{-1}\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho_not"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rho_not</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>density constant <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho_not0"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rho_not0</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>density constant <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cp"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cp</strong></td>
+<td> =</td>
+                <td>1004.0_wp</td>
+            <td>
+                <p>heat capcitiy of air at constant pressure <script type="math/tex">[J\, K^{-1}\, kg^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r_uni"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>r_uni</strong></td>
+<td> =</td>
+                <td>8.314</td>
+            <td>
+                <p>gas constant <script type="math/tex">[J\, K^{-1}\, mol^{-1}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kap0"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>kap0</strong></td>
+<td> =</td>
+                <td>490.6_wp</td>
+            <td>
+                <p>snow parameter from Field et al. (2005)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kap1"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>kap1</strong></td>
+<td> =</td>
+                <td>17.46_wp</td>
+            <td>
+                <p>snow parameter from Field et al. (2005)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lam0"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>lam0</strong></td>
+<td> =</td>
+                <td>20.78_wp</td>
+            <td>
+                <p>snow parameter from Field et al. (2005)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lam1"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>lam1</strong></td>
+<td> =</td>
+                <td>3.29_wp</td>
+            <td>
+                <p>snow parameter from Field et al. (2005)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbins"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nbins</strong></td>
+<td> =</td>
+                <td>100</td>
+            <td>
+                <p>lookup table dimension (number of bins)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbc"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nbc</strong></td>
+<td> =</td>
+                <td>nbins</td>
+            <td>
+                <p>lookup table dimension for cloud water</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbr"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nbr</strong></td>
+<td> =</td>
+                <td>nbins</td>
+            <td>
+                <p>lookup table dimension for rain</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbs"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nbs</strong></td>
+<td> =</td>
+                <td>nbins</td>
+            <td>
+                <p>lookup table dimension for snow</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbi"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nbi</strong></td>
+<td> =</td>
+                <td>nbins</td>
+            <td>
+                <p>lookup table dimension</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbg"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nbg</strong></td>
+<td> =</td>
+                <td>nbins</td>
+            <td>
+                <p>lookup table dimension</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_i"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_i</strong></td>
+<td> =</td>
+                <td>64</td>
+            <td>
+                <p>lookup table dimension for cloud ice</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_i1"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_i1</strong></td>
+<td> =</td>
+                <td>55</td>
+            <td>
+                <p>lookup table dimension for cloud ice</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_c"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_c</strong></td>
+<td> =</td>
+                <td>37</td>
+            <td>
+                <p>lookup table dimension for cloud water</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_t"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_t</strong></td>
+<td> =</td>
+                <td>9</td>
+            <td>
+                <p>lookup table dimension for temperature</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_g1"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_g1</strong></td>
+<td> =</td>
+                <td>37</td>
+            <td>
+                <p>lookup table dimension for graupel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_s"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_s</strong></td>
+<td> =</td>
+                <td>37</td>
+            <td>
+                <p>lookup table dimension for snow</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_g"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_g</strong></td>
+<td> =</td>
+                <td>37</td>
+            <td>
+                <p>lookup table dimension for graupel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_r"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_r</strong></td>
+<td> =</td>
+                <td>37</td>
+            <td>
+                <p>lookup table dimension for rain</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_r1"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_r1</strong></td>
+<td> =</td>
+                <td>37</td>
+            <td>
+                <p>lookup table dimension for rain</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_t1"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_t1</strong></td>
+<td> =</td>
+                <td>45</td>
+            <td>
+                <p>lookup table dimension for temperature</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_in"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_in</strong></td>
+<td> =</td>
+                <td>55</td>
+            <td>
+                <p>lookup table dimension for IN</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_arc"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_arc</strong></td>
+<td> =</td>
+                <td>7</td>
+            <td>
+                <p>lookup table dimension for CCN activation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_arw"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_arw</strong></td>
+<td> =</td>
+                <td>9</td>
+            <td>
+                <p>lookup table dimension for CCN activation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_art"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_art</strong></td>
+<td> =</td>
+                <td>7</td>
+            <td>
+                <p>lookup table dimension for CCN activation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_arr"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_arr</strong></td>
+<td> =</td>
+                <td>5</td>
+            <td>
+                <p>lookup table dimension for CCN activation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ntb_ark"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>ntb_ark</strong></td>
+<td> =</td>
+                <td>4</td>
+            <td>
+                <p>lookup table dimension for CCN activation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r_c"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_c)
+            </td>
+            <td>::</td>
+            <td><strong>r_c</strong></td>
+<td> =</td>
+                <td>[1.e-6_wp, 2.e-6_wp, 3.e-6_wp, 4.e-6_wp, 5.e-6_wp, 6.e-6_wp, 7.e-6_wp, 8.e-6_wp, 9.e-6_wp, 1.e-5_wp, 2.e-5_wp, 3.e-5_wp, 4.e-5_wp, 5.e-5_wp, 6.e-5_wp, 7.e-5_wp, 8.e-5_wp, 9.e-5_wp, 1.e-4_wp, 2.e-4_wp, 3.e-4_wp, 4.e-4_wp, 5.e-4_wp, 6.e-4_wp, 7.e-4_wp, 8.e-4_wp, 9.e-4_wp, 1.e-3_wp, 2.e-3_wp, 3.e-3_wp, 4.e-3_wp, 5.e-3_wp, 6.e-3_wp, 7.e-3_wp, 8.e-3_wp, 9.e-3_wp, 1.e-2_wp]</td>
+            <td>
+                <p>mass bins for cloud water <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_i)
+            </td>
+            <td>::</td>
+            <td><strong>r_i</strong></td>
+<td> =</td>
+                <td>[1.e-10_wp, 2.e-10_wp, 3.e-10_wp, 4.e-10_wp, 5.e-10_wp, 6.e-10_wp, 7.e-10_wp, 8.e-10_wp, 9.e-10_wp, 1.e-9_wp, 2.e-9_wp, 3.e-9_wp, 4.e-9_wp, 5.e-9_wp, 6.e-9_wp, 7.e-9_wp, 8.e-9_wp, 9.e-9_wp, 1.e-8_wp, 2.e-8_wp, 3.e-8_wp, 4.e-8_wp, 5.e-8_wp, 6.e-8_wp, 7.e-8_wp, 8.e-8_wp, 9.e-8_wp, 1.e-7_wp, 2.e-7_wp, 3.e-7_wp, 4.e-7_wp, 5.e-7_wp, 6.e-7_wp, 7.e-7_wp, 8.e-7_wp, 9.e-7_wp, 1.e-6_wp, 2.e-6_wp, 3.e-6_wp, 4.e-6_wp, 5.e-6_wp, 6.e-6_wp, 7.e-6_wp, 8.e-6_wp, 9.e-6_wp, 1.e-5_wp, 2.e-5_wp, 3.e-5_wp, 4.e-5_wp, 5.e-5_wp, 6.e-5_wp, 7.e-5_wp, 8.e-5_wp, 9.e-5_wp, 1.e-4_wp, 2.e-4_wp, 3.e-4_wp, 4.e-4_wp, 5.e-4_wp, 6.e-4_wp, 7.e-4_wp, 8.e-4_wp, 9.e-4_wp, 1.e-3_wp]</td>
+            <td>
+                <p>mass bins for ice water <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r_r"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_r)
+            </td>
+            <td>::</td>
+            <td><strong>r_r</strong></td>
+<td> =</td>
+                <td>[1.e-6_wp, 2.e-6_wp, 3.e-6_wp, 4.e-6_wp, 5.e-6_wp, 6.e-6_wp, 7.e-6_wp, 8.e-6_wp, 9.e-6_wp, 1.e-5_wp, 2.e-5_wp, 3.e-5_wp, 4.e-5_wp, 5.e-5_wp, 6.e-5_wp, 7.e-5_wp, 8.e-5_wp, 9.e-5_wp, 1.e-4_wp, 2.e-4_wp, 3.e-4_wp, 4.e-4_wp, 5.e-4_wp, 6.e-4_wp, 7.e-4_wp, 8.e-4_wp, 9.e-4_wp, 1.e-3_wp, 2.e-3_wp, 3.e-3_wp, 4.e-3_wp, 5.e-3_wp, 6.e-3_wp, 7.e-3_wp, 8.e-3_wp, 9.e-3_wp, 1.e-2_wp]</td>
+            <td>
+                <p>mass bins for rain <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r_s"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_s)
+            </td>
+            <td>::</td>
+            <td><strong>r_s</strong></td>
+<td> =</td>
+                <td>[1.e-6_wp, 2.e-6_wp, 3.e-6_wp, 4.e-6_wp, 5.e-6_wp, 6.e-6_wp, 7.e-6_wp, 8.e-6_wp, 9.e-6_wp, 1.e-5_wp, 2.e-5_wp, 3.e-5_wp, 4.e-5_wp, 5.e-5_wp, 6.e-5_wp, 7.e-5_wp, 8.e-5_wp, 9.e-5_wp, 1.e-4_wp, 2.e-4_wp, 3.e-4_wp, 4.e-4_wp, 5.e-4_wp, 6.e-4_wp, 7.e-4_wp, 8.e-4_wp, 9.e-4_wp, 1.e-3_wp, 2.e-3_wp, 3.e-3_wp, 4.e-3_wp, 5.e-3_wp, 6.e-3_wp, 7.e-3_wp, 8.e-3_wp, 9.e-3_wp, 1.e-2_wp]</td>
+            <td>
+                <p>mass bins for snow <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-r_g"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_g)
+            </td>
+            <td>::</td>
+            <td><strong>r_g</strong></td>
+<td> =</td>
+                <td>[1.e-6_wp, 2.e-6_wp, 3.e-6_wp, 4.e-6_wp, 5.e-6_wp, 6.e-6_wp, 7.e-6_wp, 8.e-6_wp, 9.e-6_wp, 1.e-5_wp, 2.e-5_wp, 3.e-5_wp, 4.e-5_wp, 5.e-5_wp, 6.e-5_wp, 7.e-5_wp, 8.e-5_wp, 9.e-5_wp, 1.e-4_wp, 2.e-4_wp, 3.e-4_wp, 4.e-4_wp, 5.e-4_wp, 6.e-4_wp, 7.e-4_wp, 8.e-4_wp, 9.e-4_wp, 1.e-3_wp, 2.e-3_wp, 3.e-3_wp, 4.e-3_wp, 5.e-3_wp, 6.e-3_wp, 7.e-3_wp, 8.e-3_wp, 9.e-3_wp, 1.e-2_wp]</td>
+            <td>
+                <p>mass bins for graupel <script type="math/tex">[kg\, m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n0r_exp"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_r1)
+            </td>
+            <td>::</td>
+            <td><strong>n0r_exp</strong></td>
+<td> =</td>
+                <td>[1.e6_wp, 2.e6_wp, 3.e6_wp, 4.e6_wp, 5.e6_wp, 6.e6_wp, 7.e6_wp, 8.e6_wp, 9.e6_wp, 1.e7_wp, 2.e7_wp, 3.e7_wp, 4.e7_wp, 5.e7_wp, 6.e7_wp, 7.e7_wp, 8.e7_wp, 9.e7_wp, 1.e8_wp, 2.e8_wp, 3.e8_wp, 4.e8_wp, 5.e8_wp, 6.e8_wp, 7.e8_wp, 8.e8_wp, 9.e8_wp, 1.e9_wp, 2.e9_wp, 3.e9_wp, 4.e9_wp, 5.e9_wp, 6.e9_wp, 7.e9_wp, 8.e9_wp, 9.e9_wp, 1.e10_wp]</td>
+            <td>
+                <p>y-intercept bins for rain <script type="math/tex">[m^{-4}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n0g_exp"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_g1)
+            </td>
+            <td>::</td>
+            <td><strong>n0g_exp</strong></td>
+<td> =</td>
+                <td>[1.e2_wp, 2.e2_wp, 3.e2_wp, 4.e2_wp, 5.e2_wp, 6.e2_wp, 7.e2_wp, 8.e2_wp, 9.e2_wp, 1.e3_wp, 2.e3_wp, 3.e3_wp, 4.e3_wp, 5.e3_wp, 6.e3_wp, 7.e3_wp, 8.e3_wp, 9.e3_wp, 1.e4_wp, 2.e4_wp, 3.e4_wp, 4.e4_wp, 5.e4_wp, 6.e4_wp, 7.e4_wp, 8.e4_wp, 9.e4_wp, 1.e5_wp, 2.e5_wp, 3.e5_wp, 4.e5_wp, 5.e5_wp, 6.e5_wp, 7.e5_wp, 8.e5_wp, 9.e5_wp, 1.e6_wp]</td>
+            <td>
+                <p>y-intercept bins for graupel <script type="math/tex">[m^{-4}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nt_i"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_i1)
+            </td>
+            <td>::</td>
+            <td><strong>nt_i</strong></td>
+<td> =</td>
+                <td>[1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp, 7.0_wp, 8.0_wp, 9.0_wp, 1.e1_wp, 2.e1_wp, 3.e1_wp, 4.e1_wp, 5.e1_wp, 6.e1_wp, 7.e1_wp, 8.e1_wp, 9.e1_wp, 1.e2_wp, 2.e2_wp, 3.e2_wp, 4.e2_wp, 5.e2_wp, 6.e2_wp, 7.e2_wp, 8.e2_wp, 9.e2_wp, 1.e3_wp, 2.e3_wp, 3.e3_wp, 4.e3_wp, 5.e3_wp, 6.e3_wp, 7.e3_wp, 8.e3_wp, 9.e3_wp, 1.e4_wp, 2.e4_wp, 3.e4_wp, 4.e4_wp, 5.e4_wp, 6.e4_wp, 7.e4_wp, 8.e4_wp, 9.e4_wp, 1.e5_wp, 2.e5_wp, 3.e5_wp, 4.e5_wp, 5.e5_wp, 6.e5_wp, 7.e5_wp, 8.e5_wp, 9.e5_wp, 1.e6_wp]</td>
+            <td>
+                <p>number bins for ice <script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nt_in"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_in)
+            </td>
+            <td>::</td>
+            <td><strong>nt_in</strong></td>
+<td> =</td>
+                <td>[1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp, 7.0_wp, 8.0_wp, 9.0_wp, 1.e1_wp, 2.e1_wp, 3.e1_wp, 4.e1_wp, 5.e1_wp, 6.e1_wp, 7.e1_wp, 8.e1_wp, 9.e1_wp, 1.e2_wp, 2.e2_wp, 3.e2_wp, 4.e2_wp, 5.e2_wp, 6.e2_wp, 7.e2_wp, 8.e2_wp, 9.e2_wp, 1.e3_wp, 2.e3_wp, 3.e3_wp, 4.e3_wp, 5.e3_wp, 6.e3_wp, 7.e3_wp, 8.e3_wp, 9.e3_wp, 1.e4_wp, 2.e4_wp, 3.e4_wp, 4.e4_wp, 5.e4_wp, 6.e4_wp, 7.e4_wp, 8.e4_wp, 9.e4_wp, 1.e5_wp, 2.e5_wp, 3.e5_wp, 4.e5_wp, 5.e5_wp, 6.e5_wp, 7.e5_wp, 8.e5_wp, 9.e5_wp, 1.e6_wp]</td>
+            <td>
+                <p>number bins for IN concentration from <script type="math/tex">0.001-1000\, L^{-1}</script>
+<script type="math/tex">[m^{-3}]</script>
+</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ta_na"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_arc)
+            </td>
+            <td>::</td>
+            <td><strong>ta_na</strong></td>
+<td> =</td>
+                <td>[10._wp, 31.6_wp, 100._wp, 316._wp, 1000._wp, 3160._wp, 10000._wp]</td>
+            <td>
+                <p>aerosol lookup table bins for number concentration</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ta_ww"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_arw)
+            </td>
+            <td>::</td>
+            <td><strong>ta_ww</strong></td>
+<td> =</td>
+                <td>[0.01_wp, 0.0316_wp, 0.1_wp, 0.316_wp, 1._wp, 3.16_wp, 10._wp, 31.6_wp, 100._wp]</td>
+            <td>
+                <p>aerosol lookup table bins for vertical velocity</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ta_tk"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_art)
+            </td>
+            <td>::</td>
+            <td><strong>ta_tk</strong></td>
+<td> =</td>
+                <td>[243.15_wp, 253.15_wp, 263.15_wp, 273.15_wp, 283.15_wp, 293.15_wp, 303.15_wp]</td>
+            <td>
+                <p>aerosol lookup table bins for temperature</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ta_ra"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_arr)
+            </td>
+            <td>::</td>
+            <td><strong>ta_ra</strong></td>
+<td> =</td>
+                <td>[0.01_wp, 0.02_wp, 0.04_wp, 0.08_wp, 0.16_wp]</td>
+            <td>
+                <p>aerosol lookup table bins for radius</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ta_ka"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_ark)
+            </td>
+            <td>::</td>
+            <td><strong>ta_ka</strong></td>
+<td> =</td>
+                <td>[0.2_wp, 0.4_wp, 0.6_wp, 0.8_wp]</td>
+            <td>
+                <p>aerosol lookup table bins for hygoscopicity</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sa"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(10)
+            </td>
+            <td>::</td>
+            <td><strong>sa</strong></td>
+<td> =</td>
+                <td>[5.065339_wp, -0.062659_wp, -3.032362_wp, 0.029469_wp, -0.000285_wp, 0.31255_wp, 0.000204_wp, 0.003199_wp, 0._wp, -0.015952_wp]</td>
+            <td>
+                <p>snow moment data from Field et al. (2005)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sb"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(10)
+            </td>
+            <td>::</td>
+            <td><strong>sb</strong></td>
+<td> =</td>
+                <td>[0.476221_wp, -0.015896_wp, 0.165977_wp, 0.007468_wp, -0.000141_wp, 0.060366_wp, 0.000079_wp, 0.000594_wp, 0._wp, -0.003577_wp]</td>
+            <td>
+                <p>snow moment data from Field et al. (2005)</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tc~2"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+parameter,               dimension(ntb_t)
+            </td>
+            <td>::</td>
+            <td><strong>tc</strong></td>
+<td> =</td>
+                <td>[-0.01_wp, -5._wp, -10._wp, -15._wp, -20._wp, -25._wp, -30._wp, -35._wp, -40._wp]</td>
+            <td>
+                <p>temperature lookup table data</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nic2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nic2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nii2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nii2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nii3"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nii3</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nir2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nir2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nir3"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nir3</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nis2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nis2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nig2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nig2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nig3"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nig3</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-niin2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>niin2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>lookup table indexes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nic1"></span>
+              real(kind=dp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nic1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>used for cloud droplet number concentration lookup table</p>
+<div class="alert alert-danger">
+<p class="alert-title h4">Bug</p>
+<p>nic1 should be real(dp)</p>
+</div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nhbins"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>nhbins</strong></td>
+<td> =</td>
+                <td>50</td>
+            <td>
+                <p>used for hail size calculation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-radar_bins"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>radar_bins</strong></td>
+<td> =</td>
+                <td>50</td>
+            <td>
+                <p>used for radar caculation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t_efrw"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>t_efrw</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>collection efficiency data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t_efsw"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>t_efsw</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>collection efficiency data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tpc_wev"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tpc_wev</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>evaporation data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnc_wev"></span>
+              real(kind=dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnc_wev</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>evaporation data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnccn_act"></span>
+              real(kind=table_sp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnccn_act</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>cloud condensation nuclei data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tcg_racg"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tcg_racg</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-graupel collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tmr_racg"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tmr_racg</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-graupel collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tcr_gacr"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tcr_gacr</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-graupel collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_racg"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_racg</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-graupel collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_gacr"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_gacr</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-graupel collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tcs_racs1"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tcs_racs1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tmr_racs1"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tmr_racs1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tcs_racs2"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tcs_racs2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tmr_racs2"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tmr_racs2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tcr_sacr1"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tcr_sacr1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tms_sacr1"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tms_sacr1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tcr_sacr2"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tcr_sacr2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tms_sacr2"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tms_sacr2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_racs1"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_racs1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_racs2"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_racs2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_sacr1"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_sacr1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_sacr2"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_sacr2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain-snow collection data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tpi_qcfz"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tpi_qcfz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>cloud droplet freezing data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tni_qcfz"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tni_qcfz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>cloud droplet freezing data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tpi_qrfz"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tpi_qrfz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain freezing data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tpg_qrfz"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tpg_qrfz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain freezing data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tni_qrfz"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tni_qrfz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain freezing data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tnr_qrfz"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tnr_qrfz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>rain freezing data arrays</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tps_iaus"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tps_iaus</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>cloud ice depositional growth and conversion to snow data array</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tni_iaus"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tni_iaus</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>cloud ice depositional growth and conversion to snow data array</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tpi_ide"></span>
+              real(kind=table_dp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:,:)
+            </td>
+            <td>::</td>
+            <td><strong>tpi_ide</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                <p>cloud ice depositional growth and conversion to snow data array</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
+
+
+
+
+        <section>
+          <h2>Derived Types</h2>
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-ty_tempo_cfgs"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/ty_tempo_cfgs.html'>ty_tempo_cfgs</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aerosolaware_flag~2"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>aerosolaware_flag</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+<p>flag to run aerosol-aware microphysics</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-hailaware_flag~2"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>hailaware_flag</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+<p>flag to run hail-aware microphysics</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-semi_sedi"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>semi_sedi</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>flag for semi-lagrangian sedimentation</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-refl10cm_with_melting_snow_graupel"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>refl10cm_with_melting_snow_graupel</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>calculate reflectivity for melting snow and graupel</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-all_mp_processes_off"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>all_mp_processes_off</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+<p>flag to turn off all microphysical processes</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-refl10cm~3"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>refl10cm</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-re_cloud~3"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>re_cloud</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-re_ice~3"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>re_ice</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-re_snow~3"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>re_snow</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-maximum_hail_size"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>maximum_hail_size</strong></td>
+<td> =</td>
+                <td>.true.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rain_med_vol_diam~3"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rain_med_vol_diam</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-graupel_med_vol_diam~3"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>graupel_med_vol_diam</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-one_minute_max_precip~2"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>one_minute_max_precip</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum">
+      <span class="anchor" id="type-ty_tempo_table_cfgs"></span>
+      <h3>
+        type, public&nbsp;::&nbsp;
+        <a href='../type/ty_tempo_table_cfgs.html'>ty_tempo_table_cfgs</a>
+        
+      </h3>
+    </div>
+    <div class="card-body">
+      
+
+        <h4>Components</h4>
+          <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ccn_table_name"></span>
+              character(len=100),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ccn_table_name</strong></td>
+<td> =</td>
+                <td>&#39;ccn_activate.bin&#39;</td>
+            <td>
+<p>ccn table name</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qrqg_table_name"></span>
+              character(len=100),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>qrqg_table_name</strong></td>
+<td> =</td>
+                <td>&#39;qr_acr_qg_data_tempo_v3&#39;</td>
+            <td>
+<p>rain-graupel collection table name</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qrqs_table_name"></span>
+              character(len=100),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>qrqs_table_name</strong></td>
+<td> =</td>
+                <td>&#39;qr_acr_qs_data_tempo_v3&#39;</td>
+            <td>
+<p>rain-snow collection table name</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-freezewater_table_name"></span>
+              character(len=100),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>freezewater_table_name</strong></td>
+<td> =</td>
+                <td>&#39;freeze_water_data_tempo_v3&#39;</td>
+            <td>
+<p>freeze water collection table name</p>
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_graupel_vars"></span> <h3>public  subroutine <a href='../proc/initialize_graupel_vars.html'>initialize_graupel_vars</a>(hail_flag)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize graupel variables based on hail-aware configuration flag</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-hail_flag"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>hail_flag</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_parameters"></span> <h3>public  subroutine <a href='../proc/initialize_parameters.html'>initialize_parameters</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize tempo parameters and variables</p><a href="../proc/initialize_parameters.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_bins_for_tables"></span> <h3>public  subroutine <a href='../proc/initialize_bins_for_tables.html'>initialize_bins_for_tables</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize log-spaced bins of hydrometer quantities used for lookup tables</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_bins_for_hail_size"></span> <h3>public  subroutine <a href='../proc/initialize_bins_for_hail_size.html'>initialize_bins_for_hail_size</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize log-spaced bins for hail size calculation</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_bins_for_radar"></span> <h3>public  subroutine <a href='../proc/initialize_bins_for_radar.html'>initialize_bins_for_radar</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize log-spaced bins for radar</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-create_bins"></span> <h3>public  subroutine <a href='../proc/create_bins.html'>create_bins</a>(numbins, lowbin, highbin, bins, deltabins)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates log-spaced bins of hydrometer sizes to simplify calculations later</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-numbins"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>numbins</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lowbin~3"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lowbin</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-highbin~2"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>highbin</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bins"></span>
+              real(kind=dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>bins</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-deltabins"></span>
+              real(kind=dp),
+            </td>
+<td>intent(out),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>deltabins</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_arrays_freezewater"></span> <h3>public  subroutine <a href='../proc/initialize_arrays_freezewater.html'>initialize_arrays_freezewater</a>(table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize data arrays for Bigg (1953) freezing of cloud water and rain</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~7"></span>
+              integer,
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_arrays_qr_acr_qs"></span> <h3>public  subroutine <a href='../proc/initialize_arrays_qr_acr_qs.html'>initialize_arrays_qr_acr_qs</a>(table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize data arrays for rain-snow collection</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~8"></span>
+              integer,
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_arrays_qr_acr_qg"></span> <h3>public  subroutine <a href='../proc/initialize_arrays_qr_acr_qg.html'>initialize_arrays_qr_acr_qg</a>(table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize data arrays for rain-graupel collection</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~9"></span>
+              integer,
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_arrays_ccn"></span> <h3>public  subroutine <a href='../proc/initialize_arrays_ccn.html'>initialize_arrays_ccn</a>(table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize data arrays for ccn lookup table</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~10"></span>
+              integer,
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_arrays_drop_evap"></span> <h3>public  subroutine <a href='../proc/initialize_arrays_drop_evap.html'>initialize_arrays_drop_evap</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initialize data arrays for drop evaporation data</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_array_efsw"></span> <h3>public  subroutine <a href='../proc/initialize_array_efsw.html'>initialize_array_efsw</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initializes the collision efficiency data array for snow collecting cloud water</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_array_efrw"></span> <h3>public  subroutine <a href='../proc/initialize_array_efrw.html'>initialize_array_efrw</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initializes the collision efficiency data array for rain collecting cloud water</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialize_arrays_qi_aut_qs"></span> <h3>public  subroutine <a href='../proc/initialize_arrays_qi_aut_qs.html'>initialize_arrays_qi_aut_qs</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>initializes data arrays for cloud ice to snow conversion and growth</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              TEMPO Microphysics
+ was developed by Anders A. Jensen<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>
