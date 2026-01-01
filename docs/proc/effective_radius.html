@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.7% of total for procedures.">29 statements</a>
+                 title=" 0.7% of total for procedures.">29 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -316,6 +316,15 @@ modules which it uses.
     </div>
 
 
+    <p>effective radius values for cloud water, cloud ice and snow</p>
+<p>
+<script type="math/tex">r_{e} = 0.5\frac{\int_0^\infty D^{3}n(D)dD}{\int_0^\infty D^2n(D)dD}</script>
+</p>
+<div class="alert alert-info">
+<p class="alert-title h4">Note</p>
+<p>limiting values of <script type="math/tex">2.51-50 \mu m</script> for cloud water, <script type="math/tex">2.51-125 \mu m</script> for
+cloud ice, and <script type="math/tex">5.01-999 \mu m</script> for snow are consistent with RRTMG radiation</p>
+</div>
 
 
     <h3>Arguments</h3>
@@ -331,7 +340,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~21"></span>
+              <span class="anchor" id="variable-temp"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -346,7 +355,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~8"></span>
+              <span class="anchor" id="variable-l_qc"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -361,7 +370,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc~11"></span>
+              <span class="anchor" id="variable-nc"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -376,7 +385,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~6"></span>
+              <span class="anchor" id="variable-ilamc"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -391,7 +400,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qi~7"></span>
+              <span class="anchor" id="variable-l_qi"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -406,7 +415,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilami~6"></span>
+              <span class="anchor" id="variable-ilami"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -421,7 +430,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~10"></span>
+              <span class="anchor" id="variable-l_qs"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -436,7 +445,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~12"></span>
+              <span class="anchor" id="variable-rs"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -788,7 +797,7 @@ implementation in a submodule of an interface in a parent module.
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

@@ -174,7 +174,7 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      <p>initialize aerosols for tempo microphysics</p>
+      <p>contains produces used when aerosol-aware = true</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -480,7 +480,8 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>computes aerosol collection efficiency for precipitation scavenging
+from <a href="https://doi.org/10.5194/acp-10-5685-2010">Wang et al. (2010)</a></p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -495,7 +496,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-d~2"></span>
+              <span class="anchor" id="variable-d"></span>
               real(kind=dp),
             </td>
 <td>intent(in)</td>
@@ -555,7 +556,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~18"></span>
+              <span class="anchor" id="variable-temp~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -605,7 +606,9 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>exponential profile of aerosols as a last resort</p>
+  <p>sets water-friendly aerosols to an exponential profile
+if aerosol-aware = true and no initial condition
+is provided by the host model</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -620,7 +623,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~10"></span>
+              <span class="anchor" id="variable-dz1d"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -635,7 +638,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~9"></span>
+              <span class="anchor" id="variable-nwfa"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -660,7 +663,9 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>exponential profile of aerosols as a last resort</p>
+  <p>sets ice-friendly aerosols to an exponential profile
+if aerosol-aware = true and no initial condition
+is provided by the host model</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -675,7 +680,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~11"></span>
+              <span class="anchor" id="variable-dz1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -690,7 +695,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa~7"></span>
+              <span class="anchor" id="variable-nifa"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -726,7 +731,7 @@ modules which it uses.
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

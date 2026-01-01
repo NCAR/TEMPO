@@ -1,17 +1,20 @@
 module module_mp_tempo_diags
-  !! diagnostic output for tempo microphysics
+  !! diagnostic output
   use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi, tempo_cfgs
   use module_mp_tempo_utils, only : get_nuc, snow_moments
   
   implicit none
   private
   
-  public :: reflectivity_10cm, effective_radius, hail_size
+  public :: reflectivity_10cm, effective_radius, max_hail_diam
 
   contains 
 
   subroutine effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
-      re_qc, re_qi, re_qs)
+    re_qc, re_qi, re_qs)
+    !! effective radius values for cloud water, cloud ice and snow
+    !!
+    !! \(r_{e} = 0.5\frac{\int_0^\infty D^{3}n(D)dD}{\int_0^\infty D^2n(D)dD}\)
     use module_mp_tempo_params, only : mu_i, t0
 
     real(wp), dimension(:), intent(in) :: temp, nc, rs
@@ -30,6 +33,10 @@ module module_mp_tempo_diags
       re_qc(k) = 0._wp
       re_qi(k) = 0._wp
       re_qs(k) = 0._wp
+      !> @note
+      !> limiting values of \(2.51-50 \mu m\) for cloud water, \(2.51-125 \mu m\) for
+      !> cloud ice, and \(5.01-999 \mu m\) for snow are consistent with RRTMG radiation
+      !> @endnote
       if (l_qc(k)) then
         nu_c = get_nuc(nc(k))
         re_qc(k) = max(2.51e-6_wp, &
@@ -48,14 +55,20 @@ module module_mp_tempo_diags
   end subroutine effective_radius
 
 
-  subroutine reflectivity_10cm(temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, l_qg, rg, ng, idx, ilamg, dbz)
+  subroutine reflectivity_10cm(temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
+    l_qg, rg, ng, idx, ilamg, dbz)
+    !! 10-cm radar reflectivity
+    !! 
+    !! contributions from melting snow and graupel are optionally included
+    !!
+    !! \(Z_{e} = \int_0^\infty D^{6}n(D)dD\) and \(dbz = 10*log10(Z_{e}*1\times 10^{18})\)
     use module_mp_tempo_params, only : pi, org2, cre, crg, am_s, am_g, cge, cgg, ogg2
 
     logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
     real(wp), dimension(:), intent(in) :: temp, rg, ng, rr, nr, rs
     real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg
     integer, dimension(:), intent(in) :: idx
-    real(wp), dimension(:), intent(out) :: dbz
+    real(wp), dimension(:), allocatable, intent(out) :: dbz
     real(wp), allocatable, dimension(:) :: ze_rain, ze_snow, ze_graupel
     real(dp) :: n0_r, lamr, n0_g
     integer :: k, nz, k_melt
@@ -64,6 +77,7 @@ module module_mp_tempo_diags
     allocate(ze_rain(nz), source=1.e-22_wp)
     allocate(ze_snow(nz), source=1.e-22_wp)
     allocate(ze_graupel(nz), source=1.e-22_wp)
+    allocate(dbz(nz), source=-35._wp)
 
     if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
       k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
@@ -78,10 +92,10 @@ module module_mp_tempo_diags
       if (l_qs(k)) then
         ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_s/900._wp)*(am_s/900._wp)*smoz(k)
-        ! melting
+        ! include melting
         if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
           if (k_melt > 2 .and. k < k_melt-1) then
-            ze_snow(k) = reflectivity_from_melting_snow(temp(k), rs(k), &
+            ze_snow(k) = reflectivity_from_melting_snow(rs(k), &
               smob(k), smoc(k), rr(k))
           endif
         endif 
@@ -90,21 +104,21 @@ module module_mp_tempo_diags
         n0_g = ng(k)*ogg2*(1._dp/ilamg(k))**cge(2,1)
         ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_g(idx(k))/900._wp)*(am_g(idx(k))/900._wp) * n0_g*cgg(4,1)*ilamg(k)**cge(4,1)
-        ! melting
+        ! include melting
         if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
           if (k_melt > 2 .and. k < k_melt-1) then
-            ze_graupel(k) = reflectivity_from_melting_graupel(temp(k), rg(k), ng(k), &
+            ze_graupel(k) = reflectivity_from_melting_graupel(rg(k), ng(k), &
               ilamg(k), idx(k), rr(k))
           endif
         endif 
       endif
-
       dbz(k) = max(-35._wp, 10._wp*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp))
     enddo
   end subroutine reflectivity_10cm
 
 
   function find_melting_level(temp, l_qr, l_qs, l_qg) result(k_melt)
+    !! finds the melting level
     use module_mp_tempo_params, only : t0
 
     real(wp), dimension(:), intent(in) :: temp
@@ -125,12 +139,14 @@ module module_mp_tempo_diags
   
   function complex_water_ray(lambda, t) result(refractive_index)
     use module_mp_tempo_params, only : pi
-!>      Complex refractive Index of Water as function of Temperature T
-!!      [deg C] and radar wavelength lambda [m]; valid for
-!!      lambda in [0.001,1.0] m; T in [-10.0,30.0] deg C
-!!      after Ray (1972)
+    !! complex refractive index of water
+    !! from [Ray (1972)](https://doi.org/10.1364/AO.11.001836)
+    !! calculated as function of temperature t [Celsius] (valid from -10 to 30)
+    !! and radar wavelength lambda [m] (valid from 0.001 to 1)
+    !!
+    !! original credit: Ulrich Blahak and G. Thompson
     real(dp), intent(in) :: lambda, t
-    real(dp) :: epsinf,epss,epsr,epsi,alpha,lambdas,sigma,nenner
+    real(dp) :: epsinf,epss,epsr,epsi,alpha,lambdas,nenner
     complex(dp), parameter :: i = (0._dp, 1._dp)
     complex(dp) :: refractive_index
 
@@ -153,19 +169,12 @@ module module_mp_tempo_diags
 
 
   function complex_ice_maetzler(lambda, t) result(refractive_index)
-      
-!      complex refractive index of ice as function of Temperature T
-!      [deg C] and radar wavelength lambda [m]; valid for
-!      lambda in [0.0001,30] m; T in [-250.0,0.0] C
-!      Original comment from the Matlab-routine of Prof. Maetzler:
-!      Function for calculating the relative permittivity of pure ice in
-!      the microwave region, according to C. Maetzler, "Microwave
-!      properties of ice and snow", in B. Schmitt et al. (eds.) Solar
-!      System Ices, Astrophys. and Space Sci. Library, Vol. 227, Kluwer
-!      Academic Publishers, Dordrecht, pp. 241-257 (1998). Input:
-!      TK = temperature (K), range 20 to 273.15
-!      f = frequency in GHz, range 0.01 to 3000
-         
+    !! complex refractive index of ice from
+    !! [Maetzler (1998)](https://doi.org/10.1007/978-94-011-5252-5_10)
+    !! calculated as function of temperature t [Celsius] (valid from -250 to 0)
+    !! and radar wavelength lambda [m] (valid from 0.0001 to 30)
+    !!
+    !! original credit: Ulrich Blahak and G. Thompson
     real(dp), intent(in) :: lambda, t
     real(dp) :: f,c,tk,b1,b2,b,deltabeta,betam,beta,theta,alfa
     complex(dp) :: refractive_index
@@ -173,7 +182,6 @@ module module_mp_tempo_diags
     c = 2.99e8_dp
     tk = t + 273.16_dp
     f = c / lambda * 1e-9_dp
-
     b1 = 0.0207_dp
     b2 = 1.16e-11_dp
     b = 335._dp
@@ -189,22 +197,23 @@ module module_mp_tempo_diags
   end function complex_ice_maetzler
 
 
-  function reflectivity_from_melting_graupel(temp, rg, ng, ilamg, idx, rr) result(ze_graupel)
+  function reflectivity_from_melting_graupel(rg, ng, ilamg, idx, rr) result(ze_graupel)
+    !! calculates radar reflectivity from melting graupel using binned approach
+    !!
+    !! original credit: Ulrich Blahak and G. Thompson
     use module_mp_tempo_params, only : am_g, bm_g, obmg, ocmg, mu_g, ogg2, cge, &
       gbins_radar, dgbins_radar, radar_bins
 
-    real(wp), intent(in) :: temp, rg, ng, rr 
+    real(wp), intent(in) :: rg, ng, rr 
     real(dp), intent(in) :: ilamg
     integer, intent(in) :: idx
-    ! integer, parameter :: radar_bins = 50
     real(dp), parameter :: melt_outside = 0.9_dp
     real(dp), parameter :: lambda_radar = 0.10_dp  ! in meters
     complex(dp) :: m_w_0, m_i_0
-    ! real(dp), dimension(radar_bins) :: xdg, xdtg
     real(dp), dimension(radar_bins+1) :: simpson
     real(dp), dimension(3), parameter :: basis = [1._dp/3._dp, 4._dp/3._dp, 1._dp/3._dp]
     real(dp) :: sr, fmelt, eta, lamg, backscatter, f_d, n0_g, mass, k_w
-    integer :: k, k_melt, n
+    integer :: n
     real(wp) :: ze_graupel
 
     do n = 1, radar_bins+1
@@ -215,10 +224,6 @@ module module_mp_tempo_diags
       simpson(n+1) = simpson(n+1) + basis(2)
       simpson(n+2) = simpson(n+2) + basis(3)
     enddo
-
-    ! ! bins of graupel (from 100 microns up to 5 cm).
-    ! call create_bins(numbins=radar_bins, lowbin=100.e-6_dp, &
-    !   highbin=0.05_dp, bins=xdg, deltabins=xdtg)
 
     m_w_0 = complex_water_ray(lambda_radar, 0._dp)
     m_i_0 = complex_ice_maetzler(lambda_radar, 0._dp)
@@ -243,21 +248,22 @@ module module_mp_tempo_diags
   end function reflectivity_from_melting_graupel
 
 
-  function reflectivity_from_melting_snow(temp, rs, smob, smoc, rr) result(ze_snow)
+  function reflectivity_from_melting_snow(rs, smob, smoc, rr) result(ze_snow)
+    !! calculates radar reflectivity from melting snow using binned approach
+    !!
+    !! original credit: Ulrich Blahak and G. Thompson
     use module_mp_tempo_params, only : am_s, bm_s, lam0, lam1, obms, ocms, kap0, kap1, mu_s, &
       sbins_radar, dsbins_radar, radar_bins
 
-    real(wp), intent(in) :: temp, rs, rr 
+    real(wp), intent(in) :: rs, rr 
     real(dp), intent(in) :: smob, smoc
-    ! integer, parameter :: radar_bins = 50
     real(dp), parameter :: melt_outside = 0.9_dp
     real(dp), parameter :: lambda_radar = 0.10_dp  ! in meters
     complex(dp) :: m_w_0, m_i_0
-    ! real(dp), dimension(radar_bins) :: xds, xdts
     real(dp), dimension(radar_bins+1) :: simpson
     real(dp), dimension(3), parameter :: basis = [1._dp/3._dp, 4._dp/3._dp, 1._dp/3._dp]
-    real(dp) :: sr, fmelt, eta, lamg, backscatter, f_d, mass, k_w, om3, m0, mrat, slam1, slam2
-    integer :: k, k_melt, n
+    real(dp) :: sr, fmelt, eta, backscatter, f_d, mass, k_w, om3, m0, mrat, slam1, slam2
+    integer :: n
     real(wp) :: ze_snow
 
     do n = 1, radar_bins+1
@@ -268,10 +274,6 @@ module module_mp_tempo_diags
       simpson(n+1) = simpson(n+1) + basis(2)
       simpson(n+2) = simpson(n+2) + basis(3)
     enddo
-
-    ! ! bins of snow (from 100 microns up to 2 cm).
-    ! call create_bins(numbins=radar_bins, lowbin=100.e-6_dp, &
-    !   highbin=0.02_dp, bins=xds, deltabins=xdts)
 
     m_w_0 = complex_water_ray(lambda_radar, 0._dp)
     m_i_0 = complex_ice_maetzler(lambda_radar, 0._dp)
@@ -302,6 +304,10 @@ module module_mp_tempo_diags
 
   subroutine rayleigh_soak_wetgraupel(x_g, a_geo, b_geo, fmelt, lambda_radar, &
     meltratio_outside, m_w, m_i, backscatter)
+    !! calculates backscatter cross section of wet snow or graupel
+    !! using Maxwell-Garnett mixing formula and Rayleigh approximation
+    !!
+    !! original credit: Ulrich Blahak and G. Thompson
 
     real(dp), intent(in) :: x_g, a_geo, b_geo, fmelt, lambda_radar, meltratio_outside
     complex(dp), intent(in) :: m_w, m_i
@@ -312,12 +318,12 @@ module module_mp_tempo_diags
     complex(dp) :: m_core, m_air, m_tmp, m1t, m2t, m3t, beta2, beta3
 
     m_air = (1._dp, 0._dp)
-    fm = max(min(fmelt, 1._dp), 0._dp)
-    mra = max(min(meltratio_outside, 1._dp), 0._dp)
-    mra = mra + (1._dp-mra)*fm
+    fm = max(min(fmelt, 1._dp), 0._dp) ! limit melt fraction between 0 and 1
+    mra = max(min(meltratio_outside, 1._dp), 0._dp) ! ratio of (melt on outside) / (melt on indside)
+    mra = mra + (1._dp-mra)*fm ! force mra to 1 when fm = 1
+    
     x_w = x_g * fm
     d_g = a_geo * x_g**b_geo
-   
     if (d_g >= r1) then
       vg = pi/6._dp * d_g**3
       rhog = max(min(x_g / vg, 900._dp), 10._dp)
@@ -327,14 +333,18 @@ module module_mp_tempo_diags
       if (mra <= meltratio_outside_grenz) then
         volg = vg * (1._dp - mra * fm)
       else
+        ! at some value of fm all air gets filled with meltwater
         fmgrenz=(900._dp-rhog)/(mra*900._dp-rhog+900._dp*rhog/1000._dp)
         if (fm <= fmgrenz) then
+          ! not all air is filled with meltwater
           volg = (1.0_dp - mra * fm) * vg
         else
+          ! all air is filled with meltwater
           volg = (x_g - x_w) / 900._dp + x_w / 1000._dp
         endif
       endif
 
+      ! ice-air-water mixture volumes
       d_large = (6._dp / pi * volg) ** (1._dp/3._dp)
       volice = (x_g - x_w) / (volg * 900._dp)
       volwater = x_w / (1000._dp * volg)
@@ -343,6 +353,7 @@ module module_mp_tempo_diags
       volmix1 = volice / max(volice+volwater,1e-10_dp)
       volmix2 = 1._dp - volmix1
 
+      ! Maxwell-Garnett mixing for ice-water mixture
       m1t = m_w**2
       m2t = m_air**2
       m3t = m_i**2
@@ -356,6 +367,7 @@ module module_mp_tempo_diags
       m_tmp = sqrt(((1._dp-vol2-vol3)*m1t + vol2*beta2*m2t + vol3*beta3*m3t) / &
        (1._dp-vol2-vol3+vol2*beta2+vol3*beta3))
 
+      ! Maxwell-Garnett mixing (including air)
       m1t = m_tmp**2
       m2t = m_air**2
       m3t = (2._dp*m_air)**2
@@ -366,9 +378,11 @@ module module_mp_tempo_diags
       beta2 = 2._dp*m1t/(m2t-m1t) * (m2t/(m2t-m1t)*log(m2t/m1t)-1._dp)
       beta3 = 2._dp*m1t/(m3t-m1t) * (m3t/(m3t-m1t)*log(m3t/m1t)-1._dp)
 
+      ! complex index of refraction for ice-air-water mixture
       m_core = sqrt(((1._dp-vol2-vol3)*m1t + vol2*beta2*m2t + vol3*beta3*m3t) / &
        (1._dp-vol2-vol3+vol2*beta2+vol3*beta3))
 
+      ! Rayleigh backscattering coefficient of melting particle
       backscatter = (abs((m_core**2-1._dp)/(m_core**2+2._dp)))**2 * pi*pi*pi*pi*pi * d_large**6 / &
         (lambda_radar*lambda_radar*lambda_radar*lambda_radar)
     else 
@@ -377,7 +391,10 @@ module module_mp_tempo_diags
   end subroutine rayleigh_soak_wetgraupel
 
 
-  subroutine hail_size(rho, rg, ng, ilamg, idx, max_hail_diameter)
+  subroutine max_hail_diam(rho, rg, ng, ilamg, idx, max_hail_diameter)
+    !! estimates maximmum hail diameter [mm] using a binned approach
+    !! 
+    !! see [Jensen et al. (2023)](https://doi.org/10.1175/MWR-D-21-0319.1)
     use module_mp_tempo_params, only : hbins, dhbins, rho_g, ogg2, cge, nhbins, mu_g
 
     real(wp), dimension(:), intent(in) :: rho, rg, ng
@@ -392,7 +409,7 @@ module module_mp_tempo_diags
     allocate(max_hail_diameter(nz), source=0._wp)
     do k = 1, nz
       if(rg(k)/rho(k) >= 1.e-6_wp) then
-        if (rho_g(idx(k)) < 350._wp) cycle
+        if (rho_g(idx(k)) < 350._wp) cycle ! density too low to be hail/ice pellets
         lamg = 1._dp / ilamg(k)
         n0_g = ng(k)*ogg2*lamg**cge(2,1)
 
@@ -404,7 +421,6 @@ module module_mp_tempo_diags
           if (sum_nh > threshold_conc) exit
           sum_t = sum_nh
         enddo
-
         if (n >= nhbins) then
           hail_max = hbins(nhbins)
         elseif (hbins(n+1) > 1.e-3_wp) then
@@ -412,10 +428,9 @@ module module_mp_tempo_diags
         else
           hail_max = 1.e-4_wp
         endif
-
         max_hail_diameter(k) = 1000._wp * hail_max ! convert to mm
       endif
     enddo
-  end subroutine hail_size
+  end subroutine max_hail_diam
 
 end module module_mp_tempo_diags

@@ -144,6 +144,8 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-get_cloud_number">get_cloud_number</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_gamma_p">calc_gamma_p</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_gamma_series">calc_gamma_series</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_gamma_cf">calc_gamma_cf</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_rslf">calc_rslf</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_rsif">calc_rsif</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-get_nuc">get_nuc</a>
@@ -539,7 +541,7 @@ modules which it uses.
     <div class="card-body">
           
   <p>returns land-specific value of cloud droplet number concentration
-if land == 1, else returns ocean-specific value</p>
+when aerosol-aware = false if land = 1, else returns ocean-specific value</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -585,10 +587,7 @@ if land == 1, else returns ocean-specific value</p>
     <div class="card-body">
           
   <p>normalized lower gamma function calculated either with a 
-series expansion or continued fraction method
-input: a = gamma function argument, x = upper limit of integration
-output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
-</p>
+series expansion or continued fraction method</p><a href="../proc/calc_gamma_p.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -644,6 +643,128 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
   </div>
 
               <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-calc_gamma_series"></span> <h3>private  function <a href='../proc/calc_gamma_series.html'>calc_gamma_series</a>(a, x) result(gamma_series)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>solves the normalized lower gamma function</p><a href="../proc/calc_gamma_series.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-a~3"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~3"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=wp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-calc_gamma_cf"></span> <h3>private  function <a href='../proc/calc_gamma_cf.html'>calc_gamma_cf</a>(a, x) result(gamma_cf)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>solves the normalized upper gamma function <script type="math/tex">\gamma(a,x) / \Gamma(a)</script>
+ using a continued fractions method
+ <a href="http://functions.wolfram.com/06.06.10.0003.01">(modified Lentz Algorithm)</a></p><a href="../proc/calc_gamma_cf.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-a~4"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>a</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~4"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=wp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-calc_rslf"></span> <h3>public  function <a href='../proc/calc_rslf.html'>calc_rslf</a>(p, t) result(rslf)  
 </h3></div>
     <div class="card-body">
@@ -663,7 +784,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-p~4"></span>
+              <span class="anchor" id="variable-p~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -678,7 +799,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~3"></span>
+              <span class="anchor" id="variable-t~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -723,7 +844,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-p~5"></span>
+              <span class="anchor" id="variable-p~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -738,7 +859,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~4"></span>
+              <span class="anchor" id="variable-t~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -818,7 +939,8 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
 </h3></div>
     <div class="card-body">
           
-  <p>Compute snow moments</p>
+  <p>computes snow moments from
+<a href="https://doi.org/10.1256/qj.04.134">Field et al. (2005)</a></p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -833,7 +955,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~11"></span>
+              <span class="anchor" id="variable-rs~14"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -863,7 +985,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~5"></span>
+              <span class="anchor" id="variable-smob~8"></span>
               real(kind=dp),
             </td>
 <td>intent(out)</td>
@@ -878,7 +1000,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~5"></span>
+              <span class="anchor" id="variable-smoc~8"></span>
               real(kind=dp),
             </td>
 <td>intent(out)</td>
@@ -998,7 +1120,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoz~2"></span>
+              <span class="anchor" id="variable-smoz~3"></span>
               real(kind=dp),
             </td>
 <td>intent(out),</td>
@@ -1034,7 +1156,7 @@ output: gamma_p = <script type="math/tex">\gamma(a, x) / \Gamma(a)</script>
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

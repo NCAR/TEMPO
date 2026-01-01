@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 6.6% of total for modules and submodules.">296 statements</a>
+                 title=" 6.6% of total for modules and submodules.">297 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -135,7 +135,22 @@
   
   
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-find_melting_level">find_melting_level</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-complex_water_ray">complex_water_ray</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-complex_ice_maetzler">complex_ice_maetzler</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-reflectivity_from_melting_graupel">reflectivity_from_melting_graupel</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-reflectivity_from_melting_snow">reflectivity_from_melting_snow</a>
+        </div>
+      </div>
+    </div>
+
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -145,7 +160,8 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-effective_radius">effective_radius</a>
             <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-reflectivity_10cm">reflectivity_10cm</a>
-            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-hail_size">hail_size</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-rayleigh_soak_wetgraupel">rayleigh_soak_wetgraupel</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_diags.html#proc-max_hail_diam">max_hail_diam</a>
         </div>
       </div>
     </div>
@@ -164,15 +180,15 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      <p>diagnostic output for tempo microphysics</p>
+      <p>diagnostic output</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_utils.html'>module_mp_tempo_utils</a></li>
+                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -485,15 +501,14 @@ modules which it uses.
 
 
 
-
         <section>
-          <h2>Subroutines</h2>
+          <h2>Functions</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-effective_radius"></span> <h3>public  subroutine <a href='../proc/effective_radius.html'>effective_radius</a>(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, re_qc, re_qi, re_qs)  
+    <div class="card-header codesum"><span class="anchor" id="proc-find_melting_level"></span> <h3>private  function <a href='../proc/find_melting_level.html'>find_melting_level</a>(temp, l_qr, l_qs, l_qg) result(k_melt)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>finds the melting level</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -508,7 +523,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~21"></span>
+              <span class="anchor" id="variable-temp~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -523,7 +538,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~8"></span>
+              <span class="anchor" id="variable-l_qr~2"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -531,74 +546,14 @@ modules which it uses.
               dimension(:)
             </td>
             <td>::</td>
-            <td><strong>l_qc</strong></td>
+            <td><strong>l_qr</strong></td>
             <td>
 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc~11"></span>
-              real(kind=wp),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>nc</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ilamc~6"></span>
-              real(kind=dp),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>ilamc</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-l_qi~7"></span>
-              logical,
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>l_qi</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ilami~6"></span>
-              real(kind=dp),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>ilami</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-l_qs~10"></span>
+              <span class="anchor" id="variable-l_qs~3"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -613,7 +568,483 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~12"></span>
+              <span class="anchor" id="variable-l_qg~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>l_qg</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-complex_water_ray"></span> <h3>private  function <a href='../proc/complex_water_ray.html'>complex_water_ray</a>(lambda, t) result(refractive_index)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>complex refractive index of water
+from <a href="https://doi.org/10.1364/AO.11.001836">Ray (1972)</a>
+calculated as function of temperature t [Celsius] (valid from -10 to 30)
+and radar wavelength lambda [m] (valid from 0.001 to 1)</p><a href="../proc/complex_water_ray.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lambda"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lambda</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=dp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-complex_ice_maetzler"></span> <h3>private  function <a href='../proc/complex_ice_maetzler.html'>complex_ice_maetzler</a>(lambda, t) result(refractive_index)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>complex refractive index of ice from
+<a href="https://doi.org/10.1007/978-94-011-5252-5_10">Maetzler (1998)</a>
+calculated as function of temperature t [Celsius] (valid from -250 to 0)
+and radar wavelength lambda [m] (valid from 0.0001 to 30)</p><a href="../proc/complex_ice_maetzler.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lambda~2"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lambda</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t~2"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>complex(kind=dp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-reflectivity_from_melting_graupel"></span> <h3>private  function <a href='../proc/reflectivity_from_melting_graupel.html'>reflectivity_from_melting_graupel</a>(rg, ng, ilamg, idx, rr) result(ze_graupel)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates radar reflectivity from melting graupel using binned approach</p><a href="../proc/reflectivity_from_melting_graupel.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rg~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rg</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ng~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ng</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ilamg~2"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ilamg</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idx~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>idx</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rr~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rr</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=wp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-reflectivity_from_melting_snow"></span> <h3>private  function <a href='../proc/reflectivity_from_melting_snow.html'>reflectivity_from_melting_snow</a>(rs, smob, smoc, rr) result(ze_snow)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates radar reflectivity from melting snow using binned approach</p><a href="../proc/reflectivity_from_melting_snow.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rs~3"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rs</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-smob~3"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>smob</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-smoc~3"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>smoc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rr~3"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rr</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=wp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-effective_radius"></span> <h3>public  subroutine <a href='../proc/effective_radius.html'>effective_radius</a>(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, re_qc, re_qi, re_qs)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>effective radius values for cloud water, cloud ice and snow</p><a href="../proc/effective_radius.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-temp"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>temp</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-l_qc"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>l_qc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nc"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>nc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ilamc"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>ilamc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-l_qi"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>l_qi</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ilami"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>ilami</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-l_qs"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>l_qs</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rs"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -683,7 +1114,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>10-cm radar reflectivity</p><a href="../proc/reflectivity_10cm.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -698,7 +1129,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~22"></span>
+              <span class="anchor" id="variable-temp~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -713,7 +1144,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~9"></span>
+              <span class="anchor" id="variable-l_qr"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -728,7 +1159,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~13"></span>
+              <span class="anchor" id="variable-rr"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -743,7 +1174,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr~11"></span>
+              <span class="anchor" id="variable-nr"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -758,7 +1189,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~11"></span>
+              <span class="anchor" id="variable-ilamr"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -773,7 +1204,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~11"></span>
+              <span class="anchor" id="variable-l_qs~2"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -788,7 +1219,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~13"></span>
+              <span class="anchor" id="variable-rs~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -803,7 +1234,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~7"></span>
+              <span class="anchor" id="variable-smoc~2"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -818,7 +1249,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~7"></span>
+              <span class="anchor" id="variable-smob~2"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -833,7 +1264,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoz~3"></span>
+              <span class="anchor" id="variable-smoz"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -848,7 +1279,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~10"></span>
+              <span class="anchor" id="variable-l_qg"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -863,7 +1294,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~12"></span>
+              <span class="anchor" id="variable-rg"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -878,7 +1309,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~10"></span>
+              <span class="anchor" id="variable-ng"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -893,7 +1324,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~13"></span>
+              <span class="anchor" id="variable-idx"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -908,7 +1339,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~10"></span>
+              <span class="anchor" id="variable-ilamg"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -928,7 +1359,7 @@ modules which it uses.
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
-              dimension(:)
+              dimension(:), allocatable
             </td>
             <td>::</td>
             <td><strong>dbz</strong></td>
@@ -944,11 +1375,12 @@ modules which it uses.
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-hail_size"></span> <h3>public  subroutine <a href='../proc/hail_size.html'>hail_size</a>(rho, rg, ng, ilamg, idx, max_hail_diameter)  
+    <div class="card-header codesum"><span class="anchor" id="proc-rayleigh_soak_wetgraupel"></span> <h3>private  subroutine <a href='../proc/rayleigh_soak_wetgraupel.html'>rayleigh_soak_wetgraupel</a>(x_g, a_geo, b_geo, fmelt, lambda_radar, meltratio_outside, m_w, m_i, backscatter)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>calculates backscatter cross section of wet snow or graupel
+using Maxwell-Garnett mixing formula and Rayleigh approximation</p><a href="../proc/rayleigh_soak_wetgraupel.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -963,7 +1395,167 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~24"></span>
+              <span class="anchor" id="variable-x_g"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x_g</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-a_geo"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>a_geo</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-b_geo"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>b_geo</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fmelt~3"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fmelt</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-lambda_radar~3"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>lambda_radar</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-meltratio_outside"></span>
+              real(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>meltratio_outside</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-m_w"></span>
+              complex(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>m_w</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-m_i"></span>
+              complex(kind=dp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>m_i</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-backscatter~3"></span>
+              real(kind=dp),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>backscatter</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-max_hail_diam"></span> <h3>public  subroutine <a href='../proc/max_hail_diam.html'>max_hail_diam</a>(rho, rg, ng, ilamg, idx, max_hail_diameter)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>estimates maximmum hail diameter [mm] using a binned approach</p><a href="../proc/max_hail_diam.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rho"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -978,7 +1570,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~14"></span>
+              <span class="anchor" id="variable-rg~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -993,7 +1585,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~12"></span>
+              <span class="anchor" id="variable-ng~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -1008,7 +1600,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~12"></span>
+              <span class="anchor" id="variable-ilamg~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -1023,7 +1615,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~15"></span>
+              <span class="anchor" id="variable-idx~3"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -1074,7 +1666,7 @@ modules which it uses.
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

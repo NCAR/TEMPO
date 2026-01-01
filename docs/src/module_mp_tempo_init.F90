@@ -1,7 +1,7 @@
 module module_mp_tempo_init
   !! initialize variables for tempo microphysics
   !!
-  !! includes a procedure to build and save lookup tables
+  !! includes a procedure to build and save tempo lookup tables
   use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs, tempo_table_cfgs
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
 
@@ -25,7 +25,7 @@ module module_mp_tempo_init
   contains
 
   subroutine tempo_init(aerosolaware_flag, hailaware_flag)
-    !! public procedure called to initialize tempo microphysics
+    !! initialize tempo microphysics
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
       initialize_array_efrw, initialize_array_efsw, initialize_arrays_drop_evap, initialize_arrays_ccn, initialize_arrays_qi_aut_qs, &
@@ -79,7 +79,6 @@ module module_mp_tempo_init
       write(*,'(A)') 'tempo_init() --- initialized drop evaporation data'
 
       ! cloud ice to snow and depositional growth
-      ! consider explicitly passing arrays at init
       call initialize_arrays_qi_aut_qs()
       call qi_aut_qs()
 
@@ -107,7 +106,7 @@ module module_mp_tempo_init
       call read_table_qr_acr_qg(trim(table_filename), table_size)
       write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
 
-      ! bins used for refl10cm calculation with melting
+      ! bins used for optional refl10cm calculation with melting
       if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
         call initialize_bins_for_radar()
         write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
@@ -115,7 +114,7 @@ module module_mp_tempo_init
         write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
       endif
 
-      ! bins used for hail size calculation
+      ! bins used for optional hail size calculation
       if (tempo_cfgs%maximum_hail_size) then
         call initialize_bins_for_hail_size()
         write(*,'(A,L)') 'tempo_init() ---  flag to calcuate hail size = ', &
@@ -127,7 +126,7 @@ module module_mp_tempo_init
 
 
   subroutine tempo_build_tables(build_tables_rank, build_tables_num_proc)
-    !! public procedure to build 3 lookup tables for tempo microphysics
+    !! builds three lookup tables for tempo microphysics
     use module_mp_tempo_params, only : tempo_version, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables
 
@@ -224,7 +223,7 @@ module module_mp_tempo_init
 
 
   subroutine read_table_freezewater(filename, table_size)
-    !! read lookup table for rain-graupel collection
+    !! read lookup table for frozen cloud and rain water
     use module_mp_tempo_params, only : tpi_qrfz, tni_qrfz, &
       tpg_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz
 
@@ -669,8 +668,9 @@ module module_mp_tempo_init
 
   subroutine read_table_ccn(filename, table_size)
     !! read static file containing CCN activation of aerosols;
-    !! the data were created from a parcel model by Feingold & Heymsfield
-    !! with further changes by Eidhammer and Kriedenweis
+    !! the data were created from a parcel model by Feingold and Heymsfield (1992)
+    !! https://doi.org/10.1175/1520-0469(1992)049<2325:POCGOD>2.0.CO;2
+    !! with further changes by Eidhammer and Kreidenweis
     use module_mp_tempo_params, only : tnccn_act
   
     character(len=*), intent(in) :: filename
@@ -689,7 +689,9 @@ module module_mp_tempo_init
 
   
   subroutine check_before_table_read(filename, table_size)
-    !! checks that lookup tables exist and are the correct size before attempting to read them
+    !! checks that lookup tables exist and are the correct size
+    !! before attempting to read them
+
     character(len=*), intent(in) :: filename
     integer, intent(in) :: table_size
 
@@ -761,7 +763,9 @@ module module_mp_tempo_init
 
   subroutine compute_efrw()
     !! collision efficiency for rain collecting cloud water from Beard and Grover (1974)
-    !! if a/A < 0.25, otherwise uses polynomials to get close match of Pruppacher & Klett Fig. 14-9
+    !! if a/A < 0.25
+    !! https://doi.org/10.1175/1520-0469(1974)031<0543:NCEFSR>2.0.CO;2
+    !! otherwise uses polynomials to get close match of Pruppacher and Klett Fig. 14-9
     use module_mp_tempo_params, only : nbc, nbr, dc, dr, t_efrw, rho_w, pi
 
     real(dp) :: vtr, stokes, reynolds, ef_rw
@@ -811,8 +815,9 @@ module module_mp_tempo_init
 
 
   subroutine compute_efsw()
-    !! collision efficiency for snow collecting cloud water from Wang and Ji (2000) except
-    !! equate melted snow diameter to their "effective collision cross-section."
+    !! collision efficiency for snow collecting cloud water from Wang and Ji (2000)
+    !! https://doi.org/10.1175/1520-0469(2000)057<1001:CEOICA>2.0.CO;2
+    !! equating melted snow diameter to effective collision cross-section
     use module_mp_tempo_params, only : wp, sp, dp, &
       nbc, dc, av_s, bv_s, ds, nbs, am_s, bm_s, am_r, obmr, fv_s, &
       t_efsw, d0s, rho_w, pi
@@ -889,7 +894,7 @@ module module_mp_tempo_init
   subroutine qr_acr_qs(local_start, local_end, &
     ltcs_racs1, ltmr_racs1, ltcs_racs2, ltmr_racs2, ltcr_sacr1, ltms_sacr1, &
     ltcr_sacr2, ltms_sacr2, ltnr_racs1, ltnr_racs2, ltnr_sacr1, ltnr_sacr2)
-    !! calculate rain collecting snow (and inverse)
+    !! calculates rain collecting snow (and inverse)
     use module_mp_tempo_params, only : table_dp, &
       nbr, nbs, dr, av_s, bv_s, ds, fv_s, &
       ntb_r, ntb_r1, n0r_exp, am_r, cre, crg, ore1, r_r, &
@@ -1019,7 +1024,7 @@ module module_mp_tempo_init
 
   subroutine qr_acr_qg(local_start, local_end, &
     ltcg_racg, ltmr_racg, ltcr_gacr, ltnr_racg, ltnr_gacr)
-    !! rain collecting graupel (and inverse).  Explicit CE integration.
+    !! rain collecting graupel (and inverse) using explicit integration
     use module_mp_tempo_params, only : table_dp, nrhg, nbg, nbr, dr, &
       av_g, dg, bv_g, ntb_r, ntb_r1, &
       n0r_exp, am_r, cre, crg, r_r, ore1, org1, org2, &
@@ -1111,7 +1116,9 @@ module module_mp_tempo_init
 
 
   subroutine freezewater()
-    !! freeze water from  Bigg (1953), calculating the probability of drops of a particular volume freezing
+    !! calculates the probability of drops of a particular volume freezing
+    !! from Bigg (1953)
+    !! https://doi.org/10.1002/qj.49707934207
     use module_mp_tempo_params, only : nbc, nbr, rho_w, &
       am_r, dr, dtr, bm_r, dc, dtc, ntb_in, ntb_r1, ntb_r, nt_in, &
       n0r_exp, cre, crg, r_r, ore1, org2, org1, obmr, mu_r, &
@@ -1155,10 +1162,10 @@ module module_mp_tempo_init
               n_r = n0_r*dr(n2)**mu_r*exp(-lamr*dr(n2))*dtr(n2)
               vol = massr(n2)*orho_w
               prob = max(0.0_dp, 1.0_dp - exp(-120.0_dp*vol*5.2d-4 * texp))
-              !!@note
-              !! Graupel tuning parameter: In this table, if the frozen raindrop mass is >= xm0g,
-              !! initialization to graupel occurs. 
-              !!@endnote
+              !>@note
+              !> Graupel tuning parameter: In this table, if the frozen raindrop mass is >= xm0g,
+              !> initialization to graupel occurs. 
+              !>@endnote
               if (massr(n2) < xm0g) then
                 sumn1 = sumn1 + prob*n_r
                 sum1 = sum1 + prob*n_r*massr(n2)
@@ -1200,11 +1207,12 @@ module module_mp_tempo_init
 
 
   subroutine qi_aut_qs()
-    !! fills data array that contain values of cloud ice conversion to snow
+    !! calculates cloud ice conversion to snow
     !! and depositional growth by binning cloud ice distributions and 
     !! determining both the size bins > d0s (that are converted to snow) and the 
     !! depositional growth up to d0s (for cloud ice) and > d0s for snow 
     !! following Harrington et al. (1995)
+    !! https://doi.org/10.1175/1520-0469(1995)052<4344:POICCP>2.0.CO;2
     use module_mp_tempo_params, only : wp, sp, dp, &
       nbi, ntb_i, ntb_i1, &
       am_i, cie, cig, oig1, nt_i, r_i, obmi, bm_i, mu_i, d0s, d0i, &

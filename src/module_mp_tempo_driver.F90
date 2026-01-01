@@ -14,11 +14,11 @@ module module_mp_tempo_driver
     real(wp), dimension(:,:), allocatable :: snow_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: graupel_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: frozen_fraction
-    real(wp), dimension(:,:), allocatable :: one_minute_max_precip
     real(wp), dimension(:,:,:), allocatable :: refl10cm
     real(wp), dimension(:,:,:), allocatable :: re_cloud
     real(wp), dimension(:,:,:), allocatable :: re_ice
     real(wp), dimension(:,:,:), allocatable :: re_snow
+    real(wp), dimension(:,:,:), allocatable :: max_hail_diameter
     real(wp), dimension(:,:,:), allocatable :: rain_med_vol_diam
     real(wp), dimension(:,:,:), allocatable :: graupel_med_vol_diam
   end type
@@ -102,6 +102,7 @@ module module_mp_tempo_driver
     if (tempo_cfgs%re_cloud) allocate(tempo_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
     if (tempo_cfgs%re_ice) allocate(tempo_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
     if (tempo_cfgs%re_snow) allocate(tempo_diags%re_snow(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%max_hail_diameter) allocate(tempo_diags%max_hail_diameter(its:ite, kts:kte, jts:jte), source=0._wp)
 
     ! precipitation
     allocate(tempo_diags%rain_precip(its:ite, jts:jte), source=0._wp)
@@ -183,7 +184,9 @@ module module_mp_tempo_driver
         if (allocated(tempo_diags%refl10cm) .and. allocated(tempo_main_diags%refl10cm)) then
           tempo_diags%refl10cm(i,:,j) = tempo_main_diags%refl10cm
         endif
-
+        if (allocated(tempo_diags%max_hail_diameter) .and. allocated(tempo_main_diags%max_hail_diameter)) then
+          tempo_diags%max_hail_diameter(i,:,j) = tempo_main_diags%max_hail_diameter
+        endif 
         ! return variables to model
         do k = kts, kte
           if (present(nc)) nc(i,k,j) = nc1d(k)
@@ -215,7 +218,7 @@ module module_mp_tempo_driver
 
 
   subroutine tempo_aerosol_surface_emissions(dt, nwfa, nwfa2d, ims, ime, jms, jme, kms, kme, kts)
-    !! aerosol surface emissions for tempo
+    !! adds aerosol surface emissions to the 3D field
     real(wp), intent(in) :: dt
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: nwfa 
     real(wp), dimension(ims:ime, jms:jme), intent(in) :: nwfa2d

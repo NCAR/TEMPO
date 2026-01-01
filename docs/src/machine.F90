@@ -1,5 +1,5 @@
 module machine
-  !! set the precision used for tempo microphysics
+  !! sets the precision if not set by a host model
 
   implicit none
   private

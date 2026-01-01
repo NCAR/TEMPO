@@ -145,8 +145,28 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-tempo_init">tempo_init</a>
             <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-tempo_build_tables">tempo_build_tables</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-build_table_freezewater">build_table_freezewater</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-write_table_freezewater">write_table_freezewater</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-read_table_freezewater">read_table_freezewater</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-build_table_qr_acr_qs">build_table_qr_acr_qs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-write_table_qr_acr_qs">write_table_qr_acr_qs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-read_table_qr_acr_qs">read_table_qr_acr_qs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-build_table_qr_acr_qg">build_table_qr_acr_qg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-write_table_qr_acr_qg">write_table_qr_acr_qg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-read_table_qr_acr_qg">read_table_qr_acr_qg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-gather">gather</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-get_index_for_rank">get_index_for_rank</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-get_version">get_version</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-read_table_ccn">read_table_ccn</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-check_before_table_read">check_before_table_read</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-rename_file_if_exists">rename_file_if_exists</a>
             <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-compute_efrw">compute_efrw</a>
             <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-compute_efsw">compute_efsw</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-compute_drop_evap">compute_drop_evap</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-qr_acr_qs">qr_acr_qs</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-qr_acr_qg">qr_acr_qg</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-freezewater">freezewater</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_init.html#proc-qi_aut_qs">qi_aut_qs</a>
         </div>
       </div>
     </div>
@@ -166,7 +186,7 @@
 
     <div class="col-md-9" id='text'>
       <p>initialize variables for tempo microphysics</p>
-<p>includes a procedure to build and save lookup tables</p>
+<p>includes a procedure to build and save tempo lookup tables</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -174,8 +194,8 @@
             <li class="list-group-item">
               <ul class="list-inline">
                   <li class="list-inline-item">ifport</li>
-                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_utils.html'>module_mp_tempo_utils</a></li>
+                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
                   <li class="list-inline-item"><a href='http://www.mpi-forum.org/docs/mpi-3.1/mpi31-report/node409.htm'>mpi_f08</a></li>
               </ul>
             </li>
@@ -509,7 +529,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>public procedure called to initialize tempo microphysics</p>
+  <p>initialize tempo microphysics</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -564,7 +584,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>public procedure to build 3 lookup tables for tempo microphysics</p>
+  <p>builds three lookup tables for tempo microphysics</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -579,7 +599,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-build_tables_rank~2"></span>
+              <span class="anchor" id="variable-build_tables_rank"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -594,7 +614,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-build_tables_num_proc~2"></span>
+              <span class="anchor" id="variable-build_tables_num_proc"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -615,12 +635,818 @@ modules which it uses.
   </div>
 
               <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-build_table_freezewater"></span> <h3>private  subroutine <a href='../proc/build_table_freezewater.html'>build_table_freezewater</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>build lookup table data for frozen cloud and rain water</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-write_table_freezewater"></span> <h3>private  subroutine <a href='../proc/write_table_freezewater.html'>write_table_freezewater</a>(filename)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>write data for frozen cloud water and rain to a file</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-read_table_freezewater"></span> <h3>private  subroutine <a href='../proc/read_table_freezewater.html'>read_table_freezewater</a>(filename, table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>read lookup table for frozen cloud and rain water</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~2"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~6"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-build_table_qr_acr_qs"></span> <h3>private  subroutine <a href='../proc/build_table_qr_acr_qs.html'>build_table_qr_acr_qs</a>(rank, num_proc)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>build lookup table data for rain-snow collection</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rank~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rank</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-num_proc~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>num_proc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-write_table_qr_acr_qs"></span> <h3>private  subroutine <a href='../proc/write_table_qr_acr_qs.html'>write_table_qr_acr_qs</a>(filename)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>write data for rain-snow collection to a file</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~3"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-read_table_qr_acr_qs"></span> <h3>private  subroutine <a href='../proc/read_table_qr_acr_qs.html'>read_table_qr_acr_qs</a>(filename, table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>read lookup table for rain-snow collection</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~4"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~7"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-build_table_qr_acr_qg"></span> <h3>private  subroutine <a href='../proc/build_table_qr_acr_qg.html'>build_table_qr_acr_qg</a>(rank, num_proc)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>build lookup table data for rain-graupel collection</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rank~3"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rank</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-num_proc~3"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>num_proc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-write_table_qr_acr_qg"></span> <h3>private  subroutine <a href='../proc/write_table_qr_acr_qg.html'>write_table_qr_acr_qg</a>(filename)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>write data for rain-graupel collection to a file</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~5"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-read_table_qr_acr_qg"></span> <h3>private  subroutine <a href='../proc/read_table_qr_acr_qg.html'>read_table_qr_acr_qg</a>(filename, table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>read lookup table for rain-graupel collection</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~6"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~8"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-gather"></span> <h3>private  subroutine <a href='../proc/gather.html'>gather</a>(local_flat, global_flat, sendcounts, displacements, ierror)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>wrapper to simplify MPI_Gatherv</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-local_flat"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>local_flat</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-global_flat"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>global_flat</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sendcounts~3"></span>
+              integer,
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>sendcounts</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-displacements~3"></span>
+              integer,
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>displacements</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ierror~3"></span>
+              integer,
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ierror</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_index_for_rank"></span> <h3>private  subroutine <a href='../proc/get_index_for_rank.html'>get_index_for_rank</a>(idx, rank, num_proc, start_idx, end_idx)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>returns start and end index values for an array dimension
+of size idx distributed over num_procs</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idx~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>idx</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-rank~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>rank</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-num_proc~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>num_proc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-start_idx~3"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>start_idx</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-end_idx~3"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>end_idx</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_version"></span> <h3>private  subroutine <a href='../proc/get_version.html'>get_version</a>(version)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>returns the tempo version string from the README.md file
+or returns empty string if not found</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-version"></span>
+              character(len=*),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>version</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-read_table_ccn"></span> <h3>private  subroutine <a href='../proc/read_table_ccn.html'>read_table_ccn</a>(filename, table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>read static file containing CCN activation of aerosols;
+the data were created from a parcel model by Feingold and Heymsfield (1992)
+https://doi.org/10.1175/1520-0469(1992)049&lt;2325:POCGOD&gt;2.0.CO;2
+with further changes by Eidhammer and Kreidenweis</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~8"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~9"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_before_table_read"></span> <h3>private  subroutine <a href='../proc/check_before_table_read.html'>check_before_table_read</a>(filename, table_size)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>checks that lookup tables exist and are the correct size
+before attempting to read them</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~9"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-table_size~10"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>table_size</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-rename_file_if_exists"></span> <h3>private  subroutine <a href='../proc/rename_file_if_exists.html'>rename_file_if_exists</a>(oldfilename)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>rename a lookup table if attempting to write to that file and it already exists</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-oldfilename"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>oldfilename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-compute_efrw"></span> <h3>public  subroutine <a href='../proc/compute_efrw.html'>compute_efrw</a>()  
 </h3></div>
     <div class="card-body">
           
   <p>collision efficiency for rain collecting cloud water from Beard and Grover (1974)
-if a/A &lt; 0.25, otherwise uses polynomials to get close match of Pruppacher &amp; Klett Fig. 14-9</p>
+if a/A &lt; 0.25
+https://doi.org/10.1175/1520-0469(1974)031&lt;0543:NCEFSR&gt;2.0.CO;2
+otherwise uses polynomials to get close match of Pruppacher and Klett Fig. 14-9</p>
 
   <h4>Arguments</h4>
     <em>None</em>
@@ -633,8 +1459,420 @@ if a/A &lt; 0.25, otherwise uses polynomials to get close match of Pruppacher &a
 </h3></div>
     <div class="card-body">
           
-  <p>collision efficiency for snow collecting cloud water from Wang and Ji (2000) except
-equate melted snow diameter to their "effective collision cross-section."</p>
+  <p>collision efficiency for snow collecting cloud water from Wang and Ji (2000)
+https://doi.org/10.1175/1520-0469(2000)057&lt;1001:CEOICA&gt;2.0.CO;2
+equating melted snow diameter to effective collision cross-section</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_drop_evap"></span> <h3>private  subroutine <a href='../proc/compute_drop_evap.html'>compute_drop_evap</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates droplet evaporation data</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-qr_acr_qs"></span> <h3>private  subroutine <a href='../proc/qr_acr_qs.html'>qr_acr_qs</a>(local_start, local_end, ltcs_racs1, ltmr_racs1, ltcs_racs2, ltmr_racs2, ltcr_sacr1, ltms_sacr1, ltcr_sacr2, ltms_sacr2, ltnr_racs1, ltnr_racs2, ltnr_sacr1, ltnr_sacr2)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates rain collecting snow (and inverse)</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-local_start"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>local_start</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-local_end"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>local_end</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltcs_racs1"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltcs_racs1</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltmr_racs1"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltmr_racs1</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltcs_racs2"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltcs_racs2</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltmr_racs2"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltmr_racs2</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltcr_sacr1"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltcr_sacr1</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltms_sacr1"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltms_sacr1</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltcr_sacr2"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltcr_sacr2</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltms_sacr2"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltms_sacr2</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltnr_racs1"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltnr_racs1</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltnr_racs2"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltnr_racs2</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltnr_sacr1"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltnr_sacr1</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltnr_sacr2"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltnr_sacr2</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-qr_acr_qg"></span> <h3>private  subroutine <a href='../proc/qr_acr_qg.html'>qr_acr_qg</a>(local_start, local_end, ltcg_racg, ltmr_racg, ltcr_gacr, ltnr_racg, ltnr_gacr)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>rain collecting graupel (and inverse) using explicit integration</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-local_start~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>local_start</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-local_end~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>local_end</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltcg_racg"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltcg_racg</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltmr_racg"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltmr_racg</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltcr_gacr"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltcr_gacr</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltnr_racg"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltnr_racg</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ltnr_gacr"></span>
+              real(kind=table_dp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:,:,:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>ltnr_gacr</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-freezewater"></span> <h3>private  subroutine <a href='../proc/freezewater.html'>freezewater</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates the probability of drops of a particular volume freezing
+ from Bigg (1953)
+ https://doi.org/10.1002/qj.49707934207</p><a href="../proc/freezewater.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-qi_aut_qs"></span> <h3>private  subroutine <a href='../proc/qi_aut_qs.html'>qi_aut_qs</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>calculates cloud ice conversion to snow
+and depositional growth by binning cloud ice distributions and 
+determining both the size bins &gt; d0s (that are converted to snow) and the 
+depositional growth up to d0s (for cloud ice) and &gt; d0s for snow 
+following Harrington et al. (1995)
+https://doi.org/10.1175/1520-0469(1995)052&lt;4344:POICCP&gt;2.0.CO;2</p>
 
   <h4>Arguments</h4>
     <em>None</em>
@@ -658,7 +1896,7 @@ equate melted snow diameter to their "effective collision cross-section."</p>
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

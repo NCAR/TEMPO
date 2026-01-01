@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 2.6% of total for procedures.">43 statements</a>
+                 title=" 1.1% of total for procedures.">44 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -316,6 +316,11 @@ modules which it uses.
     </div>
 
 
+    <p>10-cm radar reflectivity</p>
+<p>contributions from melting snow and graupel are optionally included</p>
+<p>
+<script type="math/tex">Z_{e} = \int_0^\infty D^{6}n(D)dD</script> and <script type="math/tex">dbz = 10*log10(Z_{e}*1\times 10^{18})</script>
+</p>
 
 
     <h3>Arguments</h3>
@@ -331,7 +336,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~22"></span>
+              <span class="anchor" id="variable-temp~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -346,7 +351,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~9"></span>
+              <span class="anchor" id="variable-l_qr"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -361,7 +366,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~13"></span>
+              <span class="anchor" id="variable-rr"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -376,7 +381,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr~11"></span>
+              <span class="anchor" id="variable-nr"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -391,7 +396,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~11"></span>
+              <span class="anchor" id="variable-ilamr"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -406,7 +411,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~11"></span>
+              <span class="anchor" id="variable-l_qs~2"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -421,7 +426,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~13"></span>
+              <span class="anchor" id="variable-rs~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -436,7 +441,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~7"></span>
+              <span class="anchor" id="variable-smoc~2"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -451,7 +456,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~7"></span>
+              <span class="anchor" id="variable-smob~2"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -466,7 +471,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoz~3"></span>
+              <span class="anchor" id="variable-smoz"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -481,7 +486,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~10"></span>
+              <span class="anchor" id="variable-l_qg"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -496,7 +501,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~12"></span>
+              <span class="anchor" id="variable-rg"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -511,7 +516,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~10"></span>
+              <span class="anchor" id="variable-ng"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -526,7 +531,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~13"></span>
+              <span class="anchor" id="variable-idx"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -541,7 +546,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~10"></span>
+              <span class="anchor" id="variable-ilamg"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -561,7 +566,7 @@ modules which it uses.
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
-              dimension(:)
+              dimension(:), allocatable
             </td>
             <td>::</td>
             <td><strong>dbz</strong></td>
@@ -573,6 +578,217 @@ modules which it uses.
   </table>
 
     <br>
+    <div class="card">
+      <div class="card-header">
+  <h3 class="card-title">Calls</h3>
+      </div>
+      <div class="card-body">
+  <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: proc~~reflectivity_10cm~~CallsGraph Pages: 1 -->
+<svg id="procreflectivity_10cmCallsGraph" width="476pt" height="133pt"
+ viewBox="0.00 0.00 476.00 133.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~reflectivity_10cm~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 128.77)">
+<title>proc~~reflectivity_10cm~~CallsGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-128.77 472.06,-128.77 472.06,4 -4,4"/>
+<!-- proc~reflectivity_10cm -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node1" class="node">
+<title>proc~reflectivity_10cm</title>
+<polygon fill="none" stroke="black" points="91.02,-83.77 0,-83.77 0,-61 91.02,-61 91.02,-83.77"/>
+<text xml:space="preserve" text-anchor="middle" x="45.51" y="-68.04" font-family="Helvetica,sans-Serif" font-size="10.50">reflectivity_10cm</text>
+</g>
+<!-- proc~find_melting_level -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node2" class="node">
+<title>proc~find_melting_level</title>
+<g id="a_proc~~reflectivity_10cm~~CallsGraph_node2"><a xlink:href="../proc/find_melting_level.html" xlink:title="find_melting_level">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="260.04,-124.77 163.02,-124.77 163.02,-102 260.04,-102 260.04,-124.77"/>
+<text xml:space="preserve" text-anchor="middle" x="211.53" y="-109.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">find_melting_level</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_10cm&#45;&gt;proc~find_melting_level -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge1" class="edge">
+<title>proc~reflectivity_10cm&#45;&gt;proc~find_melting_level</title>
+<path fill="none" stroke="#000000" d="M91.33,-83.59C110.05,-88.27 132.05,-93.77 152.02,-98.76"/>
+<polygon fill="#000000" stroke="#000000" points="151.17,-102.15 161.72,-101.18 152.86,-95.36 151.17,-102.15"/>
+</g>
+<!-- proc~reflectivity_from_melting_graupel -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node3" class="node">
+<title>proc~reflectivity_from_melting_graupel</title>
+<g id="a_proc~~reflectivity_10cm~~CallsGraph_node3"><a xlink:href="../proc/reflectivity_from_melting_graupel.html" xlink:title="reflectivity_from_melting_graupel">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="296.04,-42.77 127.02,-42.77 127.02,-20 296.04,-20 296.04,-42.77"/>
+<text xml:space="preserve" text-anchor="middle" x="211.53" y="-27.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reflectivity_from_melting_graupel</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_10cm&#45;&gt;proc~reflectivity_from_melting_graupel -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge2" class="edge">
+<title>proc~reflectivity_10cm&#45;&gt;proc~reflectivity_from_melting_graupel</title>
+<path fill="none" stroke="#000000" d="M91.33,-61.18C110.05,-56.5 132.05,-51 152.02,-46.01"/>
+<polygon fill="#000000" stroke="#000000" points="152.86,-49.41 161.72,-43.59 151.17,-42.62 152.86,-49.41"/>
+</g>
+<!-- proc~reflectivity_from_melting_snow -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node4" class="node">
+<title>proc~reflectivity_from_melting_snow</title>
+<g id="a_proc~~reflectivity_10cm~~CallsGraph_node4"><a xlink:href="../proc/reflectivity_from_melting_snow.html" xlink:title="reflectivity_from_melting_snow">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="290.42,-83.77 132.65,-83.77 132.65,-61 290.42,-61 290.42,-83.77"/>
+<text xml:space="preserve" text-anchor="middle" x="211.53" y="-68.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">reflectivity_from_melting_snow</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_10cm&#45;&gt;proc~reflectivity_from_melting_snow -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge3" class="edge">
+<title>proc~reflectivity_10cm&#45;&gt;proc~reflectivity_from_melting_snow</title>
+<path fill="none" stroke="#000000" d="M91.33,-72.39C100.66,-72.39 110.81,-72.39 121.12,-72.39"/>
+<polygon fill="#000000" stroke="#000000" points="120.82,-75.89 130.82,-72.39 120.82,-68.89 120.82,-75.89"/>
+</g>
+<!-- proc~complex_ice_maetzler -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node5" class="node">
+<title>proc~complex_ice_maetzler</title>
+<g id="a_proc~~reflectivity_10cm~~CallsGraph_node5"><a xlink:href="../proc/complex_ice_maetzler.html" xlink:title="complex_ice_maetzler">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="459.06,-104.77 341.04,-104.77 341.04,-82 459.06,-82 459.06,-104.77"/>
+<text xml:space="preserve" text-anchor="middle" x="400.05" y="-89.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">complex_ice_maetzler</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_from_melting_graupel&#45;&gt;proc~complex_ice_maetzler -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge4" class="edge">
+<title>proc~reflectivity_from_melting_graupel&#45;&gt;proc~complex_ice_maetzler</title>
+<path fill="none" stroke="#000000" d="M267.98,-43.16C277.48,-45.79 287.14,-48.87 296.04,-52.39 313.06,-59.12 315.22,-65.17 332.04,-72.39 336.57,-74.33 341.35,-76.19 346.18,-77.93"/>
+<polygon fill="#000000" stroke="#000000" points="344.72,-81.13 355.32,-81.07 347,-74.51 344.72,-81.13"/>
+</g>
+<!-- proc~complex_water_ray -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node6" class="node">
+<title>proc~complex_water_ray</title>
+<g id="a_proc~~reflectivity_10cm~~CallsGraph_node6"><a xlink:href="../proc/complex_water_ray.html" xlink:title="complex_water_ray">
+<polygon fill="#d94e8f" stroke="#d94e8f" points="452.31,-63.77 347.79,-63.77 347.79,-41 452.31,-41 452.31,-63.77"/>
+<text xml:space="preserve" text-anchor="middle" x="400.05" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">complex_water_ray</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_from_melting_graupel&#45;&gt;proc~complex_water_ray -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge5" class="edge">
+<title>proc~reflectivity_from_melting_graupel&#45;&gt;proc~complex_water_ray</title>
+<path fill="none" stroke="#000000" d="M296.51,-40.84C309.77,-42.33 323.27,-43.85 335.94,-45.28"/>
+<polygon fill="#000000" stroke="#000000" points="335.48,-48.75 345.81,-46.39 336.26,-41.79 335.48,-48.75"/>
+</g>
+<!-- proc~rayleigh_soak_wetgraupel -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_node7" class="node">
+<title>proc~rayleigh_soak_wetgraupel</title>
+<g id="a_proc~~reflectivity_10cm~~CallsGraph_node7"><a xlink:href="../proc/rayleigh_soak_wetgraupel.html" xlink:title="rayleigh_soak_wetgraupel">
+<polygon fill="#d9534f" stroke="#d9534f" points="468.06,-22.77 332.04,-22.77 332.04,0 468.06,0 468.06,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="400.05" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">rayleigh_soak_wetgraupel</text>
+</a>
+</g>
+</g>
+<!-- proc~reflectivity_from_melting_graupel&#45;&gt;proc~rayleigh_soak_wetgraupel -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge6" class="edge">
+<title>proc~reflectivity_from_melting_graupel&#45;&gt;proc~rayleigh_soak_wetgraupel</title>
+<path fill="none" stroke="#000000" d="M296.51,-22.38C304.44,-21.53 312.46,-20.67 320.33,-19.83"/>
+<polygon fill="#000000" stroke="#000000" points="320.66,-23.31 330.23,-18.76 319.92,-16.35 320.66,-23.31"/>
+</g>
+<!-- proc~reflectivity_from_melting_snow&#45;&gt;proc~complex_ice_maetzler -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge7" class="edge">
+<title>proc~reflectivity_from_melting_snow&#45;&gt;proc~complex_ice_maetzler</title>
+<path fill="none" stroke="#000000" d="M290.82,-81.2C303.64,-82.64 316.85,-84.13 329.45,-85.55"/>
+<polygon fill="#000000" stroke="#000000" points="328.98,-89.02 339.31,-86.66 329.76,-82.06 328.98,-89.02"/>
+</g>
+<!-- proc~reflectivity_from_melting_snow&#45;&gt;proc~complex_water_ray -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge8" class="edge">
+<title>proc~reflectivity_from_melting_snow&#45;&gt;proc~complex_water_ray</title>
+<path fill="none" stroke="#000000" d="M290.82,-63.99C305.92,-62.37 321.57,-60.69 336.1,-59.13"/>
+<polygon fill="#000000" stroke="#000000" points="336.42,-62.62 345.99,-58.07 335.68,-55.66 336.42,-62.62"/>
+</g>
+<!-- proc~reflectivity_from_melting_snow&#45;&gt;proc~rayleigh_soak_wetgraupel -->
+<g id="proc~~reflectivity_10cm~~CallsGraph_edge9" class="edge">
+<title>proc~reflectivity_from_melting_snow&#45;&gt;proc~rayleigh_soak_wetgraupel</title>
+<path fill="none" stroke="#000000" d="M267.47,-60.57C277.12,-57.93 286.97,-54.86 296.04,-51.39 312.93,-44.91 315.34,-39.34 332.04,-32.39 336.66,-30.46 341.52,-28.61 346.43,-26.87"/>
+<polygon fill="#000000" stroke="#000000" points="347.39,-30.24 355.73,-23.71 345.14,-23.61 347.39,-30.24"/>
+</g>
+</g>
+</svg>
+</div>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#CallsGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="CallsGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="641pt" height="28pt"
+ viewBox="0.00 0.00 641.00 28.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.923937 0.923937) rotate(0) translate(4 26.77)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-26.77 689.77,-26.77 689.77,4 -4,4"/>
+<!-- Subroutine -->
+<g id="node1" class="node">
+<title>Subroutine</title>
+<polygon fill="#d9534f" stroke="#d9534f" points="63.27,-22.77 0,-22.77 0,0 63.27,0 63.27,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="31.64" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Subroutine</text>
+</g>
+<!-- Function -->
+<g id="node2" class="node">
+<title>Function</title>
+<polygon fill="#d94e8f" stroke="#d94e8f" points="135.63,-22.77 81.64,-22.77 81.64,0 135.63,0 135.63,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="108.64" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Function</text>
+</g>
+<!-- Interface -->
+<g id="node3" class="node">
+<title>Interface</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="207.63,-22.77 153.63,-22.77 153.63,0 207.63,0 207.63,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="180.63" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Interface</text>
+</g>
+<!-- Type Bound Procedure -->
+<g id="node4" class="node">
+<title>Type Bound Procedure</title>
+<polygon fill="#a7506f" stroke="#a7506f" points="347.14,-22.77 226.12,-22.77 226.12,0 347.14,0 347.14,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="286.63" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Type Bound Procedure</text>
+</g>
+<!-- Unknown Procedure Type -->
+<g id="node5" class="node">
+<title>Unknown Procedure Type</title>
+<polygon fill="#777777" stroke="#777777" points="499.89,-22.77 365.38,-22.77 365.38,0 499.89,0 499.89,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="432.63" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Unknown Procedure Type</text>
+</g>
+<!-- Program -->
+<g id="node6" class="node">
+<title>Program</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="571.63,-22.77 517.63,-22.77 517.63,0 571.63,0 571.63,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="544.63" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Program</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node7" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="685.77,-22.77 589.5,-22.77 589.5,0 685.77,0 685.77,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="637.63" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a procedure to one which it calls. Dashed 
+arrows point from an interface to procedures which implement that interface.
+This could include the module procedures in a generic interface or the
+implementation in a submodule of an interface in a parent module.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="card">
       <div class="card-header">
   <h3 class="card-title">Called by</h3>
@@ -730,7 +946,7 @@ implementation in a submodule of an interface in a parent module.
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

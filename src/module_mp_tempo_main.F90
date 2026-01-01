@@ -4,7 +4,7 @@ module module_mp_tempo_main
     min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, tempo_cfgs, meters3_to_liters, eps, &
     aero_max, nwfa_default, nifa_default
   use module_mp_tempo_utils, only : get_nuc, get_cloud_number, snow_moments, calc_rslf, calc_rsif
-  use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius, hail_size
+  use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius, max_hail_diam
   use module_mp_tempo_aerosols, only : init_ice_friendly_aerosols, init_water_friendly_aerosols, &
     aerosol_collection_efficiency
   implicit none
@@ -33,6 +33,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), allocatable :: re_cloud
     real(wp), dimension(:), allocatable :: re_ice
     real(wp), dimension(:), allocatable :: re_snow
+    real(wp), dimension(:), allocatable :: max_hail_diameter
   end type
 
   type :: ty_tend
@@ -746,8 +747,11 @@ module module_mp_tempo_main
       tempo_main_diags%graupel_med_vol_diam = mvd_g
     endif 
 
-      ! subroutine hail_size(rho, rg, ng, ilamg, idx)
-
+    ! max hail diameter
+    if (tempo_cfgs%max_hail_diameter) then
+      allocate(tempo_main_diags%max_hail_diameter(nz), source=0._wp)
+      call max_hail_diam(rho, rg, ng, ilamg, idx, tempo_main_diags%max_hail_diameter)
+    endif
 
     ! 10-cm reflectivity
     if (tempo_cfgs%refl10cm) then

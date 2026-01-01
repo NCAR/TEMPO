@@ -11,7 +11,7 @@ module module_mp_tempo_utils
 
   function get_cloud_number(land) result(num)
     !! returns land-specific value of cloud droplet number concentration
-    !! if land == 1, else returns ocean-specific value
+    !! when aerosol-aware = false if land = 1, else returns ocean-specific value
     use module_mp_tempo_params, only : nt_c_l, nt_c_o
     
     integer, intent(in), optional :: land
@@ -27,7 +27,9 @@ module module_mp_tempo_utils
   function calc_gamma_p(a, x) result(gamma_p)
     !! normalized lower gamma function calculated either with a 
     !! series expansion or continued fraction method
+    !!
     !! input: a = gamma function argument, x = upper limit of integration
+    !!
     !! output: gamma_p = \(\gamma(a, x) / \Gamma(a)\)
     real(wp), intent(in) :: a, x
     real(wp) :: gamma_p
@@ -43,13 +45,16 @@ module module_mp_tempo_utils
 
 
   function calc_gamma_series(a, x) result(gamma_series)
-    !! Solves the normalized lower gamma function: gamma(a,x) / Gamma(a) = x**a * gamma*(a,x)
-    ! https://dlmf.nist.gov/8.7 (Equation 8.7.1)
-    ! Where gamma*(a,x) = exp(-x) * sum (x**k / Gamma(a+k+1))
-    ! Input:
-    !   a = gamma function argument, x = upper limit of integration
-    ! Output:
-    !   Normalized LOWER gamma function: gamma(a, x) / Gamma(a)
+    !! solves the normalized lower gamma function
+    !!
+    !! \(\gamma(a,x) / \Gamma(a) = x^{a} * \gamma*(a,x)\)
+    !!
+    !! see [Equation 8.7.1](https://dlmf.nist.gov/8.7)
+    !! \(\gamma(a,x) = exp(-x) * \sum_{k=0}^{\infty} \frac{x^{k}}{\Gamma(a+k+1)}\)
+    !!
+    !! input: a = gamma function argument, x = upper limit of integration
+    !!
+    !! output: normalized lower gamma function \(\gamma(a, x) / \Gamma(a)\)
     real(wp), intent(in) :: a, x
     integer :: k
     integer, parameter :: it_max = 100
@@ -74,13 +79,13 @@ module module_mp_tempo_utils
     
 
   function calc_gamma_cf(a, x) result(gamma_cf)
-  !! Solves the normalized upper gamma function: gamma(a,x) / Gamma(a)
-  !! using a continued fractions method (modifed Lentz Algorithm)
-  ! http://functions.wolfram.com/06.06.10.0003.01
-  ! Input:
-  !   a = gamma function argument, x = lower limit of integration
-  ! Output:
-  !   Normalized UPPER gamma function: gamma(a, x) / Gamma(a)
+  !! solves the normalized upper gamma function \(\gamma(a,x) / \Gamma(a)\)
+  !! using a continued fractions method
+  !! [(modified Lentz Algorithm)](http://functions.wolfram.com/06.06.10.0003.01)
+  !!
+  !!input: a = gamma function argument, x = lower limit of integration
+  !!
+  !!output: normalized upper gamma function: \(\gamma(a, x) / \Gamma(a)\)
     real(wp), intent(in) :: a, x
     integer :: k
     integer, parameter :: it_max = 100
@@ -114,7 +119,8 @@ module module_mp_tempo_utils
 
 
   subroutine snow_moments(rs, tc, smob, smoc, ns, smo0, smo1, smo2, smoe, smof, smog, smoz)
-    !! Compute snow moments
+    !! computes snow moments from
+    !! [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
     ! smo0 = 0th moment
     ! smo1 = 1st moment
     ! smo2 = 2nd moment
@@ -264,12 +270,13 @@ module module_mp_tempo_utils
     real(wp), parameter :: c8 = -.321582393e-13_wp
     real(wp) :: rslf
 
-    x = max(-80._wp, t-273.16)
+    x = max(-80._wp, t-273.16_wp)
     esl = c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8)))))))
     esl = min(esl, p*0.15) 
     !! @note
-    !! Even with P=1050mb and T=55C, the saturation vapor 
-    !! pressure only contributes to ~15% of the total pressure
+    !! even with p = 1050 mb and t = 55 C, the saturation vapor 
+    !! pressure only contributes to 15% of the total pressure,
+    !! thus the limit on the saturation vapor pressure is set to 15%
     !! @endnote
     rslf = .622*esl/(p-esl)
   end function calc_rslf
@@ -290,7 +297,7 @@ module module_mp_tempo_utils
     real(wp), parameter :: c8 = .161444444e-12_wp
     real(wp) :: rsif
 
-    x = max(-80._wp, t-273.16)
+    x = max(-80._wp, t-273.16_wp)
     esi = c0+x*(c1+x*(c2+x*(c3+x*(c4+x*(c5+x*(c6+x*(c7+x*c8)))))))
     esi = min(esi, p*0.15)
     rsif = .622*esi/max(1.e-4_wp,(p-esi))

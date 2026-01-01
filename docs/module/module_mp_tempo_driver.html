@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 4.4% of total for modules and submodules.">195 statements</a>
+                 title=" 4.1% of total for modules and submodules.">184 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -174,15 +174,16 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      
+      <p>tempo driver that converts 3d model input to 1d arrays used by the main code
+also allocates and fills diagnostic arrays</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_main.html'>module_mp_tempo_main</a></li>
+                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -552,23 +553,6 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-one_minute_max_precip~2"></span>
-              real(kind=wp),
-            </td>
-              <td>public,</td>
-            <td>
-              dimension(:,:), allocatable
-            </td>
-            <td>::</td>
-            <td><strong>one_minute_max_precip</strong></td>
-                <td></td>
-                <td></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
               <span class="anchor" id="variable-refl10cm~3"></span>
               real(kind=wp),
             </td>
@@ -629,6 +613,23 @@ modules which it uses.
             </td>
             <td>::</td>
             <td><strong>re_snow</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_hail_diameter~4"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              dimension(:,:,:), allocatable
+            </td>
+            <td>::</td>
+            <td><strong>max_hail_diameter</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -735,7 +736,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~2"></span>
+              <span class="anchor" id="variable-t~6"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -782,7 +783,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p"></span>
+              <span class="anchor" id="variable-p~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -798,7 +799,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w"></span>
+              <span class="anchor" id="variable-w~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -846,7 +847,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc"></span>
+              <span class="anchor" id="variable-qc~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -862,7 +863,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qr"></span>
+              <span class="anchor" id="variable-qr~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -878,7 +879,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi"></span>
+              <span class="anchor" id="variable-qi~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -894,7 +895,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qs"></span>
+              <span class="anchor" id="variable-qs~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -942,7 +943,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr~10"></span>
+              <span class="anchor" id="variable-nr~11"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -958,7 +959,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc~9"></span>
+              <span class="anchor" id="variable-nc~11"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -973,7 +974,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~7"></span>
+              <span class="anchor" id="variable-nwfa~8"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -988,7 +989,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa~6"></span>
+              <span class="anchor" id="variable-nifa~7"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -1003,7 +1004,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~9"></span>
+              <span class="anchor" id="variable-ng~12"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -1013,8 +1014,7 @@ modules which it uses.
             <td>::</td>
             <td><strong>ng</strong></td>
             <td>
-<p>3D graupel number mixing ratio <script type="math/tex">[kg^{-1}]</script> (hail-aware)
-real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
+<p>3D graupel number mixing ratio <script type="math/tex">[kg^{-1}]</script> (hail-aware)</p>
             </td>
         </tr>
         <tr>
@@ -1274,7 +1274,7 @@ real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts~2"></span>
+              <span class="anchor" id="variable-kts~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1289,7 +1289,7 @@ real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kte~2"></span>
+              <span class="anchor" id="variable-kte~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1329,7 +1329,7 @@ real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
 </h3></div>
     <div class="card-body">
           
-  <p>aerosol surface emissions for tempo</p>
+  <p>adds aerosol surface emissions to the 3D field</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1359,7 +1359,7 @@ real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~8"></span>
+              <span class="anchor" id="variable-nwfa~9"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -1479,7 +1479,7 @@ real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts~3"></span>
+              <span class="anchor" id="variable-kts~4"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1515,7 +1515,7 @@ real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d</p>
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

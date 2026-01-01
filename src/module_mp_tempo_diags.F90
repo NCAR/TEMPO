@@ -6,13 +6,14 @@ module module_mp_tempo_diags
   implicit none
   private
   
-  public :: reflectivity_10cm, effective_radius, hail_size
+  public :: reflectivity_10cm, effective_radius, max_hail_diam
 
   contains 
 
   subroutine effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
     re_qc, re_qi, re_qs)
     !! effective radius values for cloud water, cloud ice and snow
+    !!
     !! \(r_{e} = 0.5\frac{\int_0^\infty D^{3}n(D)dD}{\int_0^\infty D^2n(D)dD}\)
     use module_mp_tempo_params, only : mu_i, t0
 
@@ -33,7 +34,8 @@ module module_mp_tempo_diags
       re_qi(k) = 0._wp
       re_qs(k) = 0._wp
       !> @note
-      !> limiting values below are conistent with RRTMG radiation
+      !> limiting values of \(2.51-50 \mu m\) for cloud water, \(2.51-125 \mu m\) for
+      !> cloud ice, and \(5.01-999 \mu m\) for snow are consistent with RRTMG radiation
       !> @endnote
       if (l_qc(k)) then
         nu_c = get_nuc(nc(k))
@@ -55,10 +57,11 @@ module module_mp_tempo_diags
 
   subroutine reflectivity_10cm(temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
     l_qg, rg, ng, idx, ilamg, dbz)
-    !! 10-cm radar reflectivity [dBZ]
+    !! 10-cm radar reflectivity
+    !! 
     !! contributions from melting snow and graupel are optionally included
-    !! \(Z_{e} = \int_0^\infty D^{6}n(D)dD\)
-    !! \(dbz = 10*log10(Z_{e}*1\times 10^{18})\)
+    !!
+    !! \(Z_{e} = \int_0^\infty D^{6}n(D)dD\) and \(dbz = 10*log10(Z_{e}*1\times 10^{18})\)
     use module_mp_tempo_params, only : pi, org2, cre, crg, am_s, am_g, cge, cgg, ogg2
 
     logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
@@ -136,10 +139,11 @@ module module_mp_tempo_diags
   
   function complex_water_ray(lambda, t) result(refractive_index)
     use module_mp_tempo_params, only : pi
-    !! complex refractive index of water from Ray (1972)
-    !! https://doi.org/10.1364/AO.11.001836
-    !! calculated as function of temperature t [Celcius] (valid from -10 to 30)
+    !! complex refractive index of water
+    !! from [Ray (1972)](https://doi.org/10.1364/AO.11.001836)
+    !! calculated as function of temperature t [Celsius] (valid from -10 to 30)
     !! and radar wavelength lambda [m] (valid from 0.001 to 1)
+    !!
     !! original credit: Ulrich Blahak and G. Thompson
     real(dp), intent(in) :: lambda, t
     real(dp) :: epsinf,epss,epsr,epsi,alpha,lambdas,nenner
@@ -165,10 +169,11 @@ module module_mp_tempo_diags
 
 
   function complex_ice_maetzler(lambda, t) result(refractive_index)
-    !! complex refractive index of ice from Maetzler (1998)
-    !! https://doi.org/10.1007/978-94-011-5252-5_10
-    !! calculated as function of temperature t [Celcius] (valid from -250 to 0)
+    !! complex refractive index of ice from
+    !! [Maetzler (1998)](https://doi.org/10.1007/978-94-011-5252-5_10)
+    !! calculated as function of temperature t [Celsius] (valid from -250 to 0)
     !! and radar wavelength lambda [m] (valid from 0.0001 to 30)
+    !!
     !! original credit: Ulrich Blahak and G. Thompson
     real(dp), intent(in) :: lambda, t
     real(dp) :: f,c,tk,b1,b2,b,deltabeta,betam,beta,theta,alfa
@@ -194,6 +199,7 @@ module module_mp_tempo_diags
 
   function reflectivity_from_melting_graupel(rg, ng, ilamg, idx, rr) result(ze_graupel)
     !! calculates radar reflectivity from melting graupel using binned approach
+    !!
     !! original credit: Ulrich Blahak and G. Thompson
     use module_mp_tempo_params, only : am_g, bm_g, obmg, ocmg, mu_g, ogg2, cge, &
       gbins_radar, dgbins_radar, radar_bins
@@ -244,6 +250,7 @@ module module_mp_tempo_diags
 
   function reflectivity_from_melting_snow(rs, smob, smoc, rr) result(ze_snow)
     !! calculates radar reflectivity from melting snow using binned approach
+    !!
     !! original credit: Ulrich Blahak and G. Thompson
     use module_mp_tempo_params, only : am_s, bm_s, lam0, lam1, obms, ocms, kap0, kap1, mu_s, &
       sbins_radar, dsbins_radar, radar_bins
@@ -299,6 +306,7 @@ module module_mp_tempo_diags
     meltratio_outside, m_w, m_i, backscatter)
     !! calculates backscatter cross section of wet snow or graupel
     !! using Maxwell-Garnett mixing formula and Rayleigh approximation
+    !!
     !! original credit: Ulrich Blahak and G. Thompson
 
     real(dp), intent(in) :: x_g, a_geo, b_geo, fmelt, lambda_radar, meltratio_outside
@@ -383,9 +391,10 @@ module module_mp_tempo_diags
   end subroutine rayleigh_soak_wetgraupel
 
 
-  subroutine hail_size(rho, rg, ng, ilamg, idx, max_hail_diameter)
+  subroutine max_hail_diam(rho, rg, ng, ilamg, idx, max_hail_diameter)
     !! estimates maximmum hail diameter [mm] using a binned approach
-    !! https://doi.org/10.1175/MWR-D-21-0319.1
+    !! 
+    !! see [Jensen et al. (2023)](https://doi.org/10.1175/MWR-D-21-0319.1)
     use module_mp_tempo_params, only : hbins, dhbins, rho_g, ogg2, cge, nhbins, mu_g
 
     real(wp), dimension(:), intent(in) :: rho, rg, ng
@@ -422,6 +431,6 @@ module module_mp_tempo_diags
         max_hail_diameter(k) = 1000._wp * hail_max ! convert to mm
       endif
     enddo
-  end subroutine hail_size
+  end subroutine max_hail_diam
 
 end module module_mp_tempo_diags

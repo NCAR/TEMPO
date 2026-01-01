@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>25.0% of total for derived types.</p>Including implementation: 15 statements, 25.0% of total for derived types.">15 statements</a>
+                 title="<p>22.2% of total for derived types.</p>Including implementation: 14 statements, 22.2% of total for derived types.">14 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -138,14 +138,13 @@
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-semi_sedi">semi_sedi</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_with_melting_snow_graupel">refl10cm_with_melting_snow_graupel</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-all_mp_processes_off">all_mp_processes_off</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm~2">refl10cm</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_cloud~2">re_cloud</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_ice~2">re_ice</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_snow~2">re_snow</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-maximum_hail_size">maximum_hail_size</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-rain_med_vol_diam~2">rain_med_vol_diam</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-graupel_med_vol_diam~2">graupel_med_vol_diam</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-one_minute_max_precip">one_minute_max_precip</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm">refl10cm</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_cloud">re_cloud</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_ice">re_ice</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_snow">re_snow</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-max_hail_diameter~2">max_hail_diameter</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-rain_med_vol_diam">rain_med_vol_diam</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-graupel_med_vol_diam">graupel_med_vol_diam</a>
         </div>
       </div>
     </div>
@@ -257,7 +256,7 @@
 <td> =</td>
                 <td>.false.</td>
             <td>
-                <p>calculate reflectivity for melting snow and graupel</p>
+                <p>flag to calculate reflectivity for melting snow and graupel</p>
             </td>
         </tr>
         <tr>
@@ -279,7 +278,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-refl10cm~2"></span>
+              <span class="anchor" id="variable-refl10cm"></span>
               logical,
             </td>
               <td>public</td>
@@ -291,12 +290,12 @@
 <td> =</td>
                 <td>.true.</td>
             <td>
-                
+                <p>flag to output 10cm reflectivity</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_cloud~2"></span>
+              <span class="anchor" id="variable-re_cloud"></span>
               logical,
             </td>
               <td>public</td>
@@ -308,12 +307,12 @@
 <td> =</td>
                 <td>.true.</td>
             <td>
-                
+                <p>flag to output cloud effective radius</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_ice~2"></span>
+              <span class="anchor" id="variable-re_ice"></span>
               logical,
             </td>
               <td>public</td>
@@ -325,12 +324,12 @@
 <td> =</td>
                 <td>.true.</td>
             <td>
-                
+                <p>flag to output ice effective radius</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_snow~2"></span>
+              <span class="anchor" id="variable-re_snow"></span>
               logical,
             </td>
               <td>public</td>
@@ -342,12 +341,12 @@
 <td> =</td>
                 <td>.true.</td>
             <td>
-                
+                <p>flag to output snow effective radius</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-maximum_hail_size"></span>
+              <span class="anchor" id="variable-max_hail_diameter~2"></span>
               logical,
             </td>
               <td>public</td>
@@ -355,16 +354,16 @@
               
             </td>
             <td>::</td>
-            <td><strong>maximum_hail_size</strong></td>
+            <td><strong>max_hail_diameter</strong></td>
 <td> =</td>
                 <td>.true.</td>
             <td>
-                
+                <p>flag to output maximum hail diameter</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rain_med_vol_diam~2"></span>
+              <span class="anchor" id="variable-rain_med_vol_diam"></span>
               logical,
             </td>
               <td>public</td>
@@ -376,12 +375,12 @@
 <td> =</td>
                 <td>.false.</td>
             <td>
-                
+                <p>flag to output median volume diameter for rain</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-graupel_med_vol_diam~2"></span>
+              <span class="anchor" id="variable-graupel_med_vol_diam"></span>
               logical,
             </td>
               <td>public</td>
@@ -393,24 +392,7 @@
 <td> =</td>
                 <td>.false.</td>
             <td>
-                
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-one_minute_max_precip"></span>
-              logical,
-            </td>
-              <td>public</td>
-            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>one_minute_max_precip</strong></td>
-<td> =</td>
-                <td>.false.</td>
-            <td>
-                
+                <p>flag to output median volume diameter for graupel</p>
             </td>
         </tr>
     </tbody>
@@ -434,7 +416,7 @@
           <div class="col">
             <p>
               TEMPO Microphysics
- was developed by Anders A. Jensen<br>              &copy; 2025 
+ was developed by Anders A. Jensen<br>              &copy; 2026 
 </p>
           </div>
           <div class="col">

@@ -13,7 +13,7 @@ module module_mp_tempo_aerosols
 
   subroutine init_water_friendly_aerosols(dz1d, nwfa)
     !! sets water-friendly aerosols to an exponential profile
-    !! if aerosol-aware = true and no inital condition
+    !! if aerosol-aware = true and no initial condition
     !! is provided by the host model
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nwfa
@@ -44,7 +44,7 @@ module module_mp_tempo_aerosols
 
   subroutine init_ice_friendly_aerosols(dz1d, nifa)
     !! sets ice-friendly aerosols to an exponential profile
-    !! if aerosol-aware = true and no inital condition
+    !! if aerosol-aware = true and no initial condition
     !! is provided by the host model
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nifa
@@ -74,8 +74,8 @@ module module_mp_tempo_aerosols
 
 
   function aerosol_collection_efficiency(d, da, visc, rhoa, temp, species) result(eff_a)
-    !! computes aerosol collection efficiency for precipitation scavanging
-    !! based on Wang et al. (2010) https://doi.org/10.5194/acp-10-5685-2010
+    !! computes aerosol collection efficiency for precipitation scavenging
+    !! from [Wang et al. (2010)](https://doi.org/10.5194/acp-10-5685-2010)
     use module_mp_tempo_params, only : rho_w, rho_s, av_s, bv_s, &
       idx_bg1, pi, av_g, bv_g, rho_g
 
