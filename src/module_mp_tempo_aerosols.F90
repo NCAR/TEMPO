@@ -1,5 +1,5 @@
 module module_mp_tempo_aerosols
-  !! initialize aerosols for tempo microphysics
+  !! contains produces used when aerosol-aware = true
   use module_mp_tempo_params, only : wp, sp, dp, &
     naccn0, naccn1, nain0, nain1, nwfa_default, aero_max
 
@@ -12,7 +12,9 @@ module module_mp_tempo_aerosols
   contains
 
   subroutine init_water_friendly_aerosols(dz1d, nwfa)
-    !! exponential profile of aerosols as a last resort
+    !! sets water-friendly aerosols to an exponential profile
+    !! if aerosol-aware = true and no inital condition
+    !! is provided by the host model
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nwfa
     real(wp), dimension(:), allocatable :: hgt
@@ -41,7 +43,9 @@ module module_mp_tempo_aerosols
 
 
   subroutine init_ice_friendly_aerosols(dz1d, nifa)
-    !! exponential profile of aerosols as a last resort
+    !! sets ice-friendly aerosols to an exponential profile
+    !! if aerosol-aware = true and no inital condition
+    !! is provided by the host model
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nifa
     real(wp), dimension(:), allocatable :: hgt
@@ -70,6 +74,8 @@ module module_mp_tempo_aerosols
 
 
   function aerosol_collection_efficiency(d, da, visc, rhoa, temp, species) result(eff_a)
+    !! computes aerosol collection efficiency for precipitation scavanging
+    !! based on Wang et al. (2010) https://doi.org/10.5194/acp-10-5685-2010
     use module_mp_tempo_params, only : rho_w, rho_s, av_s, bv_s, &
       idx_bg1, pi, av_g, bv_g, rho_g
 
@@ -83,13 +89,16 @@ module module_mp_tempo_aerosols
 
     vt = 1._wp
     rho_p = rho_w
+    ! rain
     if (species == 'r') then
       vt = -0.1021 + 4.932e3_wp*d - 0.9551e6_wp*d*d + &
         0.07934e9_wp*d*d*d - 0.002362e12_wp*d*d*d*d
       rho_p = rho_w
+    ! snow
     elseif (species == 's') then
       vt = av_s*d**bv_s
       rho_p = rho_s
+    ! graupel
     elseif (species .eq. 'g') then
       vt = av_g(idx_bg1)*d**bv_g(idx_bg1)
       rho_p = rho_g(idx_bg1)

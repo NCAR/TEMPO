@@ -1,5 +1,6 @@
 module module_mp_tempo_driver
-
+  !! tempo driver that converts 3d model input to 1d arrays used by the main code
+  !! also allocates and fills diagnostic arrays
   use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs
   use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
   implicit none
@@ -60,7 +61,6 @@ module module_mp_tempo_driver
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: nifa !! 3D ice-friendly aerosol number mixing ratio \([kg^{-1}]\) (aerosol-aware)
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: qb !! 3D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\) (hail-aware)
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: ng !! 3D graupel number mixing ratio \([kg^{-1}]\) (hail-aware)
-    !! real, dimension(ims:ime, jms:jme), intent(in), optional :: nwfa2d, nifa2d
 
     real(wp), dimension(kts:kte) :: t1d !! 1D temperature \([K]\)
     real(wp), dimension(kts:kte) :: p1d !! 1D pressure \([Pa]\)
@@ -75,19 +75,16 @@ module module_mp_tempo_driver
     real(wp), dimension(kts:kte) :: w1d !! 1D vertical velocity \(m\; s^{-1}]\)
     real(wp), dimension(kts:kte) :: dz1d !! 1D vertical grid spacing \([m]\)
 
-    real(wp), dimension(:), allocatable :: nc1d !! 1D cloud water number mixing ratio \([kg^{-1}]\)
-    real(wp), dimension(:), allocatable :: nwfa1d !! 1D water-friendly aerosol number mixing ratio \([kg^{-1}]\)
-    real(wp), dimension(:), allocatable :: nifa1d !! 1D ice-friendly aerosol number mixing ratio \([kg^{-1}]\)
-    real(wp), dimension(:), allocatable :: qb1d !! 1D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\)
-    real(wp), dimension(:), allocatable :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\)
-    integer :: i, j, k, nz, reset_time_one_minute_max_precip
+    real(wp), dimension(:), allocatable :: nc1d !! 1D cloud water number mixing ratio \([kg^{-1}]\) (aerosol-aware)
+    real(wp), dimension(:), allocatable :: nwfa1d !! 1D water-friendly aerosol number mixing ratio \([kg^{-1}]\) (aerosol-aware)
+    real(wp), dimension(:), allocatable :: nifa1d !! 1D ice-friendly aerosol number mixing ratio \([kg^{-1}]\) (aerosol-aware)
+    real(wp), dimension(:), allocatable :: qb1d !! 1D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\) (hail-aware)
+    real(wp), dimension(:), allocatable :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\) (hail-aware)
+    integer :: i, j, k, nz
     logical :: use_temperature 
 
     type(ty_tempo_main_diags) :: tempo_main_diags
     type(ty_tempo_driver_diags), intent(out) :: tempo_diags
-
-    ! local arrays used for accumulation
-    real(wp), dimension(:,:), allocatable, save :: local_one_minute_max_precip
 
     nz = kte - kts + 1
     ! allocate 1d arrays if 3d arrays are present
@@ -112,13 +109,6 @@ module module_mp_tempo_driver
     allocate(tempo_diags%snow_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
     allocate(tempo_diags%graupel_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
     allocate(tempo_diags%frozen_fraction(its:ite, jts:jte), source=0._wp)
-
-    ! one-minute maximum precipitation
-    if (tempo_cfgs%one_minute_max_precip) then
-      allocate(tempo_diags%one_minute_max_precip(its:ite, jts:jte), source=0._wp)
-      if (.not. allocated(local_one_minute_max_precip)) allocate(local_one_minute_max_precip(its:ite, jts:jte), source=0._wp)
-      reset_time_one_minute_max_precip = int(60._wp/dt)
-    endif 
 
     ! temperature or theta and exner
     if (present(t)) then
@@ -162,7 +152,7 @@ module module_mp_tempo_driver
           endif 
         enddo
           
-        ! Main call to the 1d tempo microphysics
+        ! main call to the 1d tempo microphysics
         call tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
           w1d=w1d, dz1d=dz1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags)
@@ -173,22 +163,6 @@ module module_mp_tempo_driver
         tempo_diags%snow_liquid_equiv_precip(i,j) = tempo_main_diags%snow_liquid_equiv_precip
         tempo_diags%graupel_liquid_equiv_precip(i,j) = tempo_main_diags%graupel_liquid_equiv_precip
         tempo_diags%frozen_fraction(i,j) = tempo_main_diags%frozen_fraction
-
-        ! one-minute maximum precipitation
-        if (allocated(local_one_minute_max_precip)) then
-          ! reset
-          if (mod(itimestep, reset_time_one_minute_max_precip) == 1 .and. itimestep > 1) then
-            local_one_minute_max_precip(i,j) = 0._wp  
-          endif 
-          local_one_minute_max_precip(i,j) = local_one_minute_max_precip(i,j) + &
-            tempo_main_diags%rain_precip + tempo_main_diags%ice_liquid_equiv_precip + &
-            tempo_main_diags%snow_liquid_equiv_precip + tempo_main_diags%graupel_liquid_equiv_precip
-          
-          if (mod(itimestep, reset_time_one_minute_max_precip) == 0 .and. itimestep > 1) then
-            tempo_diags%one_minute_max_precip(i,j) = max(tempo_diags%one_minute_max_precip(i,j), &
-              local_one_minute_max_precip(i,j))
-          endif
-        endif 
 
         ! 3d diagnostics
         if (allocated(tempo_diags%rain_med_vol_diam) .and. allocated(tempo_main_diags%rain_med_vol_diam)) then
