@@ -316,17 +316,17 @@ modules which it uses.
     </div>
 
 
-    <p>Compute warm-rain process rates -- condensation/evaporation happen later</p>
+    <p>computes warm-rain process rates -- condensation/evaporation happen later</p>
 <div class="alert alert-info">
 <p class="alert-title h4">Note</p>
-<p>rain self-collection follows Seifert (1994) and drop break-up
-follows Verlinde and Cotton (1993)</p>
-<div class="alert alert-info">
-<p class="alert-title h4">Note</p>
-</div>
-<p>autoconversion follows Berry &amp; Reinhardt (1974) with characteristic
-diameters correctly computed from gamma distribution of cloud droplets
-rain collecting cloud water - assumes dc &lt;&lt; dr and vtc<script type="math/tex">\approx 0</script>
+<p>rain self-collection is from
+<a href="https://doi.org/10.1016/S0169-8095(01)00126-0">Seifert and Beheng (2001)</a>
+and drop break-up follows
+<a href="https://doi.org/10.1175/1520-0493(1993)121&lt;2776:FMOONC&gt;2.0.CO;2">Verlinde and Cotton (1993)</a></p>
+<p>autoconversion follows 
+<a href="https://doi.org/10.1175/1520-0469(1974)031&lt;1814:AAOCDG&gt;2.0.CO;2">Berry and Reinhardt (1974)</a>
+with characteristic diameters correctly computed from gamma distribution of cloud droplets</p>
+<p>rain collecting cloud water - assumes dc &lt;&lt; dr and vtc <script type="math/tex">\approx 0</script>
 </p>
 </div>
 
@@ -359,7 +359,7 @@ rain collecting cloud water - assumes dc &lt;&lt; dr and vtc<script type="math/t
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~7"></span>
+              <span class="anchor" id="variable-l_qc~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -404,7 +404,7 @@ rain collecting cloud water - assumes dc &lt;&lt; dr and vtc<script type="math/t
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~5"></span>
+              <span class="anchor" id="variable-ilamc~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -434,7 +434,7 @@ rain collecting cloud water - assumes dc &lt;&lt; dr and vtc<script type="math/t
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~8"></span>
+              <span class="anchor" id="variable-l_qr~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -449,7 +449,7 @@ rain collecting cloud water - assumes dc &lt;&lt; dr and vtc<script type="math/t
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~10"></span>
+              <span class="anchor" id="variable-rr~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>

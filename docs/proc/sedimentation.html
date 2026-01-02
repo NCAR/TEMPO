@@ -156,6 +156,13 @@
 </h2>
     
 
+    <p>computes sedimentation fluxes, adds fluxes to tendencies, and updates hydrometeor
+mass (and number and volume)</p>
+<div class="alert alert-history">
+<p class="alert-title h4">History</p>
+<p>precipitation is output for a given hydrometeor if the mass concentration of 
+that hydrometeor exceeds r1, which was modified from a threhold of r1*1000</p>
+</div>
 
 
     <h3>Arguments</h3>
@@ -201,7 +208,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~4"></span>
+              <span class="anchor" id="variable-dz1d~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -216,7 +223,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~13"></span>
+              <span class="anchor" id="variable-rho~12"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>

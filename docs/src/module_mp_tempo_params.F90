@@ -140,6 +140,8 @@ module module_mp_tempo_params
   real(wp), parameter :: ef_rg = 0.75_wp !! rain-graupel collection efficiency
   real(wp), parameter :: ef_ri = 0.95_wp !! rain-ice collection efficiency
   real(wp), parameter :: autocon_nr_factor = 10._wp !! factor controlling rain number tendency from autconversion (larger produces few drops)
+  real(wp), parameter :: timestep_conversion_rime_to_rain = 120._wp !! timestep above which rime above freezing becomes rain (this timestep should be at least 120s)
+
   ! parameters that should NOT be changed -----------------------------------------------------------------
   integer, parameter :: table_sp = real32 !! precision for lookup tables (machine independent)
   integer, parameter :: table_dp = real64 !! precision for lookup tables (machine independent)

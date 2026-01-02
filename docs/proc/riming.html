@@ -316,8 +316,23 @@ modules which it uses.
     </div>
 
 
-    <p>rime density formula from Cober and List (1993) and 
-also used by Milbrandt and Morrison (2014)</p>
+    <p>snow and graupel riming</p>
+<div class="alert alert-info">
+<p class="alert-title h4">Note</p>
+<p>snow collecting cloud water - assume dc &lt;&lt; ds and vtc <script type="math/tex">\approx 0</script>
+</p>
+<p>at temperatures below melting, if the riming rate is greater than the depositional
+growth rate for snow by a factor rime_threshold, convert a portion of rimed snow
+to graupel</p>
+<p>graupel collecting cloud water - assume dc &lt;&lt; dg and vtc <script type="math/tex">\approx 0</script>
+</p>
+<p>rime density formula is from 
+<a href="https://doi.org/10.1175/1520-0469(1993)050&lt;1591:MOTHAM&gt;2.0.CO;2">Cober and List (1993)</a></p>
+<p>hail size increases below the melting level so the collection efficiency
+is reduced (proxy for shedding of collected cloud water)</p>
+<p>rime splintering is from
+<a href="https://doi.org/10.1038/249026a0">Hallet and Mossop (1974)</a></p>
+</div>
 
 
     <h3>Arguments</h3>
@@ -333,7 +348,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~17"></span>
+              <span class="anchor" id="variable-temp~13"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -378,7 +393,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~8"></span>
+              <span class="anchor" id="variable-l_qc~7"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -423,7 +438,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~6"></span>
+              <span class="anchor" id="variable-ilamc~5"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -453,7 +468,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~8"></span>
+              <span class="anchor" id="variable-l_qs~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -468,7 +483,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~8"></span>
+              <span class="anchor" id="variable-rs~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -498,7 +513,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~6"></span>
+              <span class="anchor" id="variable-smob~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -513,7 +528,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~6"></span>
+              <span class="anchor" id="variable-smoc~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -558,7 +573,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~7"></span>
+              <span class="anchor" id="variable-l_qg~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -573,7 +588,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~9"></span>
+              <span class="anchor" id="variable-rg~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -588,7 +603,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~7"></span>
+              <span class="anchor" id="variable-ng~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -603,7 +618,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~7"></span>
+              <span class="anchor" id="variable-ilamg~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -618,7 +633,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~10"></span>
+              <span class="anchor" id="variable-idx~7"></span>
               integer,
             </td>
 <td>intent(in),</td>

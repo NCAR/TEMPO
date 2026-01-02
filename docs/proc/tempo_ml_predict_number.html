@@ -10,7 +10,7 @@
     <meta name="author" content="Anders A. Jensen" >
     <link rel="icon" href="../favicon.png">
 
-    <title>predict_number &ndash; TEMPO Microphysics</title>
+    <title>tempo_ml_predict_number &ndash; TEMPO Microphysics</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -80,8 +80,8 @@
 
     <div class="container">
   <div class="row">
-    <h1>predict_number
-      <small>Function</small>
+    <h1>tempo_ml_predict_number
+      <small>Subroutine</small>
       
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.2% of total for procedures.">51 statements</a>
+                 title=" 1.8% of total for procedures.">74 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -105,7 +105,7 @@
           <ol class="breadcrumb justify-content-end mb-0">
                 <li class="breadcrumb-item"><a href='../sourcefile/module_mp_tempo_ml.f90.html'>module_mp_tempo_ml.F90</a></li>
                 <li class="breadcrumb-item"><a href='../module/module_mp_tempo_ml.html'>module_mp_tempo_ml</a></li>
-            <li class="breadcrumb-item active" aria-current="page">predict_number</li>
+            <li class="breadcrumb-item active" aria-current="page">tempo_ml_predict_number</li>
           </ol>
         </nav>
       </div>
@@ -152,10 +152,11 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  function predict_number(qc, qr, qi, qs, pres, temp, w, predict_nc)  
+    <h2>public  subroutine tempo_ml_predict_number(qc, qr, qi, qs, pres, temp, w, predicted_number, predict_for_cloud)  
 </h2>
     
 
+    <p>predicts number concentration</p>
 
 
     <h3>Arguments</h3>
@@ -171,12 +172,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc"></span>
-              real,
+              <span class="anchor" id="variable-qc~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qc</strong></td>
@@ -186,12 +187,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qr"></span>
-              real,
+              <span class="anchor" id="variable-qr~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qr</strong></td>
@@ -201,12 +202,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi"></span>
-              real,
+              <span class="anchor" id="variable-qi~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qi</strong></td>
@@ -216,12 +217,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qs"></span>
-              real,
+              <span class="anchor" id="variable-qs~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qs</strong></td>
@@ -232,11 +233,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-pres"></span>
-              real,
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>pres</strong></td>
@@ -246,12 +247,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~4"></span>
-              real,
+              <span class="anchor" id="variable-temp~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>temp</strong></td>
@@ -261,12 +262,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w"></span>
-              real,
+              <span class="anchor" id="variable-w~2"></span>
+              real(kind=wp),
             </td>
-<td>intent(in)</td>
+<td>intent(in),</td>
               <td></td>            <td>
-              
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>w</strong></td>
@@ -276,15 +277,30 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-predict_nc"></span>
+              <span class="anchor" id="variable-predicted_number"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>predicted_number</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-predict_for_cloud"></span>
               logical,
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>predict_nc</strong></td>
+            <td><strong>predict_for_cloud</strong></td>
             <td>
                 
             </td>
@@ -292,13 +308,6 @@
     </tbody>
   </table>
 
-      <h3>Return Value
-        <small>
-          <span class="anchor" id="variable-predict_number"></span>
-          real
-        </small>
-      </h3>
-      
     <br>
     <div class="card">
       <div class="card-header">
@@ -310,62 +319,62 @@
  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <!-- Generated by graphviz version 14.0.2 (20251019.1705)
  -->
-<!-- Title: proc~~predict_number~~CallsGraph Pages: 1 -->
-<svg id="procpredict_numberCallsGraph" width="288pt" height="113pt"
- viewBox="0.00 0.00 288.00 113.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="proc~~predict_number~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 108.77)">
-<title>proc~~predict_number~~CallsGraph</title>
-<polygon fill="white" stroke="none" points="-4,4 -4,-108.77 284.29,-108.77 284.29,4 -4,4"/>
-<!-- proc~predict_number -->
-<g id="proc~~predict_number~~CallsGraph_node1" class="node">
-<title>proc~predict_number</title>
-<polygon fill="none" stroke="black" points="86.52,-63.77 0,-63.77 0,-41 86.52,-41 86.52,-63.77"/>
-<text xml:space="preserve" text-anchor="middle" x="43.26" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50">predict_number</text>
+<!-- Title: proc~~tempo_ml_predict_number~~CallsGraph Pages: 1 -->
+<svg id="proctempo_ml_predict_numberCallsGraph" width="342pt" height="113pt"
+ viewBox="0.00 0.00 342.00 113.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="proc~~tempo_ml_predict_number~~CallsGraph" class="graph" transform="scale(1 1) rotate(0) translate(4 108.77)">
+<title>proc~~tempo_ml_predict_number~~CallsGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-108.77 337.54,-108.77 337.54,4 -4,4"/>
+<!-- proc~tempo_ml_predict_number -->
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_node1" class="node">
+<title>proc~tempo_ml_predict_number</title>
+<polygon fill="none" stroke="black" points="139.77,-63.77 0,-63.77 0,-41 139.77,-41 139.77,-63.77"/>
+<text xml:space="preserve" text-anchor="middle" x="69.88" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50">tempo_ml_predict_number</text>
 </g>
 <!-- proc~relu_activation -->
-<g id="proc~~predict_number~~CallsGraph_node2" class="node">
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_node2" class="node">
 <title>proc~relu_activation</title>
-<g id="a_proc~~predict_number~~CallsGraph_node2"><a xlink:href="../proc/relu_activation.html" xlink:title="relu_activation">
-<polygon fill="#d9534f" stroke="#d9534f" points="241.67,-104.77 161.15,-104.77 161.15,-82 241.67,-82 241.67,-104.77"/>
-<text xml:space="preserve" text-anchor="middle" x="201.41" y="-89.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">relu_activation</text>
+<g id="a_proc~~tempo_ml_predict_number~~CallsGraph_node2"><a xlink:href="../proc/relu_activation.html" xlink:title="relu_activation">
+<polygon fill="#d9534f" stroke="#d9534f" points="294.92,-104.77 214.4,-104.77 214.4,-82 294.92,-82 294.92,-104.77"/>
+<text xml:space="preserve" text-anchor="middle" x="254.66" y="-89.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">relu_activation</text>
 </a>
 </g>
 </g>
-<!-- proc~predict_number&#45;&gt;proc~relu_activation -->
-<g id="proc~~predict_number~~CallsGraph_edge1" class="edge">
-<title>proc~predict_number&#45;&gt;proc~relu_activation</title>
-<path fill="none" stroke="#000000" d="M86.93,-63.59C106.36,-68.69 129.49,-74.77 149.79,-80.1"/>
-<polygon fill="#000000" stroke="#000000" points="148.71,-83.43 159.27,-82.58 150.49,-76.66 148.71,-83.43"/>
+<!-- proc~tempo_ml_predict_number&#45;&gt;proc~relu_activation -->
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_edge1" class="edge">
+<title>proc~tempo_ml_predict_number&#45;&gt;proc~relu_activation</title>
+<path fill="none" stroke="#000000" d="M123.75,-64.24C148.71,-69.84 178.36,-76.49 203.03,-82.03"/>
+<polygon fill="#000000" stroke="#000000" points="201.98,-85.38 212.5,-84.15 203.51,-78.55 201.98,-85.38"/>
 </g>
 <!-- proc~standard_scaler_transform -->
-<g id="proc~~predict_number~~CallsGraph_node3" class="node">
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_node3" class="node">
 <title>proc~standard_scaler_transform</title>
-<g id="a_proc~~predict_number~~CallsGraph_node3"><a xlink:href="../proc/standard_scaler_transform.html" xlink:title="standard_scaler_transform">
-<polygon fill="#d9534f" stroke="#d9534f" points="271.29,-63.77 131.52,-63.77 131.52,-41 271.29,-41 271.29,-63.77"/>
-<text xml:space="preserve" text-anchor="middle" x="201.41" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">standard_scaler_transform</text>
+<g id="a_proc~~tempo_ml_predict_number~~CallsGraph_node3"><a xlink:href="../proc/standard_scaler_transform.html" xlink:title="standard_scaler_transform">
+<polygon fill="#d9534f" stroke="#d9534f" points="324.54,-63.77 184.77,-63.77 184.77,-41 324.54,-41 324.54,-63.77"/>
+<text xml:space="preserve" text-anchor="middle" x="254.66" y="-48.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">standard_scaler_transform</text>
 </a>
 </g>
 </g>
-<!-- proc~predict_number&#45;&gt;proc~standard_scaler_transform -->
-<g id="proc~~predict_number~~CallsGraph_edge2" class="edge">
-<title>proc~predict_number&#45;&gt;proc~standard_scaler_transform</title>
-<path fill="none" stroke="#000000" d="M86.93,-52.39C97.15,-52.39 108.41,-52.39 119.73,-52.39"/>
-<polygon fill="#000000" stroke="#000000" points="119.54,-55.89 129.54,-52.39 119.54,-48.89 119.54,-55.89"/>
+<!-- proc~tempo_ml_predict_number&#45;&gt;proc~standard_scaler_transform -->
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_edge2" class="edge">
+<title>proc~tempo_ml_predict_number&#45;&gt;proc~standard_scaler_transform</title>
+<path fill="none" stroke="#000000" d="M140.24,-52.39C150.96,-52.39 162.11,-52.39 173.05,-52.39"/>
+<polygon fill="#000000" stroke="#000000" points="172.83,-55.89 182.83,-52.39 172.83,-48.89 172.83,-55.89"/>
 </g>
 <!-- proc~tempo_save_or_read_ml_data -->
-<g id="proc~~predict_number~~CallsGraph_node4" class="node">
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_node4" class="node">
 <title>proc~tempo_save_or_read_ml_data</title>
-<g id="a_proc~~predict_number~~CallsGraph_node4"><a xlink:href="../proc/tempo_save_or_read_ml_data.html" xlink:title="tempo_save_or_read_ml_data">
-<polygon fill="#d9534f" stroke="#d9534f" points="280.29,-22.77 122.52,-22.77 122.52,0 280.29,0 280.29,-22.77"/>
-<text xml:space="preserve" text-anchor="middle" x="201.41" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tempo_save_or_read_ml_data</text>
+<g id="a_proc~~tempo_ml_predict_number~~CallsGraph_node4"><a xlink:href="../proc/tempo_save_or_read_ml_data.html" xlink:title="tempo_save_or_read_ml_data">
+<polygon fill="#d9534f" stroke="#d9534f" points="333.54,-22.77 175.77,-22.77 175.77,0 333.54,0 333.54,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="254.66" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">tempo_save_or_read_ml_data</text>
 </a>
 </g>
 </g>
-<!-- proc~predict_number&#45;&gt;proc~tempo_save_or_read_ml_data -->
-<g id="proc~~predict_number~~CallsGraph_edge3" class="edge">
-<title>proc~predict_number&#45;&gt;proc~tempo_save_or_read_ml_data</title>
-<path fill="none" stroke="#000000" d="M86.93,-41.18C104.67,-36.52 125.5,-31.05 144.44,-26.08"/>
-<polygon fill="#000000" stroke="#000000" points="145.09,-29.53 153.87,-23.6 143.31,-22.76 145.09,-29.53"/>
+<!-- proc~tempo_ml_predict_number&#45;&gt;proc~tempo_save_or_read_ml_data -->
+<g id="proc~~tempo_ml_predict_number~~CallsGraph_edge3" class="edge">
+<title>proc~tempo_ml_predict_number&#45;&gt;proc~tempo_save_or_read_ml_data</title>
+<path fill="none" stroke="#000000" d="M123.75,-40.53C144.4,-35.89 168.26,-30.54 189.85,-25.7"/>
+<polygon fill="#000000" stroke="#000000" points="190.44,-29.15 199.43,-23.55 188.91,-22.32 190.44,-29.15"/>
 </g>
 </g>
 </svg>

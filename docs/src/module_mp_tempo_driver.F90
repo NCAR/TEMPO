@@ -146,6 +146,8 @@ module module_mp_tempo_driver
           if (present(nifa)) nifa1d(k) = nifa(i,k,j)
           if (present(nc)) nc1d(k) = nc(i,k,j)
 
+          ! option for ml nc here
+
           ! ng and qb are optional hail-aware variables
           if ((present(ng)) .and. (present(qb))) then
             ng1d(k) = ng(i,k,j)

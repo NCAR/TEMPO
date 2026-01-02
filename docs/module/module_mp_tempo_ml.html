@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 4.1% of total for modules and submodules.">182 statements</a>
+                 title=" 3.1% of total for modules and submodules.">138 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -163,23 +163,12 @@
       </a>
       <div id="types-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/module_mp_tempo_ml.html#type-mldata">MLdata</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_ml.html#type-ty_tempo_ml_data">ty_tempo_ml_data</a>
         </div>
       </div>
     </div>
 
-      <div class="card mb-4">
-      <a data-bs-toggle="collapse" href="#funcs-0"
-         aria-expanded="false" aria-controls="funcs-0">
-         <h4 class="card-header bg-primary text-white">Functions</h4>
-      </a>
-      <div id="funcs-0" class="collapse">
-        <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/module_mp_tempo_ml.html#proc-predict_number">predict_number</a>
-        </div>
-      </div>
-    </div>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -188,7 +177,7 @@
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/module_mp_tempo_ml.html#proc-tempo_save_or_read_ml_data">tempo_save_or_read_ml_data</a>
-            <a class="list-group-item" href="../module/module_mp_tempo_ml.html#proc-predict_number_sub">predict_number_sub</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_ml.html#proc-tempo_ml_predict_number">tempo_ml_predict_number</a>
             <a class="list-group-item" href="../module/module_mp_tempo_ml.html#proc-standard_scaler_transform">standard_scaler_transform</a>
             <a class="list-group-item" href="../module/module_mp_tempo_ml.html#proc-relu_activation">relu_activation</a>
         </div>
@@ -209,7 +198,8 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      
+      <p>neural network module designed for cloud droplet number concentration prediction </p>
+<p>inspired by work from <a href="https://github.com/NCAR/mlmicrophysics">David John Gagne (NCAR)</a></p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -392,7 +382,7 @@ modules which it uses.
               <span class="anchor" id="variable-nc_ml_input"></span>
               integer,
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter               
             </td>
@@ -409,7 +399,7 @@ parameter
               <span class="anchor" id="variable-nc_ml_nodes"></span>
               integer,
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter               
             </td>
@@ -426,7 +416,7 @@ parameter
               <span class="anchor" id="variable-nc_ml_output"></span>
               integer,
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter               
             </td>
@@ -443,7 +433,7 @@ parameter
               <span class="anchor" id="variable-nr_ml_input"></span>
               integer,
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter               
             </td>
@@ -460,7 +450,7 @@ parameter
               <span class="anchor" id="variable-nr_ml_nodes"></span>
               integer,
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter               
             </td>
@@ -477,7 +467,7 @@ parameter
               <span class="anchor" id="variable-nr_ml_output"></span>
               integer,
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter               
             </td>
@@ -494,14 +484,14 @@ parameter
               <span class="anchor" id="variable-nc_ml_trans_mean"></span>
               real(kind=wp),
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter,               dimension(nc_ml_input)
             </td>
             <td>::</td>
             <td><strong>nc_ml_trans_mean</strong></td>
 <td> =</td>
-                <td>(/0.000191556196486247, 3.58145042772654e-05, 3.12611085359273e-07, 5.74303078738579e-05, 84191.2092225319, 279.070551773565, 0.123679354084004/)</td>
+                <td>[0.000191556196486247_wp, 3.58145042772654e-05_wp, 3.12611085359273e-07_wp, 5.74303078738579e-05_wp, 84191.2092225319_wp, 279.070551773565_wp, 0.123679354084004_wp]</td>
             <td>
                 
             </td>
@@ -511,14 +501,14 @@ parameter,               dimension(nc_ml_input)
               <span class="anchor" id="variable-nc_ml_trans_var"></span>
               real(kind=wp),
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter,               dimension(nc_ml_input)
             </td>
             <td>::</td>
             <td><strong>nc_ml_trans_var</strong></td>
 <td> =</td>
-                <td>(/5.78143564171777e-08, 3.22834309750552e-08, 6.45745893307455e-11, 4.16625579383794e-08, 215694631.771185, 94.6576255386858, 0.384841247662964/)</td>
+                <td>[5.78143564171777e-08_wp, 3.22834309750552e-08_wp, 6.45745893307455e-11_wp, 4.16625579383794e-08_wp, 215694631.771185_wp, 94.6576255386858_wp, 0.384841247662964_wp]</td>
             <td>
                 
             </td>
@@ -528,14 +518,14 @@ parameter,               dimension(nc_ml_input)
               <span class="anchor" id="variable-nc_ml_w00"></span>
               real(kind=wp),
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter,               dimension(nc_ml_input * nc_ml_nodes)
             </td>
             <td>::</td>
             <td><strong>nc_ml_w00</strong></td>
 <td> =</td>
-                <td>(/-2.006957, -0.2812008, -0.339073, 1.596426, 2.395225, 1.76315, -0.0626798, 1.267002, -0.02234177, -6.522605e-33, 0.4792154, -0.1253034, -3.217191, -3.092887, -0.0863651, 1.071625, 0.09741028, 0.2255831, -0.6929023, -0.02693799, -3.432344e-33, -0.8791879, -0.9359049, 1.083484, -0.07909214, -0.0122418, -0.02815927, 0.1676407, 0.08252326, 0.6697816, -0.4019359, 0.4687141, 0.001813132, -9.792186e-33, 0.0409322, 0.0113192, -0.01354596, 0.00307771, -0.4635534, 0.03835761, -0.1015553, 0.7316446, -0.05791711, -0.0002690362, -7.920147e-33, -0.1216918, -0.3190572, 0.09809405, -0.16476, -0.03387314, 0.005422261, 0.04043967, 0.03901243, 0.07444729, 0.01954299, 0.06918761, 0.04823543, -8.637957e-33, 0.06371575, -0.09250915, -1.109653, -1.373999, -0.2412623, -0.04482195, 0.1584691, 0.06353725, 0.0006248798, 0.04593191, -8.878673e-33, -0.4988684, 0.01110262, 0.04623203, 0.006581791, 0.03536217, -0.1890567, -0.08839592, 0.1327181, 0.03478973, -0.1565902, -0.100401, -0.1179777, -8.879818e-33, -0.1383738, 0.02847495, -0.005902881, 0.005615512, -0.6308192, -0.02431803, -0.141971, -0.3490018, -0.9850957, -0.1449479, -8.059166e-33, -0.1186465, -1.165381, 0.069015, 0.003388841, -0.04041302, 0.1638467, 0.1147008, -0.04833491, -0.07755993, -0.5137688, 0.04546477, 0.04101883, 6.752353e-33, 0.3541977, 0.04880851, -0.00102834, -0.01280629, -0.1116254, -0.02204754, 0.07100908, 0.2354002, 0.07129629, 0.2489657, 8.080785e-33, -0.03449865, 0.06037927, -0.02023619, 0.7779589, 0.04680278, 0.7492616, 0.6545208, -1.09497, -1.176524, -0.451585, 0.881124, -0.4551499, -8.708624e-33, 1.006558, -0.04979523, -0.0006915367, -0.002993054, 0.01654614, -0.07141764, -0.2216591, 0.8637336, 0.8358089, -0.7576646, 8.186339e-33, 0.1161914, 0.7121871, -1.146734, 0.03925339, 0.9975697, -0.06953461, -0.07598846, -0.06418022, -0.01897495, -0.03612464, -0.06703389, -0.103049, 9.364858e-33, -0.03949085, 1.005938, 0.0001625419, -0.01027657, 0.03823901, 0.3197246, -0.1160718, 0.04449431, 0.009831783, 0.6551342, -8.470687e-33, 0.1374123, -0.01782138, 0.01719949/)</td>
+                <td>[-2.006957_wp, -0.2812008_wp, -0.339073_wp, 1.596426_wp, 2.395225_wp, 1.76315_wp, -0.0626798_wp, 1.267002_wp, -0.02234177_wp, -6.522605e-33_wp, 0.4792154_wp, -0.1253034_wp, -3.217191_wp, -3.092887_wp, -0.0863651_wp, 1.071625_wp, 0.09741028_wp, 0.2255831_wp, -0.6929023_wp, -0.02693799_wp, -3.432344e-33_wp, -0.8791879_wp, -0.9359049_wp, 1.083484_wp, -0.07909214_wp, -0.0122418_wp, -0.02815927_wp, 0.1676407_wp, 0.08252326_wp, 0.6697816_wp, -0.4019359_wp, 0.4687141_wp, 0.001813132_wp, -9.792186e-33_wp, 0.0409322_wp, 0.0113192_wp, -0.01354596_wp, 0.00307771_wp, -0.4635534_wp, 0.03835761_wp, -0.1015553_wp, 0.7316446_wp, -0.05791711_wp, -0.0002690362_wp, -7.920147e-33_wp, -0.1216918_wp, -0.3190572_wp, 0.09809405_wp, -0.16476_wp, -0.03387314_wp, 0.005422261_wp, 0.04043967_wp, 0.03901243_wp, 0.07444729_wp, 0.01954299_wp, 0.06918761_wp, 0.04823543_wp, -8.637957e-33_wp, 0.06371575_wp, -0.09250915_wp, -1.109653_wp, -1.373999_wp, -0.2412623_wp, -0.04482195_wp, 0.1584691_wp, 0.06353725_wp, 0.0006248798_wp, 0.04593191_wp, -8.878673e-33_wp, -0.4988684_wp, 0.01110262_wp, 0.04623203_wp, 0.006581791_wp, 0.03536217_wp, -0.1890567_wp, -0.08839592_wp, 0.1327181_wp, 0.03478973_wp, -0.1565902_wp, -0.100401_wp, -0.1179777_wp, -8.879818e-33_wp, -0.1383738_wp, 0.02847495_wp, -0.005902881_wp, 0.005615512_wp, -0.6308192_wp, -0.02431803_wp, -0.141971_wp, -0.3490018_wp, -0.9850957_wp, -0.1449479_wp, -8.059166e-33_wp, -0.1186465_wp, -1.165381_wp, 0.069015_wp, 0.003388841_wp, -0.04041302_wp, 0.1638467_wp, 0.1147008_wp, -0.04833491_wp, -0.07755993_wp, -0.5137688_wp, 0.04546477_wp, 0.04101883_wp, 6.752353e-33_wp, 0.3541977_wp, 0.04880851_wp, -0.00102834_wp, -0.01280629_wp, -0.1116254_wp, -0.02204754_wp, 0.07100908_wp, 0.2354002_wp, 0.07129629_wp, 0.2489657_wp, 8.080785e-33_wp, -0.03449865_wp, 0.06037927_wp, -0.02023619_wp, 0.7779589_wp, 0.04680278_wp, 0.7492616_wp, 0.6545208_wp, -1.09497_wp, -1.176524_wp, -0.451585_wp, 0.881124_wp, -0.4551499_wp, -8.708624e-33_wp, 1.006558_wp, -0.04979523_wp, -0.0006915367_wp, -0.002993054_wp, 0.01654614_wp, -0.07141764_wp, -0.2216591_wp, 0.8637336_wp, 0.8358089_wp, -0.7576646_wp, 8.186339e-33_wp, 0.1161914_wp, 0.7121871_wp, -1.146734_wp, 0.03925339_wp, 0.9975697_wp, -0.06953461_wp, -0.07598846_wp, -0.06418022_wp, -0.01897495_wp, -0.03612464_wp, -0.06703389_wp, -0.103049_wp, 9.364858e-33_wp, -0.03949085_wp, 1.005938_wp, 0.0001625419_wp, -0.01027657_wp, 0.03823901_wp, 0.3197246_wp, -0.1160718_wp, 0.04449431_wp, 0.009831783_wp, 0.6551342_wp, -8.470687e-33_wp, 0.1374123_wp, -0.01782138_wp, 0.01719949_wp]</td>
             <td>
                 
             </td>
@@ -545,14 +535,14 @@ parameter,               dimension(nc_ml_input * nc_ml_nodes)
               <span class="anchor" id="variable-nc_ml_w01"></span>
               real(kind=wp),
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter,               dimension(nc_ml_nodes)
             </td>
             <td>::</td>
             <td><strong>nc_ml_w01</strong></td>
 <td> =</td>
-                <td>(/-4.045869, 0.558111, -1.567351, -1.64972, 2.748608, -1.909901, 0.3955558, 1.507247, 0.3599722, -0.0001173223, -0.9398569, -0.6867028, -61.72853, -63.13766, 1.165811, -0.6848684, 0.1931683, 1.1208, 2.63087, 0.740169, -21.62499, 1.545568, 3.575141, -1.299604/)</td>
+                <td>[-4.045869_wp, 0.558111_wp, -1.567351_wp, -1.64972_wp, 2.748608_wp, -1.909901_wp, 0.3955558_wp, 1.507247_wp, 0.3599722_wp, -0.0001173223_wp, -0.9398569_wp, -0.6867028_wp, -61.72853_wp, -63.13766_wp, 1.165811_wp, -0.6848684_wp, 0.1931683_wp, 1.1208_wp, 2.63087_wp, 0.740169_wp, -21.62499_wp, 1.545568_wp, 3.575141_wp, -1.299604_wp]</td>
             <td>
                 
             </td>
@@ -562,14 +552,14 @@ parameter,               dimension(nc_ml_nodes)
               <span class="anchor" id="variable-nc_ml_b00"></span>
               real(kind=wp),
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter,               dimension(nc_ml_nodes)
             </td>
             <td>::</td>
             <td><strong>nc_ml_b00</strong></td>
 <td> =</td>
-                <td>(/-0.9842531, 0.3064759, -0.4500185, 1.28336, 1.384105, 0.528031, 0.8453538, 1.579872, 2.245679, -0.008679952, 0.4549862, -0.136581, -2.576741, -2.483647, -0.2089484, 0.7607977, 1.847745, 0.7316047, -0.287945, 2.227298, -2.314714, -0.2561245, -0.6993448, -0.1359731/)</td>
+                <td>[-0.9842531_wp, 0.3064759_wp, -0.4500185_wp, 1.28336_wp, 1.384105_wp, 0.528031_wp, 0.8453538_wp, 1.579872_wp, 2.245679_wp, -0.008679952_wp, 0.4549862_wp, -0.136581_wp, -2.576741_wp, -2.483647_wp, -0.2089484_wp, 0.7607977_wp, 1.847745_wp, 0.7316047_wp, -0.287945_wp, 2.227298_wp, -2.314714_wp, -0.2561245_wp, -0.6993448_wp, -0.1359731_wp]</td>
             <td>
                 
             </td>
@@ -579,14 +569,14 @@ parameter,               dimension(nc_ml_nodes)
               <span class="anchor" id="variable-nc_ml_b01"></span>
               real(kind=wp),
             </td>
-              <td>public,</td>
+              <td>private,</td>
             <td>
 parameter,               dimension(nc_ml_output)
             </td>
             <td>::</td>
             <td><strong>nc_ml_b01</strong></td>
 <td> =</td>
-                <td>(/1.572826/)</td>
+                <td>[1.572826_wp]</td>
             <td>
                 
             </td>
@@ -604,10 +594,10 @@ parameter,               dimension(nc_ml_output)
           <h2>Derived Types</h2>
               <div class="card">
     <div class="card-header codesum">
-      <span class="anchor" id="type-mldata"></span>
+      <span class="anchor" id="type-ty_tempo_ml_data"></span>
       <h3>
         type, public&nbsp;::&nbsp;
-        <a href='../type/mldata.html'>MLdata</a>
+        <a href='../type/ty_tempo_ml_data.html'>ty_tempo_ml_data</a>
         
       </h3>
     </div>
@@ -790,160 +780,6 @@ parameter,               dimension(nc_ml_output)
         </section>
         <br>
 
-        <section>
-          <h2>Functions</h2>
-              <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-predict_number"></span> <h3>public  function <a href='../proc/predict_number.html'>predict_number</a>(qc, qr, qi, qs, pres, temp, w, predict_nc)  
-</h3></div>
-    <div class="card-body">
-          
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-qc"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>qc</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-qr"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>qr</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-qi"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>qi</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-qs"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>qs</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-pres"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>pres</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-temp~4"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>temp</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-w"></span>
-              real,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>w</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-predict_nc"></span>
-              logical,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>predict_nc</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    <h4>
-    Return Value
-    <small>real</small>
-    </h4>
-    
-
-    </div>
-  </div>
-
-        </section>
-        <br>
 
         <section>
           <h2>Subroutines</h2>
@@ -952,7 +788,7 @@ parameter,               dimension(nc_ml_output)
 </h3></div>
     <div class="card-body">
           
-  
+  <p>initializes and saves or returns neural network information</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -968,7 +804,7 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-ml_data_in"></span>
-              type(<a href='../type/mldata.html'>MLdata</a>),
+              type(<a href='../type/ty_tempo_ml_data.html'>ty_tempo_ml_data</a>),
             </td>
 <td>intent(in),</td>
               <td>optional,</td>            <td>
@@ -983,7 +819,7 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-ml_data_out"></span>
-              type(<a href='../type/mldata.html'>MLdata</a>),
+              type(<a href='../type/ty_tempo_ml_data.html'>ty_tempo_ml_data</a>),
             </td>
 <td>intent(out),</td>
               <td>optional,</td>            <td>
@@ -1003,11 +839,11 @@ parameter,               dimension(nc_ml_output)
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-predict_number_sub"></span> <h3>public  subroutine <a href='../proc/predict_number_sub.html'>predict_number_sub</a>(kts, kte, qc, qr, qi, qs, pres, temp, w, predict_number, predict_nc)  
+    <div class="card-header codesum"><span class="anchor" id="proc-tempo_ml_predict_number"></span> <h3>public  subroutine <a href='../proc/tempo_ml_predict_number.html'>tempo_ml_predict_number</a>(qc, qr, qi, qs, pres, temp, w, predicted_number, predict_for_cloud)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>predicts number concentration</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1022,42 +858,12 @@ parameter,               dimension(nc_ml_output)
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts"></span>
-              integer,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>kts</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-kte"></span>
-              integer,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>kte</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
               <span class="anchor" id="variable-qc~2"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qc</strong></td>
@@ -1068,11 +874,11 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-qr~2"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qr</strong></td>
@@ -1083,11 +889,11 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-qi~2"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qi</strong></td>
@@ -1098,11 +904,11 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-qs~2"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>qs</strong></td>
@@ -1112,12 +918,12 @@ parameter,               dimension(nc_ml_output)
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-pres~2"></span>
-              real,
+              <span class="anchor" id="variable-pres"></span>
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>pres</strong></td>
@@ -1127,12 +933,12 @@ parameter,               dimension(nc_ml_output)
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~5"></span>
-              real,
+              <span class="anchor" id="variable-temp~2"></span>
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>temp</strong></td>
@@ -1143,11 +949,11 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-w~2"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
             <td><strong>w</strong></td>
@@ -1157,30 +963,30 @@ parameter,               dimension(nc_ml_output)
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-predict_number~2"></span>
-              double precision,
+              <span class="anchor" id="variable-predicted_number"></span>
+              real(kind=wp),
             </td>
 <td>intent(inout),</td>
               <td></td>            <td>
-              dimension(kts:kte)
+              dimension(:)
             </td>
             <td>::</td>
-            <td><strong>predict_number</strong></td>
+            <td><strong>predicted_number</strong></td>
             <td>
 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-predict_nc~2"></span>
+              <span class="anchor" id="variable-predict_for_cloud"></span>
               logical,
             </td>
-<td>intent(in)</td>
-              <td></td>            <td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
               
             </td>
             <td>::</td>
-            <td><strong>predict_nc</strong></td>
+            <td><strong>predict_for_cloud</strong></td>
             <td>
 
             </td>
@@ -1193,11 +999,11 @@ parameter,               dimension(nc_ml_output)
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-standard_scaler_transform"></span> <h3>public  subroutine <a href='../proc/standard_scaler_transform.html'>standard_scaler_transform</a>(mean, var, raw_data, transformed_data)  
+    <div class="card-header codesum"><span class="anchor" id="proc-standard_scaler_transform"></span> <h3>private  subroutine <a href='../proc/standard_scaler_transform.html'>standard_scaler_transform</a>(mean, var, raw_data, transformed_data)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>standard scaler tranformer</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1213,7 +1019,7 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-mean"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1228,7 +1034,7 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-var"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1243,7 +1049,7 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-raw_data"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1258,14 +1064,14 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-transformed_data"></span>
-              real,
+              real(kind=wp),
             </td>
-<td>intent(out)</td>
+<td>intent(out),</td>
               <td></td>            <td>
-              
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
-            <td><strong>transformed_data</strong>(size(raw_data,1),size(raw_data,2))</td>
+            <td><strong>transformed_data</strong></td>
             <td>
 
             </td>
@@ -1278,11 +1084,11 @@ parameter,               dimension(nc_ml_output)
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-relu_activation"></span> <h3>public  subroutine <a href='../proc/relu_activation.html'>relu_activation</a>(input, output)  
+    <div class="card-header codesum"><span class="anchor" id="proc-relu_activation"></span> <h3>private  subroutine <a href='../proc/relu_activation.html'>relu_activation</a>(input, output)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>relu activation function</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -1297,8 +1103,8 @@ parameter,               dimension(nc_ml_output)
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input~3"></span>
-              real,
+              <span class="anchor" id="variable-input~2"></span>
+              real(kind=wp),
             </td>
 <td>intent(in),</td>
               <td></td>            <td>
@@ -1313,11 +1119,11 @@ parameter,               dimension(nc_ml_output)
         <tr>
             <td>
               <span class="anchor" id="variable-output"></span>
-              real,
+              real(kind=wp),
             </td>
 <td>intent(out),</td>
               <td></td>            <td>
-              dimension(size(input, 1), size(input, 2))
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
             <td><strong>output</strong></td>

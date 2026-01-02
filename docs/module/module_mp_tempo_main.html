@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="49.4% of total for modules and submodules.">2213 statements</a>
+                 title="50.0% of total for modules and submodules.">2218 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -241,10 +241,10 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='module_mp_tempo_aerosols.html'>module_mp_tempo_aerosols</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_utils.html'>module_mp_tempo_utils</a></li>
-                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
+                  <li class="list-inline-item"><a href='module_mp_tempo_aerosols.html'>module_mp_tempo_aerosols</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_diags.html'>module_mp_tempo_diags</a></li>
+                  <li class="list-inline-item"><a href='module_mp_tempo_params.html'>module_mp_tempo_params</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -672,7 +672,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rain_precip"></span>
+              <span class="anchor" id="variable-rain_precip~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
@@ -706,7 +706,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ice_liquid_equiv_precip"></span>
+              <span class="anchor" id="variable-ice_liquid_equiv_precip~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
@@ -723,7 +723,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-snow_liquid_equiv_precip"></span>
+              <span class="anchor" id="variable-snow_liquid_equiv_precip~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
@@ -740,7 +740,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-graupel_liquid_equiv_precip"></span>
+              <span class="anchor" id="variable-graupel_liquid_equiv_precip~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
@@ -757,7 +757,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-frozen_fraction"></span>
+              <span class="anchor" id="variable-frozen_fraction~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
@@ -774,7 +774,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rain_med_vol_diam~2"></span>
+              <span class="anchor" id="variable-rain_med_vol_diam~3"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -791,7 +791,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-graupel_med_vol_diam~2"></span>
+              <span class="anchor" id="variable-graupel_med_vol_diam~3"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -808,7 +808,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-refl10cm~2"></span>
+              <span class="anchor" id="variable-refl10cm~3"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -825,7 +825,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_cloud~2"></span>
+              <span class="anchor" id="variable-re_cloud~3"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -842,7 +842,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_ice~2"></span>
+              <span class="anchor" id="variable-re_ice~3"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -859,7 +859,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_snow~2"></span>
+              <span class="anchor" id="variable-re_snow~3"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -2200,7 +2200,10 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>aqueous solution freezing of water from 
+<a href="https://doi.org/10.1038/35020537">Koop et al. (2000)</a>
+newer research suggests that the freezing rate should be lower 
+than original paper, so J_rate is reduced by two orders of magnitude</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2215,7 +2218,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~15"></span>
+              <span class="anchor" id="variable-temp~11"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2275,7 +2278,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>calculations numer of cloud droplets activated</p><a href="../proc/activate_cloud_number.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2290,7 +2293,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~16"></span>
+              <span class="anchor" id="variable-temp~12"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2305,7 +2308,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~4"></span>
+              <span class="anchor" id="variable-w1d~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2320,7 +2323,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~5"></span>
+              <span class="anchor" id="variable-nwfa~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2365,7 +2368,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>DeMott nucleation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2395,7 +2398,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~20"></span>
+              <span class="anchor" id="variable-rho~19"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2410,7 +2413,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa~5"></span>
+              <span class="anchor" id="variable-nifa~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2445,7 +2448,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>tempo main</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2460,7 +2463,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv1d"></span>
+              <span class="anchor" id="variable-qv1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2476,7 +2479,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc1d"></span>
+              <span class="anchor" id="variable-qc1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2492,7 +2495,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi1d"></span>
+              <span class="anchor" id="variable-qi1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2508,7 +2511,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qr1d"></span>
+              <span class="anchor" id="variable-qr1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2524,7 +2527,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qs1d"></span>
+              <span class="anchor" id="variable-qs1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2540,7 +2543,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qg1d"></span>
+              <span class="anchor" id="variable-qg1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2556,7 +2559,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qb1d"></span>
+              <span class="anchor" id="variable-qb1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2572,7 +2575,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni1d"></span>
+              <span class="anchor" id="variable-ni1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2588,7 +2591,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr1d"></span>
+              <span class="anchor" id="variable-nr1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2604,7 +2607,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc1d"></span>
+              <span class="anchor" id="variable-nc1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2620,7 +2623,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng1d"></span>
+              <span class="anchor" id="variable-ng1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2636,7 +2639,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa1d"></span>
+              <span class="anchor" id="variable-nwfa1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2652,7 +2655,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa1d"></span>
+              <span class="anchor" id="variable-nifa1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2668,7 +2671,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t1d"></span>
+              <span class="anchor" id="variable-t1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2684,7 +2687,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p1d"></span>
+              <span class="anchor" id="variable-p1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -2700,7 +2703,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d"></span>
+              <span class="anchor" id="variable-w1d~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -2716,7 +2719,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~3"></span>
+              <span class="anchor" id="variable-dz1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -2732,7 +2735,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts~2"></span>
+              <span class="anchor" id="variable-kts~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -2762,7 +2765,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dt"></span>
+              <span class="anchor" id="variable-dt~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -2807,7 +2810,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tempo_main_diags"></span>
+              <span class="anchor" id="variable-tempo_main_diags~2"></span>
               type(<a href='../type/ty_tempo_main_diags.html'>ty_tempo_main_diags</a>),
             </td>
 <td>intent(out)</td>
@@ -2847,7 +2850,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~3"></span>
+              <span class="anchor" id="variable-rho~2"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -2862,7 +2865,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa1d~2"></span>
+              <span class="anchor" id="variable-nwfa1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2877,7 +2880,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa1d~2"></span>
+              <span class="anchor" id="variable-nifa1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2892,7 +2895,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~3"></span>
+              <span class="anchor" id="variable-nwfa~5"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2907,7 +2910,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa~3"></span>
+              <span class="anchor" id="variable-nifa~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -2977,7 +2980,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~4"></span>
+              <span class="anchor" id="variable-rho~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -2992,7 +2995,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~3"></span>
+              <span class="anchor" id="variable-l_qc~2"></span>
               logical,
             </td>
 <td>intent(inout),</td>
@@ -3007,7 +3010,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc1d~2"></span>
+              <span class="anchor" id="variable-qc1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3022,7 +3025,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc1d~2"></span>
+              <span class="anchor" id="variable-nc1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3097,7 +3100,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~3"></span>
+              <span class="anchor" id="variable-ilamc~2"></span>
               real(kind=dp),
             </td>
 <td>intent(out),</td>
@@ -3152,7 +3155,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~5"></span>
+              <span class="anchor" id="variable-rho~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3167,7 +3170,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~4"></span>
+              <span class="anchor" id="variable-l_qr~2"></span>
               logical,
             </td>
 <td>intent(inout),</td>
@@ -3182,7 +3185,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qr1d~2"></span>
+              <span class="anchor" id="variable-qr1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3197,7 +3200,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr1d~2"></span>
+              <span class="anchor" id="variable-nr1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3212,7 +3215,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~5"></span>
+              <span class="anchor" id="variable-rr~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3272,7 +3275,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~3"></span>
+              <span class="anchor" id="variable-ilamr~2"></span>
               real(kind=dp),
             </td>
 <td>intent(out),</td>
@@ -3327,7 +3330,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~6"></span>
+              <span class="anchor" id="variable-rho~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3342,7 +3345,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qi~3"></span>
+              <span class="anchor" id="variable-l_qi~2"></span>
               logical,
             </td>
 <td>intent(inout),</td>
@@ -3357,7 +3360,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi1d~2"></span>
+              <span class="anchor" id="variable-qi1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3372,7 +3375,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni1d~2"></span>
+              <span class="anchor" id="variable-ni1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3402,7 +3405,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni~2"></span>
+              <span class="anchor" id="variable-ni~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3447,7 +3450,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilami~3"></span>
+              <span class="anchor" id="variable-ilami~2"></span>
               real(kind=dp),
             </td>
 <td>intent(out),</td>
@@ -3487,7 +3490,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~7"></span>
+              <span class="anchor" id="variable-rho~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3502,7 +3505,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~5"></span>
+              <span class="anchor" id="variable-l_qs~2"></span>
               logical,
             </td>
 <td>intent(inout),</td>
@@ -3517,7 +3520,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qs1d~2"></span>
+              <span class="anchor" id="variable-qs1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3532,7 +3535,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~5"></span>
+              <span class="anchor" id="variable-rs~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3587,7 +3590,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~8"></span>
+              <span class="anchor" id="variable-rho~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3602,7 +3605,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~4"></span>
+              <span class="anchor" id="variable-l_qg~2"></span>
               logical,
             </td>
 <td>intent(inout),</td>
@@ -3617,7 +3620,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qg1d~2"></span>
+              <span class="anchor" id="variable-qg1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3632,7 +3635,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng1d~2"></span>
+              <span class="anchor" id="variable-ng1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3647,7 +3650,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qb1d~2"></span>
+              <span class="anchor" id="variable-qb1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3662,7 +3665,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~5"></span>
+              <span class="anchor" id="variable-rg~2"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3677,7 +3680,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~5"></span>
+              <span class="anchor" id="variable-ng~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3707,7 +3710,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~5"></span>
+              <span class="anchor" id="variable-idx~2"></span>
               integer,
             </td>
 <td>intent(inout),</td>
@@ -3767,7 +3770,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~5"></span>
+              <span class="anchor" id="variable-ilamg~2"></span>
               real(kind=dp),
             </td>
 <td>intent(out),</td>
@@ -3807,7 +3810,8 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  
+  <p>initializes graupel number and volume if both are zero
+and hail-aware = true</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -3822,7 +3826,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~9"></span>
+              <span class="anchor" id="variable-rho~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3837,7 +3841,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qg1d~3"></span>
+              <span class="anchor" id="variable-qg1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3852,7 +3856,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng1d~3"></span>
+              <span class="anchor" id="variable-ng1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3867,7 +3871,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qb1d~3"></span>
+              <span class="anchor" id="variable-qb1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -3892,7 +3896,7 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>compute thermodynamic variables</p>
+  <p>computes thermodynamic variables</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -3907,7 +3911,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~2"></span>
+              <span class="anchor" id="variable-qv~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3922,7 +3926,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~8"></span>
+              <span class="anchor" id="variable-temp~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3937,7 +3941,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-pres~4"></span>
+              <span class="anchor" id="variable-pres~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -3952,7 +3956,7 @@ modules which it uses.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~10"></span>
+              <span class="anchor" id="variable-rho~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4232,8 +4236,8 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>check to ensure that loss terms don't over-deplete a category
-adjust tendencies if needed</p>
+  <p>check to ensure that loss terms don't over-deplete a category and
+adjusts tendencies if needed</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -4248,7 +4252,7 @@ adjust tendencies if needed</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~11"></span>
+              <span class="anchor" id="variable-rho~10"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4263,7 +4267,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~9"></span>
+              <span class="anchor" id="variable-temp~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4293,7 +4297,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~3"></span>
+              <span class="anchor" id="variable-qv~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4308,7 +4312,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~4"></span>
+              <span class="anchor" id="variable-l_qc~3"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -4338,7 +4342,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qi~4"></span>
+              <span class="anchor" id="variable-l_qi~3"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -4368,7 +4372,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~5"></span>
+              <span class="anchor" id="variable-l_qr~3"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -4383,7 +4387,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~6"></span>
+              <span class="anchor" id="variable-rr~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4398,7 +4402,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~6"></span>
+              <span class="anchor" id="variable-l_qs~3"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -4413,7 +4417,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~6"></span>
+              <span class="anchor" id="variable-rs~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4428,7 +4432,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~5"></span>
+              <span class="anchor" id="variable-l_qg~3"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -4443,7 +4447,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~7"></span>
+              <span class="anchor" id="variable-rg~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4483,7 +4487,7 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>sums tendencies for each microphysical category and temperature</p>
+  <p>sums tendencies for each hydrometeor category and temperature and moisture</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -4498,7 +4502,7 @@ adjust tendencies if needed</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~12"></span>
+              <span class="anchor" id="variable-rho~11"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4513,7 +4517,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~10"></span>
+              <span class="anchor" id="variable-temp~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4528,7 +4532,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~7"></span>
+              <span class="anchor" id="variable-idx~4"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -4778,7 +4782,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>computes sedimentation fluxes, adds fluxes to tendencies, and updates hydrometeor
+mass (and number and volume)</p><a href="../proc/sedimentation.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -4823,7 +4828,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~4"></span>
+              <span class="anchor" id="variable-dz1d~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4838,7 +4843,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~13"></span>
+              <span class="anchor" id="variable-rho~12"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4938,7 +4943,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>semi-lagrangian sedimentation scheme from 
+<a href="https://doi.org/10.1175/2009MWR3109.1">Juang and Hong (2010)</a></p><a href="../proc/semilagrangian_sedimentation.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -4953,7 +4959,7 @@ adjust tendencies if needed</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~5"></span>
+              <span class="anchor" id="variable-dz1d~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -4968,7 +4974,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~14"></span>
+              <span class="anchor" id="variable-rho~13"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5083,7 +5089,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>mass and number weighted fall speeds for rain</p>
+  <p>calculates mass and number weighted fall speeds for rain
+and optionally the substepping required and the top k-level of sedimentation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -5113,7 +5120,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~6"></span>
+              <span class="anchor" id="variable-l_qr~4"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -5128,7 +5135,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~7"></span>
+              <span class="anchor" id="variable-rr~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5143,7 +5150,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~4"></span>
+              <span class="anchor" id="variable-ilamr~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -5158,7 +5165,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~6"></span>
+              <span class="anchor" id="variable-dz1d~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5243,7 +5250,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>mass and number weighted fall speeds for graupel</p>
+  <p>calculates mass and number weighted fall speeds for graupel
+and optionally the substepping required and the top k-level of sedimentation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -5273,7 +5281,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~15"></span>
+              <span class="anchor" id="variable-rho~14"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5288,7 +5296,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~11"></span>
+              <span class="anchor" id="variable-temp~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5318,7 +5326,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~6"></span>
+              <span class="anchor" id="variable-l_qg~4"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -5333,7 +5341,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~8"></span>
+              <span class="anchor" id="variable-rg~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5363,7 +5371,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qb1d~4"></span>
+              <span class="anchor" id="variable-qb1d~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5378,7 +5386,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~8"></span>
+              <span class="anchor" id="variable-idx~5"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -5393,7 +5401,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~6"></span>
+              <span class="anchor" id="variable-ilamg~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -5408,7 +5416,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~7"></span>
+              <span class="anchor" id="variable-dz1d~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5493,7 +5501,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>mass weighted fall speeds for snow</p>
+  <p>calcules mass weighted fall speeds for snow
+and optionally the substepping required and the top k-level of sedimentation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -5523,7 +5532,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~7"></span>
+              <span class="anchor" id="variable-l_qs~4"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -5538,7 +5547,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~7"></span>
+              <span class="anchor" id="variable-rs~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5568,7 +5577,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~5"></span>
+              <span class="anchor" id="variable-smob~2"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -5583,7 +5592,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~5"></span>
+              <span class="anchor" id="variable-smoc~2"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -5598,7 +5607,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~8"></span>
+              <span class="anchor" id="variable-rr~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5628,7 +5637,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~8"></span>
+              <span class="anchor" id="variable-dz1d~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5713,7 +5722,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>mass and number weighted fall speeds for ice</p>
+  <p>calculates mass and number weighted fall speeds for ice
+and the substepping required and the top k-level of sedimentation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -5743,7 +5753,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qi~5"></span>
+              <span class="anchor" id="variable-l_qi~4"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -5773,7 +5783,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilami~4"></span>
+              <span class="anchor" id="variable-ilami~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -5788,7 +5798,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~9"></span>
+              <span class="anchor" id="variable-dz1d~10"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5873,7 +5883,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>mass and number weighted fall speeds for cloud</p>
+  <p>calculates mass and number weighted fall speeds for cloud
+and the top k-level of sedimentation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -5903,7 +5914,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~2"></span>
+              <span class="anchor" id="variable-w1d~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -5918,7 +5929,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~5"></span>
+              <span class="anchor" id="variable-l_qc~4"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -5963,7 +5974,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~4"></span>
+              <span class="anchor" id="variable-ilamc~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -5978,7 +5989,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~10"></span>
+              <span class="anchor" id="variable-dz1d~11"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6063,7 +6074,7 @@ adjust tendencies if needed</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~16"></span>
+              <span class="anchor" id="variable-rho~15"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6078,7 +6089,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~12"></span>
+              <span class="anchor" id="variable-temp~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6093,7 +6104,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~3"></span>
+              <span class="anchor" id="variable-w1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6183,7 +6194,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~4"></span>
+              <span class="anchor" id="variable-nwfa~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6198,7 +6209,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~4"></span>
+              <span class="anchor" id="variable-qv~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6228,7 +6239,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~6"></span>
+              <span class="anchor" id="variable-l_qc~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -6298,7 +6309,8 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>rain evaporation that includes reduction in the evaporation rate
+in the presence of melting graupel</p><a href="../proc/rain_evaporation.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -6313,7 +6325,7 @@ adjust tendencies if needed</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~17"></span>
+              <span class="anchor" id="variable-rho~16"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6328,7 +6340,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~13"></span>
+              <span class="anchor" id="variable-temp~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6433,7 +6445,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~5"></span>
+              <span class="anchor" id="variable-qv~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6463,7 +6475,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~7"></span>
+              <span class="anchor" id="variable-l_qr~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -6478,7 +6490,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~9"></span>
+              <span class="anchor" id="variable-rr~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6508,7 +6520,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~5"></span>
+              <span class="anchor" id="variable-ilamr~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -6563,7 +6575,7 @@ adjust tendencies if needed</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~14"></span>
+              <span class="anchor" id="variable-temp~10"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6578,7 +6590,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~18"></span>
+              <span class="anchor" id="variable-rho~17"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6623,7 +6635,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi1d~3"></span>
+              <span class="anchor" id="variable-qi1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6638,7 +6650,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni1d~3"></span>
+              <span class="anchor" id="variable-ni1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6683,7 +6695,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc1d~3"></span>
+              <span class="anchor" id="variable-qc1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6698,7 +6710,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc1d~3"></span>
+              <span class="anchor" id="variable-nc1d~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6768,7 +6780,7 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>Compute warm-rain process rates -- condensation/evaporation happen later</p><a href="../proc/warm_rain.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+  <p>computes warm-rain process rates -- condensation/evaporation happen later</p><a href="../proc/warm_rain.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -6798,7 +6810,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~7"></span>
+              <span class="anchor" id="variable-l_qc~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -6843,7 +6855,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~5"></span>
+              <span class="anchor" id="variable-ilamc~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -6873,7 +6885,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~8"></span>
+              <span class="anchor" id="variable-l_qr~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -6888,7 +6900,7 @@ adjust tendencies if needed</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~10"></span>
+              <span class="anchor" id="variable-rr~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -6958,8 +6970,7 @@ adjust tendencies if needed</p>
 </h3></div>
     <div class="card-body">
           
-  <p>rime density formula from Cober and List (1993) and 
-also used by Milbrandt and Morrison (2014)</p>
+  <p>snow and graupel riming</p><a href="../proc/riming.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -6974,7 +6985,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~17"></span>
+              <span class="anchor" id="variable-temp~13"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7019,7 +7030,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qc~8"></span>
+              <span class="anchor" id="variable-l_qc~7"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -7064,7 +7075,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamc~6"></span>
+              <span class="anchor" id="variable-ilamc~5"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -7094,7 +7105,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~8"></span>
+              <span class="anchor" id="variable-l_qs~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -7109,7 +7120,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~8"></span>
+              <span class="anchor" id="variable-rs~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7139,7 +7150,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~6"></span>
+              <span class="anchor" id="variable-smob~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -7154,7 +7165,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~6"></span>
+              <span class="anchor" id="variable-smoc~3"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -7199,7 +7210,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~7"></span>
+              <span class="anchor" id="variable-l_qg~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -7214,7 +7225,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~9"></span>
+              <span class="anchor" id="variable-rg~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7229,7 +7240,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~7"></span>
+              <span class="anchor" id="variable-ng~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7244,7 +7255,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~7"></span>
+              <span class="anchor" id="variable-ilamg~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -7259,7 +7270,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~10"></span>
+              <span class="anchor" id="variable-idx~7"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -7299,7 +7310,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get snow table index from snow mass</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7314,7 +7325,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~9"></span>
+              <span class="anchor" id="variable-rs~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -7354,7 +7365,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get temperature table index</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7409,7 +7420,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get rain table indices from rain mass and lambda</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7424,7 +7435,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~11"></span>
+              <span class="anchor" id="variable-rr~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -7439,7 +7450,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~6"></span>
+              <span class="anchor" id="variable-ilamr~5"></span>
               real(kind=dp),
             </td>
 <td>intent(in)</td>
@@ -7494,7 +7505,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get graupel table indices from graupel mass, lambda, and density index</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7509,7 +7520,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~10"></span>
+              <span class="anchor" id="variable-rg~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -7524,7 +7535,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~8"></span>
+              <span class="anchor" id="variable-ilamg~5"></span>
               real(kind=dp),
             </td>
 <td>intent(in)</td>
@@ -7539,7 +7550,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~11"></span>
+              <span class="anchor" id="variable-idx~8"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -7594,7 +7605,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get cloud table index from mass and number</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7679,7 +7690,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get ice table index from mass and number</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7709,7 +7720,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni~3"></span>
+              <span class="anchor" id="variable-ni~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -7764,7 +7775,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>calculates rain-snow and rain-graupel collection</p><a href="../proc/rain_snow_rain_graupel.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7779,7 +7790,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~18"></span>
+              <span class="anchor" id="variable-temp~14"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7794,7 +7805,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~9"></span>
+              <span class="anchor" id="variable-l_qr~7"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -7809,7 +7820,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~12"></span>
+              <span class="anchor" id="variable-rr~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7839,7 +7850,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~7"></span>
+              <span class="anchor" id="variable-ilamr~6"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -7854,7 +7865,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~9"></span>
+              <span class="anchor" id="variable-l_qs~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -7869,7 +7880,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~10"></span>
+              <span class="anchor" id="variable-rs~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7884,7 +7895,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~8"></span>
+              <span class="anchor" id="variable-l_qg~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -7899,7 +7910,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~11"></span>
+              <span class="anchor" id="variable-rg~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7914,7 +7925,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~8"></span>
+              <span class="anchor" id="variable-ng~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -7929,7 +7940,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~9"></span>
+              <span class="anchor" id="variable-ilamg~6"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -7944,7 +7955,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~12"></span>
+              <span class="anchor" id="variable-idx~9"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -7984,7 +7995,10 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>ice nulceation
+@ ote
+freezing of water drops into either cloud ice or graupel is from 
+<a href="https://doi.org/10.1002/qj.49707934207">Bigg (1953)</a></p><a href="../proc/ice_nucleation.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -7999,7 +8013,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~19"></span>
+              <span class="anchor" id="variable-temp~15"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8014,7 +8028,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~19"></span>
+              <span class="anchor" id="variable-rho~18"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8029,7 +8043,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~5"></span>
+              <span class="anchor" id="variable-w1d~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8044,7 +8058,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~6"></span>
+              <span class="anchor" id="variable-qv~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8104,7 +8118,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa~4"></span>
+              <span class="anchor" id="variable-nifa~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8119,7 +8133,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~6"></span>
+              <span class="anchor" id="variable-nwfa~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8134,7 +8148,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni~4"></span>
+              <span class="anchor" id="variable-ni~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8194,7 +8208,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~13"></span>
+              <span class="anchor" id="variable-rr~10"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8224,7 +8238,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~8"></span>
+              <span class="anchor" id="variable-ilamr~7"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -8264,7 +8278,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>get ice nuclei table index</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -8319,7 +8333,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>calculations thermodynamic term used in depositional growth and melting</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -8334,7 +8348,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~21"></span>
+              <span class="anchor" id="variable-rho~20"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8349,7 +8363,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~20"></span>
+              <span class="anchor" id="variable-temp~16"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8449,7 +8463,9 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>ice processes including cloud ice depositional growth, conversion of cloud ice
+to snow, snow collecting cloud ice, rain collecting cloud ice, snow depositional growth, 
+and graupel sublimation</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -8494,7 +8510,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~22"></span>
+              <span class="anchor" id="variable-rho~21"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8509,7 +8525,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~6"></span>
+              <span class="anchor" id="variable-w1d~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8524,7 +8540,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~21"></span>
+              <span class="anchor" id="variable-temp~17"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8539,7 +8555,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~7"></span>
+              <span class="anchor" id="variable-qv~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8644,7 +8660,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qi~6"></span>
+              <span class="anchor" id="variable-l_qi~5"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -8674,7 +8690,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni~5"></span>
+              <span class="anchor" id="variable-ni~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8689,7 +8705,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilami~5"></span>
+              <span class="anchor" id="variable-ilami~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -8704,7 +8720,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~10"></span>
+              <span class="anchor" id="variable-l_qs~7"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -8719,7 +8735,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~11"></span>
+              <span class="anchor" id="variable-rs~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8794,7 +8810,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~14"></span>
+              <span class="anchor" id="variable-rr~11"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8824,7 +8840,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~9"></span>
+              <span class="anchor" id="variable-ilamr~8"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -8854,7 +8870,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~9"></span>
+              <span class="anchor" id="variable-l_qg~7"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -8869,7 +8885,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~12"></span>
+              <span class="anchor" id="variable-rg~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8884,7 +8900,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~9"></span>
+              <span class="anchor" id="variable-ng~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -8899,7 +8915,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~10"></span>
+              <span class="anchor" id="variable-ilamg~7"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -8914,7 +8930,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~13"></span>
+              <span class="anchor" id="variable-idx~10"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -8954,7 +8970,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>melting of snow and graupel  </p><a href="../proc/melting.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -8999,7 +9015,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~23"></span>
+              <span class="anchor" id="variable-rho~22"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9014,7 +9030,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~7"></span>
+              <span class="anchor" id="variable-w1d~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9029,7 +9045,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~22"></span>
+              <span class="anchor" id="variable-temp~18"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9044,7 +9060,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv~8"></span>
+              <span class="anchor" id="variable-qv~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9149,7 +9165,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qi~7"></span>
+              <span class="anchor" id="variable-l_qi~6"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -9179,7 +9195,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni~6"></span>
+              <span class="anchor" id="variable-ni~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9194,7 +9210,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilami~6"></span>
+              <span class="anchor" id="variable-ilami~5"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9209,7 +9225,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~11"></span>
+              <span class="anchor" id="variable-l_qs~8"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -9224,7 +9240,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~12"></span>
+              <span class="anchor" id="variable-rs~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9299,7 +9315,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rr~15"></span>
+              <span class="anchor" id="variable-rr~12"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9329,7 +9345,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~10"></span>
+              <span class="anchor" id="variable-ilamr~9"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9359,7 +9375,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~10"></span>
+              <span class="anchor" id="variable-l_qg~8"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -9374,7 +9390,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~13"></span>
+              <span class="anchor" id="variable-rg~10"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9389,7 +9405,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~10"></span>
+              <span class="anchor" id="variable-ng~8"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9404,7 +9420,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~11"></span>
+              <span class="anchor" id="variable-ilamg~8"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9419,7 +9435,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~14"></span>
+              <span class="anchor" id="variable-idx~11"></span>
               integer,
             </td>
 <td>intent(in),</td>
@@ -9459,7 +9475,7 @@ also used by Milbrandt and Morrison (2014)</p>
 </h3></div>
     <div class="card-body">
           
-  
+  <p>scavenging of aerosols by rain, snow, and graupel</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -9474,7 +9490,7 @@ also used by Milbrandt and Morrison (2014)</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-temp~23"></span>
+              <span class="anchor" id="variable-temp~19"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9489,7 +9505,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rho~24"></span>
+              <span class="anchor" id="variable-rho~23"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9534,7 +9550,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa~7"></span>
+              <span class="anchor" id="variable-nwfa~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9549,7 +9565,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa~6"></span>
+              <span class="anchor" id="variable-nifa~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9564,7 +9580,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qr~10"></span>
+              <span class="anchor" id="variable-l_qr~8"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -9594,7 +9610,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamr~11"></span>
+              <span class="anchor" id="variable-ilamr~10"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9624,7 +9640,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qs~12"></span>
+              <span class="anchor" id="variable-l_qs~9"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -9639,7 +9655,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rs~13"></span>
+              <span class="anchor" id="variable-rs~10"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9654,7 +9670,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smob~7"></span>
+              <span class="anchor" id="variable-smob~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9669,7 +9685,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-smoc~7"></span>
+              <span class="anchor" id="variable-smoc~4"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9699,7 +9715,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-l_qg~11"></span>
+              <span class="anchor" id="variable-l_qg~9"></span>
               logical,
             </td>
 <td>intent(in),</td>
@@ -9714,7 +9730,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rg~14"></span>
+              <span class="anchor" id="variable-rg~11"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9729,7 +9745,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng~11"></span>
+              <span class="anchor" id="variable-ng~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -9744,7 +9760,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ilamg~12"></span>
+              <span class="anchor" id="variable-ilamg~9"></span>
               real(kind=dp),
             </td>
 <td>intent(in),</td>
@@ -9759,7 +9775,7 @@ also used by Milbrandt and Morrison (2014)</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idx~15"></span>
+              <span class="anchor" id="variable-idx~12"></span>
               integer,
             </td>
 <td>intent(in),</td>
