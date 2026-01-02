@@ -8,5 +8,6 @@ display: public
 display: private
 src_dir: ./src
 src_dir: ./tools
+src_dir: ./test
 output_dir: ./docs
 ---

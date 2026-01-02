@@ -115,11 +115,11 @@ module module_mp_tempo_init
       endif
 
       ! bins used for optional hail size calculation
-      if (tempo_cfgs%maximum_hail_size) then
+      if (tempo_cfgs%max_hail_diameter) then
         call initialize_bins_for_hail_size()
-        write(*,'(A,L)') 'tempo_init() ---  flag to calcuate hail size = ', &
-          tempo_cfgs%maximum_hail_size
-        write(*,'(A)') 'tempo_init() --- initialized bins for hail size calcuation'
+        write(*,'(A,L)') 'tempo_init() ---  flag to calculate max hail diameter = ', &
+          tempo_cfgs%max_hail_diameter
+        write(*,'(A)') 'tempo_init() --- initialized bins for hail size calculation'
       endif
     endif
   end subroutine tempo_init

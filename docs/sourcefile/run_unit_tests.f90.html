@@ -1,0 +1,519 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="Documentation for TEMPO Microphysics">
+    <meta name="author" content="Anders A. Jensen" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>run_unit_tests.F90 &ndash; TEMPO Microphysics</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">TEMPO Microphysics </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/programs.html">Programs</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>run_unit_tests.F90
+      <small>Source File</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.4% of total for source files.">21 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/run_unit_tests.F90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+            <li class="breadcrumb-item active" aria-current="page">run_unit_tests.F90</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#progs-0"
+         aria-expanded="false" aria-controls="progs-0">
+         <h4 class="card-header bg-primary text-white">Programs</h4>
+      </a>
+      <div id="progs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../program/run_unit_tests.html">run_unit_tests</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../sourcefile/run_unit_tests.f90.html#src">run_unit_tests.F90</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    <div class="col-md-9" id='text'>
+      
+      <br>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">This file depends on</h3>
+          </div>
+          <div class="card-body">
+            <div class="depgraph"><?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: sourcefile~~run_unit_tests.f90~~EfferentGraph Pages: 1 -->
+<svg id="sourcefilerun_unit_testsf90EfferentGraph" width="641pt" height="138pt"
+ viewBox="0.00 0.00 641.00 138.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph" class="graph" transform="scale(0.536788 0.536788) rotate(0) translate(4 252.31)">
+<title>sourcefile~~run_unit_tests.f90~~EfferentGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-252.31 1190.14,-252.31 1190.14,4 -4,4"/>
+<!-- sourcefile~run_unit_tests.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node1" class="node">
+<title>sourcefile~run_unit_tests.f90</title>
+<polygon fill="none" stroke="black" points="1186.14,-129.45 1085.37,-129.45 1085.37,-106.68 1186.14,-106.68 1186.14,-129.45"/>
+<text xml:space="preserve" text-anchor="middle" x="1135.75" y="-113.72" font-family="Helvetica,sans-Serif" font-size="10.50">run_unit_tests.F90</text>
+</g>
+<!-- sourcefile~test_tempo_init_suite.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node2" class="node">
+<title>sourcefile~test_tempo_init_suite.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node2"><a xlink:href="../sourcefile/test_tempo_init_suite.f90.html" xlink:title="test_tempo_init_suite.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="858.97,-208.45 724.45,-208.45 724.45,-185.68 858.97,-185.68 858.97,-208.45"/>
+<text xml:space="preserve" text-anchor="middle" x="791.71" y="-192.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_tempo_init_suite.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~run_unit_tests.f90&#45;&gt;sourcefile~test_tempo_init_suite.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge1" class="edge">
+<title>sourcefile~run_unit_tests.f90&#45;&gt;sourcefile~test_tempo_init_suite.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M976.23,-157.07C934.94,-164.34 888.83,-174.4 853.16,-182.61"/>
+<polygon fill="#000000" stroke="#000000" points="852.39,-179.19 843.44,-184.86 853.97,-186.01 852.39,-179.19"/>
+</g>
+<!-- sourcefile~test_tempo_main_suite.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node3" class="node">
+<title>sourcefile~test_tempo_main_suite.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node3"><a xlink:href="../sourcefile/test_tempo_main_suite.f90.html" xlink:title="test_tempo_main_suite.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="1049.37,-90.45 905.1,-90.45 905.1,-67.68 1049.37,-67.68 1049.37,-90.45"/>
+<text xml:space="preserve" text-anchor="middle" x="977.23" y="-74.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_tempo_main_suite.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~run_unit_tests.f90&#45;&gt;sourcefile~test_tempo_main_suite.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge2" class="edge">
+<title>sourcefile~run_unit_tests.f90&#45;&gt;sourcefile~test_tempo_main_suite.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1087.37,-106.26C1071.35,-102.27 1053.28,-97.77 1036.52,-93.59"/>
+<polygon fill="#000000" stroke="#000000" points="1037.75,-90.29 1027.2,-91.27 1036.06,-97.08 1037.75,-90.29"/>
+</g>
+<!-- sourcefile~test_tempo_utils_suite.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node4" class="node">
+<title>sourcefile~test_tempo_utils_suite.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node4"><a xlink:href="../sourcefile/test_tempo_utils_suite.f90.html" xlink:title="test_tempo_utils_suite.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="669.7,-168.45 529.93,-168.45 529.93,-145.68 669.7,-145.68 669.7,-168.45"/>
+<text xml:space="preserve" text-anchor="middle" x="599.82" y="-152.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">test_tempo_utils_suite.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~run_unit_tests.f90&#45;&gt;sourcefile~test_tempo_utils_suite.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge3" class="edge">
+<title>sourcefile~run_unit_tests.f90&#45;&gt;sourcefile~test_tempo_utils_suite.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M976.23,-157.07C875.8,-174.75 757.89,-170.82 681.39,-165.09"/>
+<polygon fill="#000000" stroke="#000000" points="681.7,-161.6 671.46,-164.31 681.15,-168.58 681.7,-161.6"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M1092.52,-129.92C1061.17,-138.39 1017.29,-149.57 978.23,-157.07"/>
+</g>
+<!-- sourcefile~module_mp_tempo_init.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node5" class="node">
+<title>sourcefile~module_mp_tempo_init.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node5"><a xlink:href="../sourcefile/module_mp_tempo_init.f90.html" xlink:title="module_mp_tempo_init.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="672.33,-209.45 527.31,-209.45 527.31,-186.68 672.33,-186.68 672.33,-209.45"/>
+<text xml:space="preserve" text-anchor="middle" x="599.82" y="-193.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_init.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_tempo_init_suite.f90&#45;&gt;sourcefile~module_mp_tempo_init.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge4" class="edge">
+<title>sourcefile~test_tempo_init_suite.f90&#45;&gt;sourcefile~module_mp_tempo_init.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M724.03,-197.42C711.01,-197.49 697.2,-197.56 683.73,-197.63"/>
+<polygon fill="#000000" stroke="#000000" points="684,-194.13 674.02,-197.68 684.04,-201.13 684,-194.13"/>
+</g>
+<!-- sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node7" class="node">
+<title>sourcefile~module_mp_tempo_params.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node7"><a xlink:href="../sourcefile/module_mp_tempo_params.f90.html" xlink:title="module_mp_tempo_params.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="277.29,-90.45 109.77,-90.45 109.77,-67.68 277.29,-67.68 277.29,-90.45"/>
+<text xml:space="preserve" text-anchor="middle" x="193.53" y="-74.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_params.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_tempo_init_suite.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge5" class="edge">
+<title>sourcefile~test_tempo_init_suite.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M753.6,-208.9C683.6,-229.46 527.68,-266.86 400.3,-237.07"/>
+</g>
+<!-- sourcefile~module_mp_tempo_main.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node6" class="node">
+<title>sourcefile~module_mp_tempo_main.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node6"><a xlink:href="../sourcefile/module_mp_tempo_main.f90.html" xlink:title="module_mp_tempo_main.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="869.1,-90.45 714.33,-90.45 714.33,-67.68 869.1,-67.68 869.1,-90.45"/>
+<text xml:space="preserve" text-anchor="middle" x="791.71" y="-74.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_main.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_tempo_main_suite.f90&#45;&gt;sourcefile~module_mp_tempo_main.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge6" class="edge">
+<title>sourcefile~test_tempo_main_suite.f90&#45;&gt;sourcefile~module_mp_tempo_main.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M904.76,-79.07C896.89,-79.07 888.81,-79.07 880.78,-79.07"/>
+<polygon fill="#000000" stroke="#000000" points="880.98,-75.57 870.98,-79.07 880.98,-82.57 880.98,-75.57"/>
+</g>
+<!-- sourcefile~test_tempo_main_suite.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge7" class="edge">
+<title>sourcefile~test_tempo_main_suite.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M937.52,-67.19C834.48,-37.37 545.59,34.46 313.29,-20.07 279.51,-27.99 244.35,-47.03 221.14,-61.36"/>
+<polygon fill="#000000" stroke="#000000" points="219.52,-58.24 212.94,-66.54 223.26,-64.15 219.52,-58.24"/>
+</g>
+<!-- sourcefile~test_tempo_utils_suite.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge8" class="edge">
+<title>sourcefile~test_tempo_utils_suite.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M398.3,-237.07C314.32,-217.42 241.32,-137.85 210.35,-99.68"/>
+<polygon fill="#000000" stroke="#000000" points="213.3,-97.77 204.34,-92.12 207.82,-102.13 213.3,-97.77"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M549.58,-168.9C540.1,-171.6 530.32,-174.69 521.31,-178.07 465.29,-199.09 458.56,-250.69 400.3,-237.07"/>
+</g>
+<!-- sourcefile~module_mp_tempo_utils.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node8" class="node">
+<title>sourcefile~module_mp_tempo_utils.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node8"><a xlink:href="../sourcefile/module_mp_tempo_utils.f90.html" xlink:title="module_mp_tempo_utils.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="474.43,-129.45 324.16,-129.45 324.16,-106.68 474.43,-106.68 474.43,-129.45"/>
+<text xml:space="preserve" text-anchor="middle" x="399.3" y="-113.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_utils.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~test_tempo_utils_suite.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge9" class="edge">
+<title>sourcefile~test_tempo_utils_suite.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.45,-145.21C517.47,-141.08 493.73,-136.42 471.93,-132.14"/>
+<polygon fill="#000000" stroke="#000000" points="472.7,-128.72 462.21,-130.23 471.35,-135.59 472.7,-128.72"/>
+</g>
+<!-- sourcefile~module_mp_tempo_init.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge10" class="edge">
+<title>sourcefile~module_mp_tempo_init.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M559.08,-209.89C510.14,-223.74 429.88,-243.99 400.3,-237.07"/>
+</g>
+<!-- sourcefile~module_mp_tempo_init.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge11" class="edge">
+<title>sourcefile~module_mp_tempo_init.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M549.58,-186.23C540.1,-183.53 530.32,-180.45 521.31,-177.07 489.67,-165.19 455.16,-147.9 431.13,-135.11"/>
+<polygon fill="#000000" stroke="#000000" points="432.98,-132.14 422.52,-130.48 429.66,-138.3 432.98,-132.14"/>
+</g>
+<!-- sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge14" class="edge">
+<title>sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M598.82,-40.07C509.02,-35.41 490.11,-74.71 400.3,-79.07"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M398.3,-79.07C362.59,-80.8 323.31,-81.16 288.85,-80.97"/>
+<polygon fill="#000000" stroke="#000000" points="288.9,-77.47 278.87,-80.9 288.85,-84.47 288.9,-77.47"/>
+</g>
+<!-- sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge15" class="edge">
+<title>sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M731.11,-90.91C714.12,-93.95 695.54,-96.95 678.33,-99.07 614.22,-106.94 541.36,-111.77 486.32,-114.59"/>
+<polygon fill="#000000" stroke="#000000" points="486.18,-111.09 476.36,-115.08 486.53,-118.08 486.18,-111.09"/>
+</g>
+<!-- sourcefile~module_mp_tempo_aerosols.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node10" class="node">
+<title>sourcefile~module_mp_tempo_aerosols.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node10"><a xlink:href="../sourcefile/module_mp_tempo_aerosols.f90.html" xlink:title="module_mp_tempo_aerosols.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="485.31,-51.45 313.29,-51.45 313.29,-28.68 485.31,-28.68 485.31,-51.45"/>
+<text xml:space="preserve" text-anchor="middle" x="399.3" y="-35.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_aerosols.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_aerosols.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge12" class="edge">
+<title>sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_aerosols.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M598.82,-40.07C565.57,-38.34 529.14,-37.92 496.67,-38.06"/>
+<polygon fill="#000000" stroke="#000000" points="496.85,-34.56 486.88,-38.12 496.9,-41.56 496.85,-34.56"/>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M750.79,-67.21C712.68,-56.76 653.42,-42.79 600.82,-40.07"/>
+</g>
+<!-- sourcefile~module_mp_tempo_diags.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node11" class="node">
+<title>sourcefile~module_mp_tempo_diags.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node11"><a xlink:href="../sourcefile/module_mp_tempo_diags.f90.html" xlink:title="module_mp_tempo_diags.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="678.33,-90.45 521.31,-90.45 521.31,-67.68 678.33,-67.68 678.33,-90.45"/>
+<text xml:space="preserve" text-anchor="middle" x="599.82" y="-74.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">module_mp_tempo_diags.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_diags.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge13" class="edge">
+<title>sourcefile~module_mp_tempo_main.f90&#45;&gt;sourcefile~module_mp_tempo_diags.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M714.02,-79.07C706.12,-79.07 698.04,-79.07 690.01,-79.07"/>
+<polygon fill="#000000" stroke="#000000" points="690.24,-75.57 680.24,-79.07 690.24,-82.57 690.24,-75.57"/>
+</g>
+<!-- sourcefile~machine.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_node9" class="node">
+<title>sourcefile~machine.f90</title>
+<g id="a_sourcefile~~run_unit_tests.f90~~EfferentGraph_node9"><a xlink:href="../sourcefile/machine.f90.html" xlink:title="machine.F90">
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="73.77,-90.45 0,-90.45 0,-67.68 73.77,-67.68 73.77,-90.45"/>
+<text xml:space="preserve" text-anchor="middle" x="36.88" y="-74.72" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">machine.F90</text>
+</a>
+</g>
+</g>
+<!-- sourcefile~module_mp_tempo_params.f90&#45;&gt;sourcefile~machine.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge16" class="edge">
+<title>sourcefile~module_mp_tempo_params.f90&#45;&gt;sourcefile~machine.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M109.32,-79.07C101.06,-79.07 92.89,-79.07 85.19,-79.07"/>
+<polygon fill="#000000" stroke="#000000" points="85.43,-75.57 75.43,-79.07 85.43,-82.57 85.43,-75.57"/>
+</g>
+<!-- sourcefile~module_mp_tempo_utils.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge17" class="edge">
+<title>sourcefile~module_mp_tempo_utils.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M336.33,-106.21C314.7,-102.07 290.21,-97.38 267.74,-93.08"/>
+<polygon fill="#000000" stroke="#000000" points="268.52,-89.66 258.04,-91.22 267.2,-96.54 268.52,-89.66"/>
+</g>
+<!-- sourcefile~module_mp_tempo_aerosols.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge18" class="edge">
+<title>sourcefile~module_mp_tempo_aerosols.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M336.33,-51.93C314.7,-56.07 290.21,-60.75 267.74,-65.05"/>
+<polygon fill="#000000" stroke="#000000" points="267.2,-61.59 258.04,-66.91 268.52,-68.47 267.2,-61.59"/>
+</g>
+<!-- sourcefile~module_mp_tempo_diags.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge19" class="edge">
+<title>sourcefile~module_mp_tempo_diags.f90&#45;&gt;sourcefile~module_mp_tempo_params.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M521,-77.32C484.35,-76.95 440.06,-77.14 400.3,-79.07"/>
+</g>
+<!-- sourcefile~module_mp_tempo_diags.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90 -->
+<g id="sourcefile~~run_unit_tests.f90~~EfferentGraph_edge20" class="edge">
+<title>sourcefile~module_mp_tempo_diags.f90&#45;&gt;sourcefile~module_mp_tempo_utils.f90</title>
+<path fill="none" stroke="#000000" stroke-dasharray="5,2" d="M538.45,-90.93C517.47,-95.05 493.73,-99.71 471.93,-104"/>
+<polygon fill="#000000" stroke="#000000" points="471.35,-100.54 462.21,-105.9 472.7,-107.41 471.35,-100.54"/>
+</g>
+</g>
+</svg>
+</div>                <script>
+                  var pansourcefilerun_unit_testsf90EfferentGraph = svgPanZoom('#sourcefilerun_unit_testsf90EfferentGraph',
+                    {zoomEnabled: true, controlIconsEnabled: true, fit: true, center: true,}
+                  );
+                </script>          <div>
+            <a type="button" class="graph-help" data-bs-toggle="modal" href="#EfferentGraph-help-text">Help</a>
+          </div>
+          <div class="modal fade" id="EfferentGraph-help-text" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4 class="modal-title" id="-graph-help-label">Graph Key</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+<p>Nodes of different colours represent the following: </p>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 14.0.2 (20251019.1705)
+ -->
+<!-- Title: Graph Key Pages: 1 -->
+<svg width="188pt" height="31pt"
+ viewBox="0.00 0.00 188.00 31.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 26.77)">
+<title>Graph Key</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-26.77 183.89,-26.77 183.89,4 -4,4"/>
+<!-- Source File -->
+<g id="node1" class="node">
+<title>Source File</title>
+<polygon fill="#f0ad4e" stroke="#f0ad4e" points="65.52,-22.77 0,-22.77 0,0 65.52,0 65.52,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="32.76" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50" fill="white">Source File</text>
+</g>
+<!-- This Page&#39;s Entity -->
+<g id="node2" class="node">
+<title>This Page&#39;s Entity</title>
+<polygon fill="none" stroke="black" points="179.89,-22.77 83.62,-22.77 83.62,0 179.89,0 179.89,-22.77"/>
+<text xml:space="preserve" text-anchor="middle" x="131.76" y="-7.04" font-family="Helvetica,sans-Serif" font-size="10.50">This Page&#39;s Entity</text>
+</g>
+</g>
+</svg>
+
+<p>Solid arrows point from a file to a file which it depends on. A file
+is dependent upon another if the latter must be compiled before the former
+can be.
+</p>
+ </div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+<br>
+      <section>
+        <h2><span class="anchor" id="src"></span>Source Code</h2>
+        <div class="hl codehilite"><pre><span></span><a id="ln-1" name="ln-1" href="#ln-1"></a><span class="k">program </span><span class="n">run_unit_tests</span>
+<a id="ln-2" name="ln-2" href="#ln-2"></a><span class="w">  </span><span class="c">!! runs tempo unit tests</span>
+<a id="ln-3" name="ln-3" href="#ln-3"></a><span class="w">  </span><span class="k">use </span><span class="n">iso_fortran_env</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">error_unit</span>
+<a id="ln-4" name="ln-4" href="#ln-4"></a><span class="w">  </span><span class="k">use </span><span class="n">testdrive</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">run_testsuite</span><span class="p">,</span><span class="w"> </span><span class="n">new_testsuite</span><span class="p">,</span><span class="w"> </span><span class="n">testsuite_type</span>
+<a id="ln-5" name="ln-5" href="#ln-5"></a><span class="w">  </span><span class="k">use </span><span class="n">test_tempo_utils_suite</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">collect_tempo_utils_suite</span>
+<a id="ln-6" name="ln-6" href="#ln-6"></a><span class="w">  </span><span class="k">use </span><span class="n">test_tempo_init_suite</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">collect_tempo_init_suite</span>
+<a id="ln-7" name="ln-7" href="#ln-7"></a><span class="w">  </span><span class="k">use </span><span class="n">test_tempo_main_suite</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">collect_tempo_main_suite</span>
+<a id="ln-8" name="ln-8" href="#ln-8"></a><span class="w">  </span><span class="k">implicit none</span>
+<a id="ln-9" name="ln-9" href="#ln-9"></a><span class="k">  </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">stat</span><span class="p">,</span><span class="w"> </span><span class="k">is</span>
+<a id="ln-10" name="ln-10" href="#ln-10"></a><span class="k">  type</span><span class="p">(</span><span class="n">testsuite_type</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">testsuites</span><span class="p">(:)</span>
+<a id="ln-11" name="ln-11" href="#ln-11"></a><span class="w">  </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fmt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;(&quot;#&quot;, *(1x, a))&#39;</span>
+<a id="ln-12" name="ln-12" href="#ln-12"></a>
+<a id="ln-13" name="ln-13" href="#ln-13"></a><span class="w">  </span><span class="nb">stat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<a id="ln-14" name="ln-14" href="#ln-14"></a>
+<a id="ln-15" name="ln-15" href="#ln-15"></a><span class="w">  </span><span class="n">testsuites</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="ln-16" name="ln-16" href="#ln-16"></a><span class="w">    </span><span class="n">new_testsuite</span><span class="p">(</span><span class="s2">&quot;tempo_utils_suite&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">collect_tempo_utils_suite</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="w">    </span><span class="n">new_testsuite</span><span class="p">(</span><span class="s2">&quot;tempo_init_suite&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">collect_tempo_init_suite</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="ln-18" name="ln-18" href="#ln-18"></a><span class="w">    </span><span class="n">new_testsuite</span><span class="p">(</span><span class="s2">&quot;tempo_main_suite&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">collect_tempo_main_suite</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<a id="ln-19" name="ln-19" href="#ln-19"></a><span class="w">    </span><span class="p">]</span>
+<a id="ln-20" name="ln-20" href="#ln-20"></a>
+<a id="ln-21" name="ln-21" href="#ln-21"></a><span class="w">  </span><span class="k">do is</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">testsuites</span><span class="p">)</span>
+<a id="ln-22" name="ln-22" href="#ln-22"></a><span class="w">    </span><span class="k">write</span><span class="p">(</span><span class="n">error_unit</span><span class="p">,</span><span class="w"> </span><span class="n">fmt</span><span class="p">)</span><span class="w"> </span><span class="s2">&quot;Testing:&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">testsuites</span><span class="p">(</span><span class="k">is</span><span class="p">)%</span><span class="n">name</span>
+<a id="ln-23" name="ln-23" href="#ln-23"></a><span class="w">    </span><span class="k">call </span><span class="n">run_testsuite</span><span class="p">(</span><span class="n">testsuites</span><span class="p">(</span><span class="k">is</span><span class="p">)%</span><span class="n">collect</span><span class="p">,</span><span class="w"> </span><span class="n">error_unit</span><span class="p">,</span><span class="w"> </span><span class="nb">stat</span><span class="p">)</span>
+<a id="ln-24" name="ln-24" href="#ln-24"></a><span class="w">  </span><span class="k">end do</span>
+<a id="ln-25" name="ln-25" href="#ln-25"></a>
+<a id="ln-26" name="ln-26" href="#ln-26"></a><span class="k">  if</span><span class="w"> </span><span class="p">(</span><span class="nb">stat</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<a id="ln-27" name="ln-27" href="#ln-27"></a><span class="k">    write</span><span class="p">(</span><span class="n">error_unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(i0, 1x, a)&#39;</span><span class="p">)</span><span class="w"> </span><span class="nb">stat</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;test(s) failed!&quot;</span>
+<a id="ln-28" name="ln-28" href="#ln-28"></a><span class="w">    </span><span class="k">error stop</span>
+<a id="ln-29" name="ln-29" href="#ln-29"></a><span class="k">  end if</span>
+<a id="ln-30" name="ln-30" href="#ln-30"></a>
+<a id="ln-31" name="ln-31" href="#ln-31"></a><span class="k">end program </span><span class="n">run_unit_tests</span>
+</pre></div>
+
+      </section>
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              TEMPO Microphysics
+ was developed by Anders A. Jensen<br>              &copy; 2026 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>

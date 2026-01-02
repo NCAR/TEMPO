@@ -95,13 +95,11 @@ $(src_dir)/module_mp_tempo_ml.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_utils.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_utils.o
-$(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_radar.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_utils.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_diags.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_aerosols.o
 $(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_tempo_params.o
-$(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_radar.o
 $(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_diags.o
 $(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_main.o

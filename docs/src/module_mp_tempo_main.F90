@@ -752,7 +752,8 @@ module module_mp_tempo_main
     ! max hail diameter
     if (tempo_cfgs%max_hail_diameter) then
       allocate(tempo_main_diags%max_hail_diameter(nz), source=0._wp)
-      call max_hail_diam(rho, rg, ng, ilamg, idx, tempo_main_diags%max_hail_diameter)
+      call max_hail_diam(rho, rg, ng, ilamg, idx_bg, &
+        tempo_main_diags%max_hail_diameter)
     endif
 
     ! 10-cm reflectivity
