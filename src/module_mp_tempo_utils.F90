@@ -4,24 +4,24 @@ module module_mp_tempo_utils
   implicit none
   private
   
-  public :: snow_moments, calc_gamma_p, get_nuc, get_cloud_number, &
+  public :: snow_moments, calc_gamma_p, get_nuc, get_constant_cloud_number, &
     calc_rslf, calc_rsif
 
   contains 
 
-  function get_cloud_number(land) result(num)
+  subroutine get_constant_cloud_number(land, nc)
     !! returns land-specific value of cloud droplet number concentration
     !! when aerosol-aware = false if land = 1, else returns ocean-specific value
     use module_mp_tempo_params, only : nt_c_l, nt_c_o
     
     integer, intent(in), optional :: land
-    real(wp) :: num
+    real(wp), dimension(:), intent(out) :: nc
 
-    num = nt_c_l
+    nc = nt_c_l
     if (present(land)) then
-      if (land /= 1) num = nt_c_o
+      if (land /= 1) nc = nt_c_o
     endif 
-  end function
+  end subroutine get_constant_cloud_number
 
 
   function calc_gamma_p(a, x) result(gamma_p)

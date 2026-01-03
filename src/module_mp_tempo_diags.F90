@@ -6,7 +6,7 @@ module module_mp_tempo_diags
   implicit none
   private
   
-  public :: reflectivity_10cm, effective_radius, max_hail_diam
+  public :: reflectivity_10cm, effective_radius, max_hail_diam, freezing_rain
 
   contains 
 
@@ -79,7 +79,7 @@ module module_mp_tempo_diags
     allocate(ze_graupel(nz), source=1.e-22_wp)
     allocate(dbz(nz), source=-35._wp)
 
-    if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+    if (tempo_cfgs%refl10cm_from_melting_flag) then
       k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
     endif
 
@@ -93,7 +93,7 @@ module module_mp_tempo_diags
         ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_s/900._wp)*(am_s/900._wp)*smoz(k)
         ! include melting
-        if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+        if (tempo_cfgs%refl10cm_from_melting_flag) then
           if (k_melt > 2 .and. k < k_melt-1) then
             ze_snow(k) = reflectivity_from_melting_snow(rs(k), &
               smob(k), smoc(k), rr(k))
@@ -105,7 +105,7 @@ module module_mp_tempo_diags
         ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_g(idx(k))/900._wp)*(am_g(idx(k))/900._wp) * n0_g*cgg(4,1)*ilamg(k)**cge(4,1)
         ! include melting
-        if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+        if (tempo_cfgs%refl10cm_from_melting_flag) then
           if (k_melt > 2 .and. k < k_melt-1) then
             ze_graupel(k) = reflectivity_from_melting_graupel(rg(k), ng(k), &
               ilamg(k), idx(k), rr(k))
@@ -432,5 +432,23 @@ module module_mp_tempo_diags
       endif
     enddo
   end subroutine max_hail_diam
+
+
+  subroutine freezing_rain(temp, rain_precip, cloud_precip, frz_rain)
+    !! estimates freezing rain/drizzle accumulation
+    use module_mp_tempo_params, only : t0
+
+    real(wp), intent(in) :: temp, rain_precip
+    real(wp), intent(in), optional :: cloud_precip
+    real(wp), intent(out) :: frz_rain
+
+    frz_rain = 0._wp
+    if ((temp-t0) < -0.5_wp) then
+      frz_rain = rain_precip
+      if (present(cloud_precip)) then
+        frz_rain = frz_rain + cloud_precip
+      endif 
+    endif   
+  end subroutine freezing_rain
 
 end module module_mp_tempo_diags

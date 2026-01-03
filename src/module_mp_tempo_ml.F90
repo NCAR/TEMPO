@@ -8,27 +8,26 @@ module module_mp_tempo_ml
   implicit none
   private
   
-  public :: ty_tempo_ml_data, tempo_save_or_read_ml_data, tempo_ml_predict_number
+  public :: ty_tempo_ml_data, save_or_read_ml_data, tempo_ml_predict_cloud_number, &
+    nc_ml_nodes, nc_ml_input, nc_ml_output, nc_ml_trans_mean, nc_ml_trans_var, &
+    nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01
    
   type ty_tempo_ml_data
     integer :: input_size
     integer :: output_size
     integer :: node_size
-    real, allocatable, dimension(:) :: transform_mean
-    real, allocatable, dimension(:) :: transform_var
-    real, allocatable, dimension(:,:) :: weights00
-    real, allocatable, dimension(:) :: bias00
-    real, allocatable, dimension(:,:) :: weights01
-    real, allocatable, dimension(:) :: bias01
+    real(wp), dimension(:), allocatable :: transform_mean
+    real(wp), dimension(:), allocatable :: transform_var
+    real(wp), dimension(:,:), allocatable :: weights00
+    real(wp), dimension(:), allocatable :: bias00
+    real(wp), dimension(:,:), allocatable :: weights01
+    real(wp), dimension(:), allocatable :: bias01
   end type ty_tempo_ml_data
 
   ! input / output dimensions
   integer, parameter :: nc_ml_input = 7
   integer, parameter :: nc_ml_nodes = 24
   integer, parameter :: nc_ml_output = 1
-  integer, parameter :: nr_ml_input = 7
-  integer, parameter :: nr_ml_nodes = 24
-  integer, parameter :: nr_ml_output = 1
 
   real(wp), dimension(nc_ml_input), parameter :: &
     nc_ml_trans_mean = [0.000191556196486247_wp, 3.58145042772654e-05_wp, &
@@ -83,13 +82,13 @@ module module_mp_tempo_ml
 
   contains
 
-  subroutine tempo_save_or_read_ml_data(ml_data_in, ml_data_out)
+  subroutine save_or_read_ml_data(ml_data_in, ml_data_out)
     !! initializes and saves or returns neural network information
 
     logical, save :: not_initialized = .true.
-    type(ty_tempo_ml_data), dimension(2), intent(in), optional :: ml_data_in
-    type(ty_tempo_ml_data), dimension(2), intent(out), optional :: ml_data_out
-    type(ty_tempo_ml_data), dimension(2), save :: tempo_ml_data_save
+    type(ty_tempo_ml_data), dimension(1), intent(in), optional :: ml_data_in
+    type(ty_tempo_ml_data), dimension(1), intent(out), optional :: ml_data_out
+    type(ty_tempo_ml_data), dimension(1), save :: tempo_ml_data_save
 
     if (not_initialized) then
       if (present(ml_data_in)) tempo_ml_data_save = ml_data_in
@@ -99,18 +98,17 @@ module module_mp_tempo_ml
     if (present(ml_data_out)) then
       ml_data_out = tempo_ml_data_save
     endif
-  end subroutine tempo_save_or_read_ml_data
+  end subroutine save_or_read_ml_data
 
 
-  subroutine tempo_ml_predict_number(qc, qr, qi, qs, pres, temp, w, &
-    predicted_number, predict_for_cloud)
+  subroutine tempo_ml_predict_cloud_number(qc, qr, qi, qs, pres, temp, w, &
+    predicted_number)
     !! predicts number concentration
 
     real(wp), dimension(:), intent(in) :: qc, qr, qi, qs, pres, temp, w
     real(wp), dimension(:), intent(inout) :: predicted_number
-    logical, intent(in), optional :: predict_for_cloud
 
-    type(ty_tempo_ml_data), dimension(2) :: get_ml_data
+    type(ty_tempo_ml_data), dimension(1) :: get_ml_data
     type(ty_tempo_ml_data) :: ml_data
     integer, parameter :: input_rows = 1
     real(wp), dimension(:,:), allocatable :: input, input_transformed
@@ -122,17 +120,8 @@ module module_mp_tempo_ml
     integer :: k, nz
 
     ! get neural network data
-    call tempo_save_or_read_ml_data(ml_data_out=get_ml_data)
-
-    if (present(predict_for_cloud)) then
-      if (predict_for_cloud) then
-        ml_data = get_ml_data(1)
-      else
-        ml_data = get_ml_data(2)
-      endif
-    else
-      ml_data = get_ml_data(1)
-    endif 
+    call save_or_read_ml_data(ml_data_out=get_ml_data)
+    ml_data = get_ml_data(1)
 
     nz = size(qc)
     ! allocate arrays for input data and transformation
@@ -203,7 +192,7 @@ module module_mp_tempo_ml
       endif
       predicted_number(k) = bias_corr * (10._wp**predicted_exp)
     enddo
-  end subroutine tempo_ml_predict_number
+  end subroutine tempo_ml_predict_cloud_number
 
 
   subroutine standard_scaler_transform(mean, var, raw_data, transformed_data)
