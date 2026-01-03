@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>17.5% of total for derived types.</p>Including implementation: 11 statements, 17.5% of total for derived types.">11 statements</a>
+                 title="<p>16.2% of total for derived types.</p>Including implementation: 11 statements, 16.2% of total for derived types.">11 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -242,11 +242,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-transform_mean"></span>
-              real,
+              real(kind=wp),
             </td>
               <td>public,</td>
             <td>
-              allocatable, dimension(:)
+              dimension(:), allocatable
             </td>
             <td>::</td>
             <td><strong>transform_mean</strong></td>
@@ -259,11 +259,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-transform_var"></span>
-              real,
+              real(kind=wp),
             </td>
               <td>public,</td>
             <td>
-              allocatable, dimension(:)
+              dimension(:), allocatable
             </td>
             <td>::</td>
             <td><strong>transform_var</strong></td>
@@ -276,11 +276,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-weights00"></span>
-              real,
+              real(kind=wp),
             </td>
               <td>public,</td>
             <td>
-              allocatable, dimension(:,:)
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
             <td><strong>weights00</strong></td>
@@ -293,11 +293,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-bias00"></span>
-              real,
+              real(kind=wp),
             </td>
               <td>public,</td>
             <td>
-              allocatable, dimension(:)
+              dimension(:), allocatable
             </td>
             <td>::</td>
             <td><strong>bias00</strong></td>
@@ -310,11 +310,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-weights01"></span>
-              real,
+              real(kind=wp),
             </td>
               <td>public,</td>
             <td>
-              allocatable, dimension(:,:)
+              dimension(:,:), allocatable
             </td>
             <td>::</td>
             <td><strong>weights01</strong></td>
@@ -327,11 +327,11 @@
         <tr>
             <td>
               <span class="anchor" id="variable-bias01"></span>
-              real,
+              real(kind=wp),
             </td>
               <td>public,</td>
             <td>
-              allocatable, dimension(:)
+              dimension(:), allocatable
             </td>
             <td>::</td>
             <td><strong>bias01</strong></td>

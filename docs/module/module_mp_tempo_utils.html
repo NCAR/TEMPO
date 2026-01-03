@@ -142,7 +142,6 @@
       </a>
       <div id="funcs-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-get_cloud_number">get_cloud_number</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_gamma_p">calc_gamma_p</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_gamma_series">calc_gamma_series</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-calc_gamma_cf">calc_gamma_cf</a>
@@ -160,6 +159,7 @@
       </a>
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-get_constant_cloud_number">get_constant_cloud_number</a>
             <a class="list-group-item" href="../module/module_mp_tempo_utils.html#proc-snow_moments">snow_moments</a>
         </div>
       </div>
@@ -644,52 +644,6 @@ modules which it uses.
         <section>
           <h2>Functions</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_cloud_number"></span> <h3>public  function <a href='../proc/get_cloud_number.html'>get_cloud_number</a>(land) result(num)  
-</h3></div>
-    <div class="card-body">
-          
-  <p>returns land-specific value of cloud droplet number concentration
-when aerosol-aware = false if land = 1, else returns ocean-specific value</p>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-land"></span>
-              integer,
-            </td>
-<td>intent(in),</td>
-              <td>optional</td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>land</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-    <h4>
-    Return Value
-    <small>real(kind=wp)</small>
-    </h4>
-    
-
-    </div>
-  </div>
-
-              <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-calc_gamma_p"></span> <h3>public  function <a href='../proc/calc_gamma_p.html'>calc_gamma_p</a>(a, x) result(gamma_p)  
 </h3></div>
     <div class="card-body">
@@ -892,7 +846,7 @@ series expansion or continued fraction method</p><a href="../proc/calc_gamma_p.h
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-p~4"></span>
+              <span class="anchor" id="variable-p~5"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -907,7 +861,7 @@ series expansion or continued fraction method</p><a href="../proc/calc_gamma_p.h
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~5"></span>
+              <span class="anchor" id="variable-t~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -952,7 +906,7 @@ series expansion or continued fraction method</p><a href="../proc/calc_gamma_p.h
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-p~5"></span>
+              <span class="anchor" id="variable-p~6"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -967,7 +921,7 @@ series expansion or continued fraction method</p><a href="../proc/calc_gamma_p.h
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~6"></span>
+              <span class="anchor" id="variable-t~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -1042,6 +996,62 @@ series expansion or continued fraction method</p><a href="../proc/calc_gamma_p.h
 
         <section>
           <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_constant_cloud_number"></span> <h3>public  subroutine <a href='../proc/get_constant_cloud_number.html'>get_constant_cloud_number</a>(land, nc)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>returns land-specific value of cloud droplet number concentration
+when aerosol-aware = false if land = 1, else returns ocean-specific value</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-land"></span>
+              integer,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>land</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nc~2"></span>
+              real(kind=wp),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>nc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
               <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-snow_moments"></span> <h3>public  subroutine <a href='../proc/snow_moments.html'>snow_moments</a>(rs, tc, smob, smoc, ns, smo0, smo1, smo2, smoe, smof, smog, smoz)  
 </h3></div>

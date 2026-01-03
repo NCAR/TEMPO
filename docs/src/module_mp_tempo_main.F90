@@ -3,10 +3,12 @@ module module_mp_tempo_main
   use module_mp_tempo_params, only : wp, sp, dp, &
     min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, tempo_cfgs, meters3_to_liters, eps, &
     aero_max, nwfa_default, nifa_default
-  use module_mp_tempo_utils, only : get_nuc, get_cloud_number, snow_moments, calc_rslf, calc_rsif
-  use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius, max_hail_diam
+  use module_mp_tempo_utils, only : get_nuc, get_constant_cloud_number, snow_moments, calc_rslf, calc_rsif
+  use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius, max_hail_diam, &
+    freezing_rain
   use module_mp_tempo_aerosols, only : init_ice_friendly_aerosols, init_water_friendly_aerosols, &
     aerosol_collection_efficiency
+  use module_mp_tempo_ml, only : tempo_ml_predict_cloud_number
   implicit none
   private
 
@@ -27,6 +29,7 @@ module module_mp_tempo_main
     real(wp) :: snow_liquid_equiv_precip
     real(wp) :: graupel_liquid_equiv_precip
     real(wp) :: frozen_fraction
+    real(wp) :: frz_rain_precip
     real(wp), dimension(:), allocatable :: rain_med_vol_diam
     real(wp), dimension(:), allocatable :: graupel_med_vol_diam
     real(wp), dimension(:), allocatable :: refl10cm
@@ -54,6 +57,11 @@ module module_mp_tempo_main
       prw_vcd, pnc_wcd, prv_rev, pnr_rev, & ! condensation/evaporation
       pna_rca, pna_sca, pna_gca, pnd_rcd, pnd_scd, pnd_gcd ! aerosol
   end type
+
+  interface get_cloud_number
+    module procedure tempo_ml_predict_cloud_number
+    module procedure get_constant_cloud_number
+  end interface
 
   contains
 
@@ -105,7 +113,7 @@ module module_mp_tempo_main
     real(dp), dimension(kts:kte) :: smob, smo2, smo1, smo0, smoc, smoe, smof, smog, ns, smoz !! snow moments
     
     real(wp), dimension(kts:kte) :: xrx, xnx !! temporary arrays
-    real(wp), dimension(:), allocatable :: xncx, xngx, xqbx !! temporary arrays
+    real(wp), dimension(:), allocatable :: xncx, xngx, xqbx, ncsave !! temporary arrays
 
     real(wp), dimension(kts:kte+1) :: vtrr, vtnr, vtrs, vtri, vtni, vtrg, vtng, vtrc, vtnc !! fallspeeds
     real(wp), dimension(kts:kte) :: vtboost !! snow fallspeed boost factor
@@ -290,9 +298,6 @@ module module_mp_tempo_main
     endif 
     call aerosol_check_and_update(rho=rho, nwfa1d=nwfa1d, nifa1d=nifa1d, &
       nwfa=nwfa, nifa=nifa, nwfaten=nwfaten, nifaten=nifaten)
-
-    call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
-      rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
     
     call rain_check_and_update(rho, l_qr, qr1d, nr1d, rr, nr, qrten, nrten, ilamr, mvd_r)
   
@@ -309,6 +314,23 @@ module module_mp_tempo_main
           smoe=smoe(k), smof=smof(k), smog=smog(k))
       endif 
     enddo
+
+    ! set one-moment cloud number concentration
+    if (.not. present(nc1d)) then
+      if (tempo_cfgs%ml_for_cloud_num_flag) then
+        xrx = qc1d
+        where(xrx <= 1.e-12_wp) xrx = 0._wp
+        ! ml prediction
+        call get_cloud_number(xrx, qr1d, qi1d, qs1d, pres, temp, w1d, xnx)
+        nc = xnx * rho
+      else
+        ! single modment constant value
+        call get_cloud_number(nc=nc)
+      endif
+      allocate(ncsave(nz), source=nc)
+    endif
+    call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
+      rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
 
     ! init ng and qb
     if (first_call_main) then
@@ -347,32 +369,32 @@ module module_mp_tempo_main
     if (.not. do_micro .and. .not. supersaturated) return
 
     ! main microphysical processes ---------------------------------------------------------------
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend)  
     endif 
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call rain_snow_rain_graupel(temp, l_qr, rr, nr, ilamr, l_qs, rs, &
         l_qg, rg, ng, ilamg, idx_bg, tend)
     endif 
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
         nifa, nwfa, ni, smo0, rc, nc, rr, nr, ilamr, tend)
     endif 
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
       vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
       rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
         smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif 
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call melting(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
       vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
       rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, l_qr, nr, ilamr, &
       mvd_r, l_qs, rs, smob, smoc, smoe, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif 
@@ -454,7 +476,7 @@ module module_mp_tempo_main
 
     ! after update do cloud condensation / rain evaporation --------------------------------------
     ! cloud condensation
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
         nwfa, qv, qvs, l_qc, rc, nc, tend)
 
@@ -486,7 +508,7 @@ module module_mp_tempo_main
     endif 
 
     ! rain evaporation
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call rain_evaporation(rho, temp, ssatw, lvap, tcond, diffu, vsc2, rhof2, &
         qv, qvs, l_qr, rr, nr, ilamr, tend)
 
@@ -519,6 +541,7 @@ module module_mp_tempo_main
     tempo_main_diags%ice_liquid_equiv_precip = 0._wp
     tempo_main_diags%snow_liquid_equiv_precip = 0._wp
     tempo_main_diags%graupel_liquid_equiv_precip = 0._wp
+    tempo_main_diags%frz_rain_precip = 0._wp
     
     ! rain
     ktop_sedi = 1
@@ -528,7 +551,7 @@ module module_mp_tempo_main
       call rain_fallspeed(rhof=rhof, l_qr=l_qr, rr=rr, ilamr=ilamr, dz1d=dz1d, &
         vt=vtrr, vtn=vtnr, substeps_sedi=substeps_sedi, ktop_sedi=ktop_sedi)
 
-      if (tempo_cfgs%semi_sedi) then
+      if (tempo_cfgs%semi_sedi_flag) then
         substeps_sedi = max(int(substeps_sedi/semi_sedi_factor) + 1, 1)
         do n = 1, substeps_sedi
           call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=rr, xten=qrten, &
@@ -569,7 +592,7 @@ module module_mp_tempo_main
         l_qg=l_qg, rg=rg, rb=rb, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, &
         vt=vtrg, vtn=vtng, substeps_sedi=substeps_sedi, ktop_sedi=ktop_sedi)
 
-      if (tempo_cfgs%semi_sedi) then 
+      if (tempo_cfgs%semi_sedi_flag) then 
         substeps_sedi = max(int(substeps_sedi/semi_sedi_factor) + 1, 1)
         do n = 1, substeps_sedi
           call semilagrangian_sedimentation(dz1d=dz1d, rho=rho, xr=rg, xten=qgten, &
@@ -658,10 +681,10 @@ module module_mp_tempo_main
 
     ! After sedimentation freeze all cloud water below hgfrz temperature
     ! and melt all cloud ice above freezing
-    if (.not. tempo_cfgs%all_mp_processes_off) then
+    if (.not. tempo_cfgs%turn_off_micro_flag) then
       call freeze_cloud_melt_ice(temp=temp, rho=rho, ocp=ocp, lvap=lvap, &
         qi1d=qi1d, ni1d=ni1d, qiten=qiten, niten=niten, qc1d=qc1d, nc1d=nc1d, &
-        qcten=qcten, ncten=ncten, tten=tten)
+        ncsave=ncsave, qcten=qcten, ncten=ncten, tten=tten)
     endif 
 
     ! final update -------------------------------------------------------------------------------
@@ -739,25 +762,30 @@ module module_mp_tempo_main
       (tempo_main_diags%ice_liquid_equiv_precip + tempo_main_diags%snow_liquid_equiv_precip + &
       tempo_main_diags%graupel_liquid_equiv_precip + tempo_main_diags%rain_precip + r1)
 
+    ! freezing rain
+    call freezing_rain(temp=temp(1), rain_precip=tempo_main_diags%rain_precip, &
+      cloud_precip=tempo_main_diags%cloud_precip, &
+      frz_rain=tempo_main_diags%frz_rain_precip)
+
     ! median volume diameter of rain and graupel
-    if (tempo_cfgs%rain_med_vol_diam) then
+    if (tempo_cfgs%rain_med_vol_diam_flag) then
       allocate(tempo_main_diags%rain_med_vol_diam(nz), source=0._wp)
       tempo_main_diags%rain_med_vol_diam = mvd_r
     endif 
-    if (tempo_cfgs%graupel_med_vol_diam) then
+    if (tempo_cfgs%graupel_med_vol_diam_flag) then
       allocate(tempo_main_diags%graupel_med_vol_diam(nz), source=0._wp)
       tempo_main_diags%graupel_med_vol_diam = mvd_g
     endif 
 
     ! max hail diameter
-    if (tempo_cfgs%max_hail_diameter) then
+    if (tempo_cfgs%max_hail_diameter_flag) then
       allocate(tempo_main_diags%max_hail_diameter(nz), source=0._wp)
       call max_hail_diam(rho, rg, ng, ilamg, idx_bg, &
         tempo_main_diags%max_hail_diameter)
     endif
 
     ! 10-cm reflectivity
-    if (tempo_cfgs%refl10cm) then
+    if (tempo_cfgs%refl10cm_flag) then
       allocate(tempo_main_diags%refl10cm(nz), source=-35._wp)
       call reflectivity_10cm(temp, l_qr, rr, nr, ilamr, &
         l_qs, rs, smoc, smob, smoz, l_qg, rg, ng, idx_bg, ilamg, &
@@ -765,7 +793,7 @@ module module_mp_tempo_main
     endif 
 
     ! effective radii
-    if ((tempo_cfgs%re_cloud) .and. (tempo_cfgs%re_ice) .and. (tempo_cfgs%re_snow)) then
+    if ((tempo_cfgs%re_cloud_flag) .and. (tempo_cfgs%re_ice_flag) .and. (tempo_cfgs%re_snow_flag)) then
       allocate(tempo_main_diags%re_cloud(nz), source=0._wp)
       allocate(tempo_main_diags%re_ice(nz), source=0._wp)
       allocate(tempo_main_diags%re_snow(nz), source=0._wp)
@@ -854,8 +882,8 @@ module module_mp_tempo_main
           if (hit_limit) ncten(k) = (nc(k)/rho(k) - nc1d(k)) * global_inverse_dt
           nc1d(k) = max(nt_c_min/rho(k), &
             min(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r, nt_c_max/rho(k)))
-        else
-          nc(k) = get_cloud_number()
+        ! else
+          ! nc(k) = get_cloud_number()
         endif
         nu_c = get_nuc(nc(k))
         lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
@@ -2018,11 +2046,12 @@ module module_mp_tempo_main
 
 
   subroutine freeze_cloud_melt_ice(temp, rho, ocp, lvap, qi1d, ni1d, qiten, niten, &
-    qc1d, nc1d, qcten, ncten, tten)
+    qc1d, nc1d, ncsave, qcten, ncten, tten)
     ! freezes all cloud water and melts all cloud ice instantly given the temperature
-    use module_mp_tempo_params, only : t0, lfus, lsub, hgfrz
+    use module_mp_tempo_params, only : t0, lfus, lsub, hgfrz, nt_c_l
 
     real(wp), dimension(:), intent(in) :: temp, rho, ocp, lvap, qi1d, ni1d, qc1d
+    real(wp), dimension(:), intent(in), optional :: ncsave
     real(wp), dimension(:), intent(inout) :: qiten, niten, qcten, ncten, tten
     real(wp), dimension(:), intent(in), optional :: nc1d
     real(wp) :: xri, xrc, lfus2, xnc
@@ -2045,9 +2074,11 @@ module module_mp_tempo_main
         lfus2 = lsub - lvap(k)
         if (present(nc1d)) then
           xnc = nc1d(k) + ncten(k)*global_dt
-        else  
-          xnc = get_cloud_number()/rho(k) + ncten(k)*global_dt
-        endif 
+        elseif (present(ncsave)) then
+          xnc = ncsave(k)/rho(k) + ncten(k)*global_dt
+        else
+          xnc = nt_c_l/rho(k) + ncten(k)*global_dt
+        endif
         qiten(k) = qiten(k) + xrc*global_inverse_dt
         niten(k) = niten(k) + xnc*global_inverse_dt
         qcten(k) = qcten(k) - xrc*global_inverse_dt

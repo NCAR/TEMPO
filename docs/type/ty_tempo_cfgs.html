@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>22.2% of total for derived types.</p>Including implementation: 14 statements, 22.2% of total for derived types.">14 statements</a>
+                 title="<p>23.5% of total for derived types.</p>Including implementation: 16 statements, 23.5% of total for derived types.">16 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -135,16 +135,18 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-aerosolaware_flag">aerosolaware_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-hailaware_flag">hailaware_flag</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-semi_sedi">semi_sedi</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_with_melting_snow_graupel">refl10cm_with_melting_snow_graupel</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-all_mp_processes_off">all_mp_processes_off</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm~2">refl10cm</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_cloud~2">re_cloud</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_ice~2">re_ice</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_snow~2">re_snow</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-max_hail_diameter~3">max_hail_diameter</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-rain_med_vol_diam~2">rain_med_vol_diam</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-graupel_med_vol_diam~2">graupel_med_vol_diam</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-ml_for_subgrid_cloud_num_flag">ml_for_subgrid_cloud_num_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-ml_for_cloud_num_flag">ml_for_cloud_num_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-semi_sedi_flag">semi_sedi_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_from_melting_flag">refl10cm_from_melting_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-turn_off_micro_flag">turn_off_micro_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_flag">refl10cm_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_cloud_flag">re_cloud_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_ice_flag">re_ice_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_snow_flag">re_snow_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-max_hail_diameter_flag">max_hail_diameter_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-rain_med_vol_diam_flag">rain_med_vol_diam_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-graupel_med_vol_diam_flag">graupel_med_vol_diam_flag</a>
         </div>
       </div>
     </div>
@@ -227,7 +229,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-semi_sedi"></span>
+              <span class="anchor" id="variable-ml_for_subgrid_cloud_num_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -235,7 +237,41 @@
               
             </td>
             <td>::</td>
-            <td><strong>semi_sedi</strong></td>
+            <td><strong>ml_for_subgrid_cloud_num_flag</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>flag to run machine-learning prediction for subgrid cloud number concentration</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ml_for_cloud_num_flag"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ml_for_cloud_num_flag</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>flag to run machine-learning prediction for tempo cloud number concentration</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-semi_sedi_flag"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>semi_sedi_flag</strong></td>
 <td> =</td>
                 <td>.false.</td>
             <td>
@@ -244,7 +280,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-refl10cm_with_melting_snow_graupel"></span>
+              <span class="anchor" id="variable-refl10cm_from_melting_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -252,7 +288,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>refl10cm_with_melting_snow_graupel</strong></td>
+            <td><strong>refl10cm_from_melting_flag</strong></td>
 <td> =</td>
                 <td>.false.</td>
             <td>
@@ -261,7 +297,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-all_mp_processes_off"></span>
+              <span class="anchor" id="variable-turn_off_micro_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -269,7 +305,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>all_mp_processes_off</strong></td>
+            <td><strong>turn_off_micro_flag</strong></td>
 <td> =</td>
                 <td>.false.</td>
             <td>
@@ -278,7 +314,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-refl10cm~2"></span>
+              <span class="anchor" id="variable-refl10cm_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -286,7 +322,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>refl10cm</strong></td>
+            <td><strong>refl10cm_flag</strong></td>
 <td> =</td>
                 <td>.true.</td>
             <td>
@@ -295,7 +331,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_cloud~2"></span>
+              <span class="anchor" id="variable-re_cloud_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -303,7 +339,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>re_cloud</strong></td>
+            <td><strong>re_cloud_flag</strong></td>
 <td> =</td>
                 <td>.true.</td>
             <td>
@@ -312,7 +348,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_ice~2"></span>
+              <span class="anchor" id="variable-re_ice_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -320,7 +356,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>re_ice</strong></td>
+            <td><strong>re_ice_flag</strong></td>
 <td> =</td>
                 <td>.true.</td>
             <td>
@@ -329,7 +365,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-re_snow~2"></span>
+              <span class="anchor" id="variable-re_snow_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -337,7 +373,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>re_snow</strong></td>
+            <td><strong>re_snow_flag</strong></td>
 <td> =</td>
                 <td>.true.</td>
             <td>
@@ -346,7 +382,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-max_hail_diameter~3"></span>
+              <span class="anchor" id="variable-max_hail_diameter_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -354,7 +390,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>max_hail_diameter</strong></td>
+            <td><strong>max_hail_diameter_flag</strong></td>
 <td> =</td>
                 <td>.true.</td>
             <td>
@@ -363,7 +399,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rain_med_vol_diam~2"></span>
+              <span class="anchor" id="variable-rain_med_vol_diam_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -371,7 +407,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>rain_med_vol_diam</strong></td>
+            <td><strong>rain_med_vol_diam_flag</strong></td>
 <td> =</td>
                 <td>.false.</td>
             <td>
@@ -380,7 +416,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-graupel_med_vol_diam~2"></span>
+              <span class="anchor" id="variable-graupel_med_vol_diam_flag"></span>
               logical,
             </td>
               <td>public</td>
@@ -388,7 +424,7 @@
               
             </td>
             <td>::</td>
-            <td><strong>graupel_med_vol_diam</strong></td>
+            <td><strong>graupel_med_vol_diam_flag</strong></td>
 <td> =</td>
                 <td>.false.</td>
             <td>

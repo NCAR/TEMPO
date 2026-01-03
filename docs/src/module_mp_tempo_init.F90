@@ -4,6 +4,8 @@ module module_mp_tempo_init
   !! includes a procedure to build and save tempo lookup tables
   use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs, tempo_table_cfgs
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
+  use module_mp_tempo_ml, only : ty_tempo_ml_data, nc_ml_nodes, nc_ml_input, nc_ml_output, nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01, &
+  save_or_read_ml_data
 
 #ifdef tempo_intel
   use ifport, only : rename
@@ -107,20 +109,26 @@ module module_mp_tempo_init
       write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
 
       ! bins used for optional refl10cm calculation with melting
-      if (tempo_cfgs%refl10cm_with_melting_snow_graupel) then
+      if (tempo_cfgs%refl10cm_from_melting_flag) then
         call initialize_bins_for_radar()
         write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
-          tempo_cfgs%refl10cm_with_melting_snow_graupel
+          tempo_cfgs%refl10cm_from_melting_flag
         write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
       endif
 
       ! bins used for optional hail size calculation
-      if (tempo_cfgs%max_hail_diameter) then
+      if (tempo_cfgs%max_hail_diameter_flag) then
         call initialize_bins_for_hail_size()
         write(*,'(A,L)') 'tempo_init() ---  flag to calculate max hail diameter = ', &
-          tempo_cfgs%max_hail_diameter
+          tempo_cfgs%max_hail_diameter_flag
         write(*,'(A)') 'tempo_init() --- initialized bins for hail size calculation'
       endif
+
+      ! data for machine learning
+      if(tempo_cfgs%ml_for_subgrid_cloud_num_flag .or. &
+        tempo_cfgs%ml_for_cloud_num_flag) then
+        call init_ml_data()
+      endif 
     endif
   end subroutine tempo_init
 
@@ -1254,5 +1262,36 @@ module module_mp_tempo_init
       enddo
     enddo
   end subroutine qi_aut_qs
+
+
+  subroutine init_ml_data()
+    !! initialize machine learning data for tempo microphysics
+    type(ty_tempo_ml_data), dimension(1) :: tempo_ml_data
+
+    ! cloud water
+    tempo_ml_data(1)%input_size = nc_ml_input
+    tempo_ml_data(1)%node_size = nc_ml_nodes
+    tempo_ml_data(1)%output_size = nc_ml_output
+
+    if (.not.allocated(tempo_ml_data(1)%transform_mean)) allocate(tempo_ml_data(1)%transform_mean(nc_ml_input))
+    if (.not.allocated(tempo_ml_data(1)%transform_var)) allocate(tempo_ml_data(1)%transform_var(nc_ml_input))
+
+    tempo_ml_data(1)%transform_mean = nc_ml_trans_mean
+    tempo_ml_data(1)%transform_var = nc_ml_trans_var
+
+    if (.not.allocated(tempo_ml_data(1)%weights00)) allocate(tempo_ml_data(1)%weights00(nc_ml_nodes,nc_ml_input))
+    if (.not.allocated(tempo_ml_data(1)%weights01)) allocate(tempo_ml_data(1)%weights01(nc_ml_output,nc_ml_nodes))
+    if (.not.allocated(tempo_ml_data(1)%bias00)) allocate(tempo_ml_data(1)%bias00(nc_ml_nodes))
+    if (.not.allocated(tempo_ml_data(1)%bias01)) allocate(tempo_ml_data(1)%bias01(nc_ml_output))
+
+    tempo_ml_data(1)%weights00 = reshape(nc_ml_w00, (/nc_ml_nodes, nc_ml_input/))
+    tempo_ml_data(1)%weights01 = reshape(nc_ml_w01, (/nc_ml_output, nc_ml_nodes/))
+    tempo_ml_data(1)%bias00 = nc_ml_b00
+    tempo_ml_data(1)%bias01 = nc_ml_b01
+
+    ! save neural network
+    call save_or_read_ml_data(ml_data_in=tempo_ml_data)
+
+  end subroutine init_ml_data
 
 end module module_mp_tempo_init

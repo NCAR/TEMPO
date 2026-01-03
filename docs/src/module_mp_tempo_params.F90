@@ -20,16 +20,18 @@ module module_mp_tempo_params
   type :: ty_tempo_cfgs
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
-    logical :: semi_sedi = .false. !! flag for semi-lagrangian sedimentation
-    logical :: refl10cm_with_melting_snow_graupel = .false. !! flag to calculate reflectivity for melting snow and graupel
-    logical :: all_mp_processes_off = .false. !! flag to turn off all microphysical processes
-    logical :: refl10cm = .true. !! flag to output 10cm reflectivity
-    logical :: re_cloud = .true. !! flag to output cloud effective radius
-    logical :: re_ice = .true. !! flag to output ice effective radius
-    logical :: re_snow = .true. !! flag to output snow effective radius
-    logical :: max_hail_diameter = .true. !! flag to output maximum hail diameter
-    logical :: rain_med_vol_diam = .false. !! flag to output median volume diameter for rain
-    logical :: graupel_med_vol_diam = .false. !! flag to output median volume diameter for graupel
+    logical :: ml_for_subgrid_cloud_num_flag = .false. !! flag to run machine-learning prediction for subgrid cloud number concentration
+    logical :: ml_for_cloud_num_flag = .false. !! flag to run machine-learning prediction for tempo cloud number concentration
+    logical :: semi_sedi_flag = .false. !! flag for semi-lagrangian sedimentation
+    logical :: refl10cm_from_melting_flag = .false. !! flag to calculate reflectivity for melting snow and graupel
+    logical :: turn_off_micro_flag = .false. !! flag to turn off all microphysical processes
+    logical :: refl10cm_flag = .true. !! flag to output 10cm reflectivity
+    logical :: re_cloud_flag = .true. !! flag to output cloud effective radius
+    logical :: re_ice_flag = .true. !! flag to output ice effective radius
+    logical :: re_snow_flag = .true. !! flag to output snow effective radius
+    logical :: max_hail_diameter_flag = .true. !! flag to output maximum hail diameter
+    logical :: rain_med_vol_diam_flag = .false. !! flag to output median volume diameter for rain
+    logical :: graupel_med_vol_diam_flag = .false. !! flag to output median volume diameter for graupel
   end type
 
   ! tempo lookup table filenames

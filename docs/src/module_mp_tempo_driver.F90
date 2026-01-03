@@ -14,11 +14,13 @@ module module_mp_tempo_driver
     real(wp), dimension(:,:), allocatable :: snow_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: graupel_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: frozen_fraction
+    real(wp), dimension(:,:), allocatable :: frz_rain_precip
+    real(wp), dimension(:,:), allocatable :: max_hail_diameter_sfc
+    real(wp), dimension(:,:), allocatable :: max_hail_diameter_column
     real(wp), dimension(:,:,:), allocatable :: refl10cm
     real(wp), dimension(:,:,:), allocatable :: re_cloud
     real(wp), dimension(:,:,:), allocatable :: re_ice
     real(wp), dimension(:,:,:), allocatable :: re_snow
-    real(wp), dimension(:,:,:), allocatable :: max_hail_diameter
     real(wp), dimension(:,:,:), allocatable :: rain_med_vol_diam
     real(wp), dimension(:,:,:), allocatable :: graupel_med_vol_diam
   end type
@@ -96,13 +98,14 @@ module module_mp_tempo_driver
 
     ! allocate diagnostics
     ! 3d diagnostics have configuration flags
-    if (tempo_cfgs%rain_med_vol_diam) allocate(tempo_diags%rain_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%graupel_med_vol_diam) allocate(tempo_diags%graupel_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%refl10cm) allocate(tempo_diags%refl10cm(its:ite, kts:kte, jts:jte), source=-35._wp)
-    if (tempo_cfgs%re_cloud) allocate(tempo_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%re_ice) allocate(tempo_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%re_snow) allocate(tempo_diags%re_snow(its:ite, kts:kte, jts:jte), source=0._wp)
-    if (tempo_cfgs%max_hail_diameter) allocate(tempo_diags%max_hail_diameter(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%rain_med_vol_diam_flag) allocate(tempo_diags%rain_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%graupel_med_vol_diam_flag) allocate(tempo_diags%graupel_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%refl10cm_flag) allocate(tempo_diags%refl10cm(its:ite, kts:kte, jts:jte), source=-35._wp)
+    if (tempo_cfgs%re_cloud_flag) allocate(tempo_diags%re_cloud(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%re_ice_flag) allocate(tempo_diags%re_ice(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%re_snow_flag) allocate(tempo_diags%re_snow(its:ite, kts:kte, jts:jte), source=0._wp)
+    if (tempo_cfgs%max_hail_diameter_flag) allocate(tempo_diags%max_hail_diameter_sfc(its:ite, jts:jte), source=0._wp)
+    if (tempo_cfgs%max_hail_diameter_flag) allocate(tempo_diags%max_hail_diameter_column(its:ite, jts:jte), source=0._wp)
 
     ! precipitation
     allocate(tempo_diags%rain_precip(its:ite, jts:jte), source=0._wp)
@@ -110,6 +113,7 @@ module module_mp_tempo_driver
     allocate(tempo_diags%snow_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
     allocate(tempo_diags%graupel_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
     allocate(tempo_diags%frozen_fraction(its:ite, jts:jte), source=0._wp)
+    allocate(tempo_diags%frz_rain_precip(its:ite, jts:jte), source=0._wp)
 
     ! temperature or theta and exner
     if (present(t)) then
@@ -166,6 +170,7 @@ module module_mp_tempo_driver
         tempo_diags%snow_liquid_equiv_precip(i,j) = tempo_main_diags%snow_liquid_equiv_precip
         tempo_diags%graupel_liquid_equiv_precip(i,j) = tempo_main_diags%graupel_liquid_equiv_precip
         tempo_diags%frozen_fraction(i,j) = tempo_main_diags%frozen_fraction
+        tempo_diags%frz_rain_precip(i,j) = tempo_main_diags%frz_rain_precip
 
         ! 3d diagnostics
         if (allocated(tempo_diags%rain_med_vol_diam) .and. allocated(tempo_main_diags%rain_med_vol_diam)) then
@@ -186,8 +191,9 @@ module module_mp_tempo_driver
         if (allocated(tempo_diags%refl10cm) .and. allocated(tempo_main_diags%refl10cm)) then
           tempo_diags%refl10cm(i,:,j) = tempo_main_diags%refl10cm
         endif
-        if (allocated(tempo_diags%max_hail_diameter) .and. allocated(tempo_main_diags%max_hail_diameter)) then
-          tempo_diags%max_hail_diameter(i,:,j) = tempo_main_diags%max_hail_diameter
+        if (allocated(tempo_diags%max_hail_diameter_sfc) .and. allocated(tempo_diags%max_hail_diameter_column) .and. allocated(tempo_main_diags%max_hail_diameter)) then
+          tempo_diags%max_hail_diameter_sfc(i,j) = tempo_main_diags%max_hail_diameter(1)
+          tempo_diags%max_hail_diameter_column(i,j) = maxval(tempo_main_diags%max_hail_diameter)
         endif 
         ! return variables to model
         do k = kts, kte
