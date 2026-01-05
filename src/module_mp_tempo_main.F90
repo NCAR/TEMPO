@@ -597,12 +597,7 @@ module module_mp_tempo_main
             vt=vtrr, vtn=vtnr)
         enddo
       endif 
-    endif 
-    ! if (any(rr/rho > 0.2e-01_wp)) then
-    !   do k = 1, nz
-    !     write(*,*) 'AAJ ', k, rr(k), rho(k), vtrr(k), qr1d(k), mvd_r(k), substeps_sedi, dz1d(k)
-    !   enddo
-    ! endif 
+    endif
 
     ! graupel
     ktop_sedi = 1
@@ -803,9 +798,6 @@ module module_mp_tempo_main
       allocate(tempo_main_diags%max_hail_diameter(nz), source=0._wp)
       call max_hail_diam(rho, rg, ng, ilamg, idx_bg, &
         tempo_main_diags%max_hail_diameter)
-      ! if (maxval(tempo_main_diags%max_hail_diameter) > r1) then
-      !   write(*,*) 'aaj here', maxval(rg), maxval(tempo_main_diags%max_hail_diameter)
-      ! endif 
     endif
 
     ! 10-cm reflectivity
@@ -1469,6 +1461,8 @@ module module_mp_tempo_main
   subroutine sedimentation(xr, vt, dz1d, rho, xten, limit, steps, ktop_sedi, precip)
     !! computes sedimentation fluxes, adds fluxes to tendencies, and updates hydrometeor
     !! mass (and number and volume)
+    use module_mp_tempo_params, only : low_limit_mass_for_precip
+
     integer, intent(in) :: steps
     integer, intent(in), optional :: ktop_sedi
     real(wp), dimension(:), intent(inout) :: xr, xten
@@ -1505,11 +1499,7 @@ module module_mp_tempo_main
     enddo
 
     if (present(precip)) then 
-      !> @history
-      !> precipitation is output for a given hydrometeor if the mass concentration of 
-      !> that hydrometeor exceeds r1, which was modified from a threhold of r1*1000
-      !> @endhistory
-      if (xr(1) > r1) then
+      if (xr(1) > low_limit_mass_for_precip) then
         precip = precip + sed_r(1)*global_dt*(1._wp/real(steps, kind=wp))
       endif 
     endif 

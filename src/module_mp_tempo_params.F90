@@ -25,6 +25,8 @@ module module_mp_tempo_params
     logical :: semi_sedi_flag = .false. !! flag for semi-lagrangian sedimentation
     logical :: refl10cm_from_melting_flag = .false. !! flag to calculate reflectivity for melting snow and graupel
     logical :: turn_off_micro_flag = .false. !! flag to turn off all microphysical processes
+    logical :: verbose = .false. !! flag to turn on verbose print statements
+    ! below are flags to turn on/off diagnostic output
     logical :: refl10cm_flag = .true. !! flag to output 10cm reflectivity
     logical :: re_cloud_flag = .true. !! flag to output cloud effective radius
     logical :: re_ice_flag = .true. !! flag to output ice effective radius
@@ -154,6 +156,7 @@ module module_mp_tempo_params
   real(wp), parameter :: min_qv = 1.e-10_wp !! minimum value of water vapor mixing ratio \([kg\, kg^{-1}]\)
   real(wp), parameter :: r1 = 1.e-12_wp !! minimum hydrometeor mass \([kg\, m^{-3}]\) 
   real(wp), parameter :: r2 = 1.e-6_wp !! minimum hydrometeor number \([kg\, m^{-3}]\)
+  real(wp), parameter :: low_limit_mass_for_precip = 1.e-9_wp !! minimum hydrometor mass needed in the lowest-model level for precipitation
   real(wp), parameter :: eps = 1.e-15_wp !! small non-zero number
   real(wp), parameter :: meters3_to_liters = 1000._wp !! number of liters in 1 \(m^{3}\)
   real(dp), parameter :: gonv_min = 1.e2_dp !! minimum graupel y-intercept \([m^{-4}]\)
