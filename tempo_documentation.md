@@ -9,5 +9,6 @@ display: private
 src_dir: ./src
 src_dir: ./tools
 src_dir: ./test
+exclude_dir: ./test/unittests
 output_dir: ./docs
 ---

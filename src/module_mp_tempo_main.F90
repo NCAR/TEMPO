@@ -66,7 +66,11 @@ module module_mp_tempo_main
   contains
 
   subroutine tempo_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
-    nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, kts, kte, dt, ii, jj, tempo_main_diags)
+    nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, &
+    qcfrac1d, qifrac1d, qc_bl1d, qcfrac_bl1d, &
+    thten_bl1d, qvten_bl1d, qcten_bl1d, qiten_bl1d, &
+    thten_lwrad1d, thten_swrad1d, &
+    kts, kte, dt, ii, jj, tempo_main_diags)
     !! tempo main
 
     type(ty_tend) :: tend
@@ -92,6 +96,18 @@ module module_mp_tempo_main
     real(wp), dimension(kts:kte), intent(in) :: w1d !! 1D vertical velocity \(m\; s^{-1}]\)
     real(wp), dimension(kts:kte), intent(in) :: dz1d !! 1D vertical grid spacing \([m]\)
 
+    ! additional optional arrays
+    real(wp), dimension(:), intent(inout), optional :: qcfrac1d !! cloud fraction
+    real(wp), dimension(:), intent(inout), optional :: qifrac1d !! cloud ice fraction
+    real(wp), dimension(:), intent(in), optional :: qc_bl1d !! cloud water mixing ratio from boundary layer scheme
+    real(wp), dimension(:), intent(in), optional :: qcfrac_bl1d !! cloud fraction from boundary layer scheme
+    real(wp), dimension(:), intent(in), optional :: thten_bl1d !! potential temperature tendency from boundary layer scheme
+    real(wp), dimension(:), intent(in), optional :: qvten_bl1d !! water vapor mixing ratio tendency from boundary layer scheme
+    real(wp), dimension(:), intent(in), optional :: qcten_bl1d !! cloud water mixing ratio tendency from boundary layer scheme
+    real(wp), dimension(:), intent(in), optional :: qiten_bl1d !! cloud ice mixing ratio from boundary layer scheme
+    real(wp), dimension(:), intent(in), optional :: thten_lwrad1d !! potential temperature tendency from longwave radiation scheme
+    real(wp), dimension(:), intent(in), optional :: thten_swrad1d !! potential temperature tendency from shortwave radiation scheme
+  
     real(wp), dimension(kts:kte) :: tten, qvten, qcten, qiten, qrten, qsten, &
       qgten, qbten, niten, nrten, ncten, ngten, nwfaten, nifaten !! tendencies
 
@@ -571,7 +587,7 @@ module module_mp_tempo_main
           call sedimentation(xr=rr, vt=vtrr, dz1d=dz1d, rho=rho, xten=qrten, limit=r1, &
             steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%rain_precip)
           call sedimentation(xr=nr, vt=vtnr, dz1d=dz1d, rho=rho, xten=nrten, limit=r2, &
-            steps=substeps_sedi, ktop_sedi=ktop_sedi)
+            steps=substeps_sedi, ktop_sedi=ktop_sedi)                 
           vtrr = 0._wp
           vtnr = 0._wp
           xrx = qr1d
@@ -582,7 +598,12 @@ module module_mp_tempo_main
         enddo
       endif 
     endif 
-   
+    ! if (any(rr/rho > 0.2e-01_wp)) then
+    !   do k = 1, nz
+    !     write(*,*) 'AAJ ', k, rr(k), rho(k), vtrr(k), qr1d(k), mvd_r(k), substeps_sedi, dz1d(k)
+    !   enddo
+    ! endif 
+
     ! graupel
     ktop_sedi = 1
     substeps_sedi = 1
@@ -782,6 +803,9 @@ module module_mp_tempo_main
       allocate(tempo_main_diags%max_hail_diameter(nz), source=0._wp)
       call max_hail_diam(rho, rg, ng, ilamg, idx_bg, &
         tempo_main_diags%max_hail_diameter)
+      ! if (maxval(tempo_main_diags%max_hail_diameter) > r1) then
+      !   write(*,*) 'aaj here', maxval(rg), maxval(tempo_main_diags%max_hail_diameter)
+      ! endif 
     endif
 
     ! 10-cm reflectivity
@@ -1097,7 +1121,7 @@ module module_mp_tempo_main
           ! qb1d is L/kg and rb is L/m^3
           rb(k) = min(max(rg(k)*meters3_to_liters/rho_g(nrhg), &
             (qb1d(k)+qbten(k)*global_dt)*rho(k)), rg(k)*meters3_to_liters/rho_g(1))
-          idx(k) = max(1, min(nint(rg(k)/rb(k)/meters3_to_liters*0.01_wp)+1, nrhg))
+          idx(k) = max(1, min(nint(10._wp*rg(k)/rb(k))+1, nrhg))
 
           ! check number
           if (ng(k) <= r2) then
@@ -1126,7 +1150,7 @@ module module_mp_tempo_main
           ng1d(k) = cgg(2,1)*ogg3*qg1d(k)*lamg**bm_g / am_g(idx(k))
           qb1d(k) = min(max(qg1d(k)*meters3_to_liters/rho_g(nrhg), &
             qb1d(k)+qbten(k)*global_dt), meters3_to_liters*qg1d(k)/rho_g(1))
-          idx(k) = max(1, min(nint(qg1d(k)/qb1d(k)/meters3_to_liters*0.01_wp)+1, nrhg))
+          idx(k) = max(1, min(nint(10._wp*qg1d(k)/qb1d(k))+1, nrhg))
         else
           idx(k) = idx_bg1
           ygra1 = log10(max(1.e-9_dp, real(rg(k), kind=dp)))
@@ -1179,8 +1203,8 @@ module module_mp_tempo_main
       if (qg1d(k) > r1) then
         rg = qg1d(k)*rho(k)
         rb = rg*meters3_to_liters/rho_g(idx_bg1)
-        idx = max(1, min(nint(rg/rb/meters3_to_liters*0.01_wp)+1, nrhg))
-        mvd_g = 1.5e-3_wp
+        idx = max(1, min(nint(10._wp*rg/rb)+1, nrhg))
+        mvd_g = 5.e-3_wp
         lamg = (3.0_dp + mu_g + 0.672_dp) / mvd_g
         ng = cgg(2,1)*ogg3*rg*lamg**bm_g / am_g(idx)
         ng1d(k) = ng/rho(k)
@@ -1473,10 +1497,10 @@ module module_mp_tempo_main
     do k = ktop, 1, -1
       odz = 1._wp/dz1d(k)
       orho = 1._wp/rho(k)
-      xten(k) = xten(k) + (sed_r(k+1))*(1._wp/dz1d(k+1))*(1._wp/real(steps, kind=wp))/rho(k+1)
+      xten(k) = xten(k) + (sed_r(k+1))*(1._wp/dz1d(k))*(1._wp/real(steps, kind=wp))/rho(k)
       xten(k) = xten(k) - (sed_r(k))*odz*(1._wp/real(steps, kind=wp))*orho
 
-      xr(k) = max(limit, xr(k) + (sed_r(k+1))*(1._wp/dz1d(k+1))*global_dt*(1._wp/real(steps, kind=wp)))
+      xr(k) = max(limit, xr(k) + (sed_r(k+1))*(1._wp/dz1d(k))*global_dt*(1._wp/real(steps, kind=wp)))
       xr(k) = max(limit, xr(k) - (sed_r(k))*odz*global_dt*(1._wp/real(steps, kind=wp)))
     enddo
 
@@ -1720,7 +1744,9 @@ module module_mp_tempo_main
       if (max(vt(k), vtn(k)) > 1.e-3_wp) then
         if (present(ktop_sedi)) ktop_sedi = max(ktop_sedi, k)
         dz_by_vt = dz1d(k) / (max(vt(k), vtn(k)))
-        if (present(substeps_sedi)) substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
+        if (present(substeps_sedi)) then
+          substeps_sedi = max(substeps_sedi, int(global_dt/dz_by_vt + 1._wp))
+        endif 
       endif
     enddo
     if (present(ktop_sedi)) then
@@ -1775,7 +1801,9 @@ module module_mp_tempo_main
       if (vt(k) > 1.e-3_wp) then
         if (present(ktop_sedi)) ktop_sedi = max(ktop_sedi, k)
         dz_by_vt = dz1d(k) / vt(k)
-        if (present(substeps_sedi)) substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
+        if (present(substeps_sedi)) then
+          substeps_sedi = max(substeps_sedi, int(global_dt/dz_by_vt + 1._wp))
+        endif 
       endif
     enddo
     if (present(ktop_sedi)) then
@@ -1830,7 +1858,9 @@ module module_mp_tempo_main
       if (vt(k) > 1.e-3_wp) then
         if (present(ktop_sedi)) ktop_sedi = max(ktop_sedi, k)
         dz_by_vt = dz1d(k) / vt(k)
-        if (present(substeps_sedi)) substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
+        if (present(substeps_sedi)) then
+          substeps_sedi = max(substeps_sedi, int(global_dt/dz_by_vt + 1._wp))
+        endif 
       endif
     enddo
     if (present(ktop_sedi)) then
@@ -1867,7 +1897,7 @@ module module_mp_tempo_main
       if (vt(k) > 1.e-3_wp) then
         ktop_sedi = max(ktop_sedi, k)
         dz_by_vt = dz1d(k) / vt(k)
-        substeps_sedi = int(global_dt/dz_by_vt + 1._wp)
+        substeps_sedi = max(substeps_sedi, int(global_dt/dz_by_vt + 1._wp))
       endif
     enddo
     if (ktop_sedi == nz) ktop_sedi = nz-1 
@@ -2001,7 +2031,7 @@ module module_mp_tempo_main
     nz = size(qv)
     do k = 1, nz
       if(l_qr(k)) then
-         if ((ssatw(k) < -eps) .and. tend%prw_vcd(k) <= 0._dp) then
+        if ((ssatw(k) < -eps) .and. tend%prw_vcd(k) <= 0._dp) then
           orho = 1._wp/rho(k)
           tempc = temp(k) - t0
           otemp = 1._wp/temp(k)
@@ -2296,7 +2326,7 @@ module module_mp_tempo_main
 
     real(dp) :: xds, xdg, n0_g, lamc
     real(wp) :: ef_sw, vtg, stoke_g, const_ri, tempc, rime_dens, ef_gw
-    real(wp) :: t1_qg_qc, r_frac, g_frac, vts, tf
+    real(wp) :: t1_qg_qc, r_frac, g_frac, vts, tf, snow_dens_frac
     integer :: k, nz, idxs, nu_c
 
     nz = size(l_qc)
@@ -2339,8 +2369,12 @@ module module_mp_tempo_main
                 tend%prg_scw(k) = 0._dp
                 tend%png_scw(k) = 0._dp
               endif
+              snow_dens_frac = min(1._wp, max(0._wp, rs(k)*global_inverse_dt / &
+                (rs(k)*global_inverse_dt + tend%prg_scw(k))))
               tend%pbg_scw(k) = meters3_to_liters*tend%prg_scw(k) / &
-                (0.5_wp*(rho_s+rime_dens))
+                (rho_s * snow_dens_frac + rime_dens * (1._wp-snow_dens_frac))
+              ! tend%pbg_scw(k) = meters3_to_liters*tend%prg_scw(k) / &
+              !  (0.5_wp*(rho_s+rime_dens))
               tend%prs_scw(k) = (1._wp - g_frac)*tend%prs_scw(k)
             endif
           endif 
@@ -2672,7 +2706,7 @@ module module_mp_tempo_main
         endif 
         call get_in_table_index(xni, idx_in)
 
-        !> @ ote
+        !> @note
         !> freezing of water drops into either cloud ice or graupel is from 
         !> [Bigg (1953)](https://doi.org/10.1002/qj.49707934207)
         if (rr(k) > r_r(1)) then
@@ -2707,7 +2741,7 @@ module module_mp_tempo_main
         !>
         !> deposition nucleation from dust is from
         !> [DeMott et al. (2010)](https://doi.org/10.1073/pnas.0910818107)
-        if ( (ssati(k) >= demott_nuc_ssati) .or. (ssatw(k) > eps &
+        if ((ssati(k) >= demott_nuc_ssati) .or. (ssatw(k) > eps &
             .and. tempc < -20._wp)) then
           if (present(nifa)) then
             xnc = demott_nucleation(tempc, rho(k), nifa(k))
@@ -3005,13 +3039,13 @@ module module_mp_tempo_main
             0.2_wp*sc3*sqrt(av_g(idx(k))) * cgg(11,idx(k))
           tend%prr_gml(k) = (tempc*tcond(k)-lvap0*diffu(k)*delqvs(k)) * &
             n0_melt*(t1_qg_me*ilamg(k)**cge(10,1) + &
-              t2_qg_me*rhof2(k)*vsc2(k)*ilamg(k)**cge(11,idx(k)))
+            t2_qg_me*rhof2(k)*vsc2(k)*ilamg(k)**cge(11,idx(k)))
           tend%prr_gml(k) = min(real(rg(k)*global_inverse_dt, kind=dp), max(0._dp, tend%prr_gml(k)))
           if (tend%prr_gml(k) > 0._dp) then
             melt_f = max(0.05_wp, min(tend%prr_gml(k)*global_dt/rg(k),1._wp))
             ! 1000 is density water, 50 is lower limit (max ice density is 800)
             tend%pbg_gml(k) = meters3_to_liters*tend%prr_gml(k) / &
-              max(min(melt_f*rho_g(idx(k)),rho_w),50._wp)
+              max(min(melt_f*rho_g(idx(k)), rho_w), 50._wp)
             tend%pnr_gml(k) = tend%prr_gml(k)*ng(k)/rg(k) * 10.0_wp**(-0.33_wp*(temp(k)-t0))
           else
             tend%prr_gml(k) = 0._dp

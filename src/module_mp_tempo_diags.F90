@@ -400,16 +400,17 @@ module module_mp_tempo_diags
     real(wp), dimension(:), intent(in) :: rho, rg, ng
     real(dp), dimension(:), intent(in) :: ilamg
     integer, dimension(:), intent(in) :: idx
-    real(wp), dimension(:), allocatable, intent(out) :: max_hail_diameter
+    real(wp), dimension(:), intent(out) :: max_hail_diameter
     real(dp) :: lamg, n0_g, sum_nh, sum_t, f_d, hail_max
     integer :: k, nz, n
     real(dp), parameter :: threshold_conc = 0.0005
 
     nz = size(rho)
-    allocate(max_hail_diameter(nz), source=0._wp)
     do k = 1, nz
+      max_hail_diameter(k) = 0._wp
       if(rg(k)/rho(k) >= 1.e-6_wp) then
         if (rho_g(idx(k)) < 350._wp) cycle ! density too low to be hail/ice pellets
+        !! write(*,*) 'aaj hail size', k, rg(k), rho(k), rho_g(idx(k)), ng(k)
         lamg = 1._dp / ilamg(k)
         n0_g = ng(k)*ogg2*lamg**cge(2,1)
 
