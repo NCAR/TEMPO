@@ -93,6 +93,10 @@ install : tempo_tests
 	mkdir -p rundir_tests
 	install $(tempotest_exe) ./rundir_tests/$(tempotest_exe)
 
+install_unit_tests : unit_tests
+	mkdir -p rundir_unit_tests
+	install $(unittest_exe) ./rundir_unit_tests/$(unittest_exe)
+
 # dependency rules
 $(src_dir)/module_mp_tempo_params.o: $(src_dir)/machine.o
 $(src_dir)/module_mp_tempo_ml.o: $(src_dir)/module_mp_tempo_params.o

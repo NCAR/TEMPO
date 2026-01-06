@@ -14,12 +14,28 @@ jobs:
     # Environmental variables
     env:
       driver_ROOT: /home/runner/work/TEMPO/TEMPO
-
+      testdrive_ROOT: /home/runner/test-drive
+  
     # Workflow steps
     steps:
+    
+    - name: Checkout test-drive
+      run: |
+        cd ${testdrive_ROOT}
+        git clone https://github.com/fortran-lang/test-drive.git
+        cd ${testdrive_ROOT}/test-drive
+        mkdir -p build
+        cmake ../
+        make
 
     - name: Checkout code (into ${driver_ROOT})
       uses: actions/checkout@v3
+
+    - name: Build unit tests
+      run: |
+        cd ${driver_ROOT}
+        make unit_tests -f Makefile.gfortran testdrive_dir=${testdrive_ROOT}/test-drive/build
+        make install_unit_tests -f Makefile.gfortran
 
     - name: Build tests
       run: |

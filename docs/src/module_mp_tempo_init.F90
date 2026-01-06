@@ -29,7 +29,8 @@ module module_mp_tempo_init
 
   contains
 
-  subroutine tempo_init(aerosolaware_flag, hailaware_flag, tempo_cfgs)
+  subroutine tempo_init(aerosolaware_flag, hailaware_flag, &
+    ml_for_bl_nc_flag, ml_for_nc_flag, force_init_flag, tempo_cfgs)
     !! initialize tempo microphysics
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
@@ -37,27 +38,37 @@ module module_mp_tempo_init
       initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater, &
       initialize_bins_for_hail_size, initialize_bins_for_radar
 
-    logical, intent(in), optional :: aerosolaware_flag, hailaware_flag
+    logical, intent(in), optional :: aerosolaware_flag, hailaware_flag, &
+      ml_for_bl_nc_flag, ml_for_nc_flag, force_init_flag
     type(ty_tempo_cfgs), intent(out) :: tempo_cfgs
   
     character(len=100) :: table_filename
     integer :: table_size
-    logical :: initialize_mp_vars
+    logical :: initialize_mp_vars, force_init
 
     ! get tempo version from readme file
     call get_version(tempo_version) 
 
     ! check an allocatable array (t_efrw) to see if initialization can be skipped
+    ! but allow for force initialization useful for testing
+    force_init = .false.
+    if (present(force_init_flag)) force_init = force_init_flag
+
     initialize_mp_vars = .true.
     if (allocated(t_efrw)) initialize_mp_vars = .false.
+    if (force_init) initialize_mp_vars = .true.
 
     if (initialize_mp_vars) then
       if (present(aerosolaware_flag)) tempo_cfgs%aerosolaware_flag = aerosolaware_flag
       if (present(hailaware_flag)) tempo_cfgs%hailaware_flag = hailaware_flag
+      if (present(ml_for_bl_nc_flag)) tempo_cfgs%ml_for_bl_nc_flag = ml_for_bl_nc_flag
+      if (present(ml_for_nc_flag)) tempo_cfgs%ml_for_nc_flag = ml_for_nc_flag
 
       write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
       write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
       write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
+      write(*,'(A,L)') 'tempo_init() --- ML for subgrid cloud number = ', tempo_cfgs%ml_for_bl_nc_flag
+      write(*,'(A,L)') 'tempo_init() --- ML for cloud number = ', tempo_cfgs%ml_for_nc_flag
 
       ! set graupel variables from hail_aware_flag
       call initialize_graupel_vars(tempo_cfgs%hailaware_flag) 
@@ -129,9 +140,9 @@ module module_mp_tempo_init
       endif
 
       ! data for machine learning
-      if(tempo_cfgs%ml_for_subgrid_cloud_num_flag .or. &
-        tempo_cfgs%ml_for_cloud_num_flag) then
+      if(tempo_cfgs%ml_for_bl_nc_flag .or. tempo_cfgs%ml_for_nc_flag) then
         call init_ml_data()
+        write(*,'(A)') 'tempo_init() --- initialized data for ML hookup'
       endif 
     endif
   end subroutine tempo_init

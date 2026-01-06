@@ -4,7 +4,7 @@ name := tempo
 # to run unit tests, build test-drive and add the test-drive
 # directory to testdrive_dir. This directory should have libtest-drive.a
 # https://github.com/fortran-lang/test-drive
-testdrive_dir = /set-this-dir/test-drive/build
+# testdrive_dir = /set-this-dir/test-drive/build
 
 # compiles with mpi for faster table builds when mpi = 1
 mpi = 0
@@ -92,6 +92,10 @@ unit_tests: set-configs check-compiler set-utest $(unittest_exe)
 install : tempo_tests
 	mkdir -p rundir_tests
 	install $(tempotest_exe) ./rundir_tests/$(tempotest_exe)
+
+install_unit_tests : unit_tests
+	mkdir -p rundir_unit_tests
+	install $(unittest_exe) ./rundir_unit_tests/$(unittest_exe)
 
 # dependency rules
 $(src_dir)/module_mp_tempo_params.o: $(src_dir)/machine.o

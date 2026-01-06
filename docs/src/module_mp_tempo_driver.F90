@@ -24,6 +24,7 @@ module module_mp_tempo_driver
     real(wp), dimension(:,:,:), allocatable :: re_snow
     real(wp), dimension(:,:,:), allocatable :: rain_med_vol_diam
     real(wp), dimension(:,:,:), allocatable :: graupel_med_vol_diam
+    real(wp), dimension(:,:,:), allocatable :: cloud_number_mixing_ratio
   end type
 
   contains
@@ -141,6 +142,7 @@ module module_mp_tempo_driver
 
     ! allocate diagnostics
     ! 3d diagnostics have configuration flags
+    if (tempo_cfgs%cloud_number_mixing_ratio_flag) allocate(tempo_diags%cloud_number_mixing_ratio(its:ite, kts:kte, jts:jte), source=0._wp)
     if (tempo_cfgs%rain_med_vol_diam_flag) allocate(tempo_diags%rain_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
     if (tempo_cfgs%graupel_med_vol_diam_flag) allocate(tempo_diags%graupel_med_vol_diam(its:ite, kts:kte, jts:jte), source=0._wp)
     if (tempo_cfgs%refl10cm_flag) allocate(tempo_diags%refl10cm(its:ite, kts:kte, jts:jte), source=-35._wp)
@@ -198,6 +200,12 @@ module module_mp_tempo_driver
             ng1d(k) = ng(i,k,j)
             qb1d(k) = qb(i,k,j)
           endif 
+
+          !ML for pbl clouds
+          if (present(qc_bl) .and. present(qcfrac_bl)) then
+            qc_bl1d(k) = qc_bl(i,k,j)
+            qcfrac_bl1d(k) = qcfrac_bl(i,k,j)
+          endif 
         enddo
 
         ! main call to the 1d tempo microphysics
@@ -219,6 +227,9 @@ module module_mp_tempo_driver
         tempo_diags%frz_rain_precip(i,j) = tempo_main_diags%frz_rain_precip
 
         ! 3d diagnostics
+        if (allocated(tempo_diags%cloud_number_mixing_ratio) .and. allocated(tempo_main_diags%cloud_number_mixing_ratio)) then
+          tempo_diags%cloud_number_mixing_ratio(i,:,j) = tempo_main_diags%cloud_number_mixing_ratio
+        endif 
         if (allocated(tempo_diags%rain_med_vol_diam) .and. allocated(tempo_main_diags%rain_med_vol_diam)) then
           tempo_diags%rain_med_vol_diam(i,:,j) = tempo_main_diags%rain_med_vol_diam
         endif 

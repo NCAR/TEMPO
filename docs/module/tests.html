@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 3.0% of total for modules and submodules.">139 statements</a>
+                 title=" 7.9% of total for modules and submodules.">390 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -125,7 +125,18 @@
         <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/tests.html#variable-tempo_cfgs~4">tempo_cfgs</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -146,6 +157,10 @@
             <a class="list-group-item" href="../module/tests.html#proc-test_tempo_init">test_tempo_init</a>
             <a class="list-group-item" href="../module/tests.html#proc-test_graupel_sedimentation">test_graupel_sedimentation</a>
             <a class="list-group-item" href="../module/tests.html#proc-test_snow_sedimentation">test_snow_sedimentation</a>
+            <a class="list-group-item" href="../module/tests.html#proc-test_cloud_number_aerosolaware">test_cloud_number_aerosolaware</a>
+            <a class="list-group-item" href="../module/tests.html#proc-test_cloud_number_non_aerosolaware">test_cloud_number_non_aerosolaware</a>
+            <a class="list-group-item" href="../module/tests.html#proc-test_cloud_number_ml">test_cloud_number_ml</a>
+            <a class="list-group-item" href="../module/tests.html#proc-test_ml_cloud_effective_radius">test_ml_cloud_effective_radius</a>
         </div>
       </div>
     </div>
@@ -171,9 +186,9 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
+                  <li class="list-inline-item"><a href='module_mp_tempo_driver.html'>module_mp_tempo_driver</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_init.html'>module_mp_tempo_init</a></li>
                   <li class="list-inline-item"><a href='module_mp_tempo_cfgs.html'>module_mp_tempo_cfgs</a></li>
-                  <li class="list-inline-item"><a href='module_mp_tempo_driver.html'>module_mp_tempo_driver</a></li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -669,6 +684,40 @@ modules which it uses.
       <br>
 
 
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tempo_cfgs~4"></span>
+              type(<a href='../type/ty_tempo_cfgs.html'>ty_tempo_cfgs</a>),
+            </td>
+              <td>private</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tempo_cfgs</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
 
 
 
@@ -682,7 +731,10 @@ modules which it uses.
 </h3></div>
     <div class="card-body">
           
-  <p>test tempo initialization procedure</p>
+  <p>test tempo initialization procedure
+use ml_for_bl_nc_flag = .true. to initialize ml data
+which is used for a few tests
+test specific flags are then set in each test</p>
 
   <h4>Arguments</h4>
     <em>None</em>
@@ -710,7 +762,7 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dt~2"></span>
+              <span class="anchor" id="variable-dt~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -765,7 +817,167 @@ modules which it uses.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dt~3"></span>
+              <span class="anchor" id="variable-dt~5"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dt</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-test_cloud_number_aerosolaware"></span> <h3>public  subroutine <a href='../proc/test_cloud_number_aerosolaware.html'>test_cloud_number_aerosolaware</a>(dt)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dt~6"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dt</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-test_cloud_number_non_aerosolaware"></span> <h3>public  subroutine <a href='../proc/test_cloud_number_non_aerosolaware.html'>test_cloud_number_non_aerosolaware</a>(dt)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dt~7"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dt</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-test_cloud_number_ml"></span> <h3>public  subroutine <a href='../proc/test_cloud_number_ml.html'>test_cloud_number_ml</a>(dt)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dt~8"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dt</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-test_ml_cloud_effective_radius"></span> <h3>public  subroutine <a href='../proc/test_ml_cloud_effective_radius.html'>test_ml_cloud_effective_radius</a>(dt)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dt~9"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>

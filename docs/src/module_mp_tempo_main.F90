@@ -38,6 +38,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), allocatable :: re_ice
     real(wp), dimension(:), allocatable :: re_snow
     real(wp), dimension(:), allocatable :: max_hail_diameter
+    real(wp), dimension(:), allocatable :: cloud_number_mixing_ratio
   end type
 
   type :: ty_tend
@@ -133,6 +134,8 @@ module module_mp_tempo_main
     
     real(wp), dimension(kts:kte) :: xrx, xnx !! temporary arrays
     real(wp), dimension(:), allocatable :: xncx, xngx, xqbx, ncsave !! temporary arrays
+    real(dp), dimension(:), allocatable :: ilamx !! temporary arrays
+    logical, dimension(:), allocatable :: l_qx !! temporary arrays
 
     real(wp), dimension(kts:kte+1) :: vtrr, vtnr, vtrs, vtri, vtni, vtrg, vtng, vtrc, vtnc !! fallspeeds
     real(wp), dimension(kts:kte) :: vtboost !! snow fallspeed boost factor
@@ -313,7 +316,7 @@ module module_mp_tempo_main
 
     ! set one-moment cloud number concentration
     if (.not. present(nc1d)) then
-      if (tempo_cfgs%ml_for_cloud_num_flag) then
+      if (tempo_cfgs%ml_for_nc_flag) then
         xrx = qc1d
         where(xrx <= 1.e-12_wp) xrx = 0._wp
         ! ml prediction
@@ -687,8 +690,12 @@ module module_mp_tempo_main
       t1d(k)  = t1d(k) + tten(k)*global_dt
       qv1d(k) = max(min_qv, (qv1d(k) + qvten(k)*global_dt))
       rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
-      nwfa1d(k) = max(nwfa_default, min(aero_max, (nwfa1d(k)+nwfaten(k)*global_dt)))
-      nifa1d(k) = max(nifa_default, min(aero_max, (nifa1d(k)+nifaten(k)*global_dt)))
+      if (present(nwfa1d)) then
+        nwfa1d(k) = max(nwfa_default, min(aero_max, (nwfa1d(k)+nwfaten(k)*global_dt)))
+      endif 
+      if (present(nifa1d)) then
+        nifa1d(k) = max(nifa_default, min(aero_max, (nifa1d(k)+nifaten(k)*global_dt)))
+      endif 
     enddo
     
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
@@ -736,6 +743,10 @@ module module_mp_tempo_main
       cloud_precip=tempo_main_diags%cloud_precip, &
       frz_rain=tempo_main_diags%frz_rain_precip)
 
+    if (tempo_cfgs%cloud_number_mixing_ratio_flag) then
+      allocate(tempo_main_diags%cloud_number_mixing_ratio(nz), source=nc*rho)
+    endif 
+
     ! median volume diameter of rain and graupel
     if (tempo_cfgs%rain_med_vol_diam_flag) then
       allocate(tempo_main_diags%rain_med_vol_diam(nz), source=0._wp)
@@ -767,9 +778,34 @@ module module_mp_tempo_main
       allocate(tempo_main_diags%re_cloud(nz), source=0._wp)
       allocate(tempo_main_diags%re_ice(nz), source=0._wp)
       allocate(tempo_main_diags%re_snow(nz), source=0._wp)
+
+      ! this diagnostic optionally adds pbl clouds to resolved clouds 
+      ! for the effective radius calculation, which will update the cloud properites
+      ! please output any cloud diagnostics before this calculation
+      if (present(qc_bl1d) .and. present(qcfrac_bl1d)) then
+        xrx = qc1d
+        if (.not. allocated(xncx)) allocate(xncx(nz), source=0._wp)
+        xncx = nc1d
+        do k = 1, nz
+          if ((xrx(k) <= r1) .and. & 
+            (qc_bl1d(k) > 1.e-9_wp) .and. (qcfrac_bl1d(k) > 0._wp)) then
+            xrx(k) = xrx(k) + qc_bl1d(k) / qcfrac_bl1d(k) ! use in-cloud PBL mass
+          endif 
+        enddo 
+        where(xrx <= 1.e-12_wp) xrx = 0._wp
+        ! ml prediction
+        call get_cloud_number(xrx, qr1d, qi1d, qs1d, pres, temp, w1d, xncx)
+      
+        ! xrx and xncx have been updated to include pbl contribution -> update ilamc and nc 
+        ! for effective radius calculation
+        qcten = 0._wp
+        ncten = 0._wp
+        call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=xrx, nc1d=xncx, &
+          rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
+      endif 
       call effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
         tempo_main_diags%re_cloud, tempo_main_diags%re_ice, tempo_main_diags%re_snow)
-    endif 
+    endif
   end subroutine tempo_main
 
 
@@ -1042,8 +1078,8 @@ module module_mp_tempo_main
       gonv_min, oge1, ogg1, d0g, meters3_to_liters
 
     real(wp), dimension(:), intent(in) :: rho
-    real(wp), dimension(:), intent(inout) :: qg1d, qgten, rg, ng, rb
-    real(wp), dimension(:), intent(inout), optional :: ng1d, qb1d, ngten, qbten
+    real(wp), dimension(:), intent(inout) :: qg1d, qgten, rg, ng, rb, ngten, qbten
+    real(wp), dimension(:), intent(inout), optional :: ng1d, qb1d
     real(dp), dimension(:), intent(out) :: ilamg
     real(wp), dimension(:), intent(out) :: mvd_g
     logical, dimension(:), intent(inout) :: l_qg
@@ -1478,26 +1514,16 @@ module module_mp_tempo_main
     integer :: k, nz, kk, kb, kt, m
 
     nz = size(dz1d)
-    allocate(zi(nz+1))
-    allocate(wi(nz+1))
-    allocate(dza(nz+1))
-    allocate(za(nz+2))
-    allocate(qa(nz+1))
-    allocate(qmi(nz+1))
-    allocate(qpi(nz+1))
-    allocate(net_flx(nz))
-    allocate(precip_flx(nz))
-    allocate(rr_save(nz))
-
-    zi = 0._wp
-    wi = 0._wp
-    dza = 0._wp
-    qa = 0._wp
-    qmi = 0._wp
-    qpi = 0._wp
-    net_flx = 0._wp
-    precip_flx = 0._wp
-    rr_save = xr
+    allocate(zi(nz+1), source=0._wp)
+    allocate(wi(nz+1), source=0._wp)
+    allocate(dza(nz+1), source=0._wp)
+    allocate(za(nz+2), source=0._wp)
+    allocate(qa(nz+1), source=0._wp)
+    allocate(qmi(nz+1), source=0._wp)
+    allocate(qpi(nz+1), source=0._wp)
+    allocate(net_flx(nz), source=0._wp)
+    allocate(precip_flx(nz), source=0._wp)
+    allocate(rr_save(nz), source=xr)
 
     zi(1) = 0._wp ! zi(1) needs to be zero so zero out explicitly
     do k = 1, nz

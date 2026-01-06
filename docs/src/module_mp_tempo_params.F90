@@ -38,6 +38,8 @@ module module_mp_tempo_params
   real(wp), parameter :: bv_i = 1.0_wp !! ice fallspeed power-law coefficient
   real(wp), parameter :: av_g_old = 442._wp !! graupel fallspeed power-law coefficient (hail_aware = false)
   real(wp), parameter :: bv_g_old = 0.89_wp !! graupel fallspeed power-law coefficient (hail_aware = false)
+  real(wp), parameter :: av_g_new = 161.794724_wp !! graupel fallspeed power-law coefficient HARDCODED for idx_bg1 = 6 (hail_aware = true)
+  real(wp), parameter :: bv_g_new = 0.640961647_wp !! graupel fallspeed power-law coefficient HARDCODED for idx_bg1 = 6 (hail_aware = true)
   real(wp), parameter :: fv_r = 195.0_wp !! rain fallspeed power-law coefficient
   real(wp), parameter :: av_c = 0.316946e8_wp !! cloud fallspeed power-law coefficient
   real(wp), parameter :: a_coeff = 0.47244157_wp !! graupel fallspeed power-law coefficient
@@ -377,6 +379,9 @@ module module_mp_tempo_params
     logical, intent(in) :: hail_flag
 
     if (hail_flag) then
+      ! in case these were previously set to av_g_old and bv_g_old reset
+      av_g(idx_bg1) = av_g_new
+      bv_g(idx_bg1) = bv_g_new
       dim_nrhg = nrhg
     else
       av_g(idx_bg1) = av_g_old
