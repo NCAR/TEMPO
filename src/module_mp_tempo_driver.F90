@@ -1,7 +1,8 @@
 module module_mp_tempo_driver
   !! tempo driver that converts 3d model input to 1d arrays used by the main code
   !! also allocates and fills diagnostic arrays
-  use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs
+  use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
   implicit none
   private
@@ -27,7 +28,7 @@ module module_mp_tempo_driver
 
   contains
 
-  subroutine tempo_driver(dt, itimestep, &
+  subroutine tempo_driver(tempo_cfgs, dt, itimestep, &
     t, th, pii, p, w, dz, &
     qv, qc, qr, qi, qs, qg, ni, nr, &
     nc, nwfa, nifa, ng, qb, &
@@ -39,6 +40,7 @@ module module_mp_tempo_driver
     ims, ime, jms, jme, kms, kme, &
     its, ite, jts, jte, kts, kte, tempo_diags)
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     real(wp), intent(in) :: dt !! timestep \([s]]\)
     integer, intent(in) :: itimestep !! integer timestep = integration time / dt
     integer, intent(in) :: ids, ide, jds, jde, kds, kde !! domain locations
@@ -199,7 +201,8 @@ module module_mp_tempo_driver
         enddo
 
         ! main call to the 1d tempo microphysics
-        call tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
+        call tempo_main(tempo_cfgs=tempo_cfgs, &
+          qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
           w1d=w1d, dz1d=dz1d, &
           qcfrac1d=qcfrac1d, qifrac1d=qifrac1d, qc_bl1d=qc_bl1d, qcfrac_bl1d=qcfrac_bl1d, &
@@ -274,7 +277,7 @@ module module_mp_tempo_driver
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: nwfa 
     real(wp), dimension(ims:ime, jms:jme), intent(in) :: nwfa2d
     integer, intent(in) :: ims, ime, jms, jme, kms, kme, kts
-    integer :: i, j, k
+    integer :: i, j
 
     do j = jms, jme
       do i = ims, ime

@@ -1,8 +1,9 @@
 module module_mp_tempo_main
   !! main tempo microphysics code
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs
   use module_mp_tempo_params, only : wp, sp, dp, &
-    min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, tempo_cfgs, meters3_to_liters, eps, &
-    aero_max, nwfa_default, nifa_default
+    min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, &
+    meters3_to_liters, eps, aero_max, nwfa_default, nifa_default
   use module_mp_tempo_utils, only : get_nuc, get_constant_cloud_number, snow_moments, calc_rslf, calc_rsif
   use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius, max_hail_diam, &
     freezing_rain
@@ -65,7 +66,8 @@ module module_mp_tempo_main
 
   contains
 
-  subroutine tempo_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
+  subroutine tempo_main(tempo_cfgs, &
+    qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
     nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, &
     qcfrac1d, qifrac1d, qc_bl1d, qcfrac_bl1d, &
     thten_bl1d, qvten_bl1d, qcten_bl1d, qiten_bl1d, &
@@ -76,6 +78,7 @@ module module_mp_tempo_main
     type(ty_tend) :: tend
     type(ty_tempo_main_diags), intent(out) :: tempo_main_diags
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     integer, intent(in) :: kts, kte, ii, jj
     real(wp), intent(in) :: dt
     real(wp), dimension(kts:kte), intent(inout) :: t1d !! 1D temperature \([K]\)
@@ -121,7 +124,7 @@ module module_mp_tempo_main
     real(wp), dimension(kts:kte) :: satw, sati, ssatw, ssati !! thermodynamic variables
     real(wp), dimension(kts:kte) :: diffu, visco, vsc2, tcond, lvap, ocp, lvt2 !! thermodynamic variables
  
-    real(wp), dimension(kts:kte) :: rc, ri, rr, rs, rg, rb, qcsave, qssave !! local microphysical variables
+    real(wp), dimension(kts:kte) :: rc, ri, rr, rs, rg, rb !! local microphysical variables
     real(wp), dimension(kts:kte) :: ni, nr, nc, ng, nwfa, nifa !! local microphysics variables
 
     real(dp), dimension(kts:kte) :: ilamc, ilami, ilamr, ilamg !! inverse lambda
@@ -138,8 +141,6 @@ module module_mp_tempo_main
 
     ! local variables
     real(wp) :: tempc, tc0
-    real(wp) :: qv0, qv1, qc0, qc1, qr0, qr1, qi0, qi1, qs0, qs1, qg0, qg1, &
-      mass_check0, mass_check1, max_clip_qv, max_clip
     logical :: do_micro, supersaturated
     logical, save :: first_call_main = .true.
     integer :: k, nz
@@ -274,27 +275,6 @@ module module_mp_tempo_main
       vtrg(k) = 0._wp
       vtng(k) = 0._wp
     enddo
-
-    qv0 = sum(qv1d)
-    qc0 = sum(qc1d)
-    qr0 = sum(qr1d)
-    qi0 = sum(qi1d)
-    qs0 = sum(qs1d)
-    qg0 = sum(qg1d)
-    max_clip_qv = real(nz, kind=wp) * min_qv
-    max_clip = real(nz, kind=wp) * r1
-
-    mass_check0 = sum(qv1d) + sum(qc1d) + sum(qr1d) + sum(qi1d) + sum(qs1d) + sum(qg1d)
-    do k = 1, nz
-      if (qc1d(k) < 0._wp) then
-        write(*,*) 'negative qc', qc1d(k)
-      endif 
-      if (qs1d(k) < 0._wp) then
-        write(*,*) 'negative qs', qs1d(k)
-      endif 
-    enddo
-    qcsave = qc1d
-    qssave = qs1d
   
     ! initialization -----------------------------------------------------------------------------
     do k = 1, nz
@@ -398,17 +378,16 @@ module module_mp_tempo_main
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
-      vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
-      rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend)
+      vsc2, ssati, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo1, rr, nr, &
+      ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
         smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
-      call melting(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
-      vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
-      rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend)
+      call melting(rhof2, rho, temp, qvsi, tcond, diffu, vsc2, ssati, delqvs, &
+      l_qs, rs, smof, smo0, smo1, l_qg, rg, ng, ilamg, idx_bg, tend)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, l_qr, nr, ilamr, &
@@ -604,7 +583,7 @@ module module_mp_tempo_main
     substeps_sedi = 1
     semi_sedi_factor = 10._wp
     if (any(l_qg)) then
-      call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, &
+      call graupel_fallspeed(rhof=rhof, rho=rho, visco=visco, &
         l_qg=l_qg, rg=rg, rb=rb, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, &
         vt=vtrg, vtn=vtng, substeps_sedi=substeps_sedi, ktop_sedi=ktop_sedi)
 
@@ -629,7 +608,7 @@ module module_mp_tempo_main
           call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xngx, &
             qb1d=xqbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
             qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-          call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, &
+          call graupel_fallspeed(rhof=rhof, rho=rho, visco=visco, &
             l_qg=l_qg, rg=rg, rb=rb, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, &
             vt=vtrg, vtn=vtng)
         enddo 
@@ -653,7 +632,7 @@ module module_mp_tempo_main
           call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xngx, &
             qb1d=xqbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
             qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
-          call graupel_fallspeed(rhof=rhof, rho=rho, temp=temp, visco=visco, &
+          call graupel_fallspeed(rhof=rhof, rho=rho, visco=visco, &
             l_qg=l_qg, rg=rg, rb=rb, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, &
             vt=vtrg, vtn=vtng)
         enddo
@@ -744,32 +723,6 @@ module module_mp_tempo_main
       qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
       qbten=qbten, ilamg=ilamg, mvd_g=mvd_g)
 
-    mass_check1 = sum(qv1d) + sum(qc1d) + sum(qr1d) + sum(qi1d) + sum(qs1d) + sum(qg1d) + &
-      (tempo_main_diags%ice_liquid_equiv_precip)/dz1d(1)/rho(1) + &
-      (tempo_main_diags%snow_liquid_equiv_precip)/dz1d(1)/rho(1) + &
-      (tempo_main_diags%graupel_liquid_equiv_precip)/dz1d(1)/rho(1) + &
-      (tempo_main_diags%rain_precip)/dz1d(1)/rho(1)
-
-    if ((mass_check0 < eps) .and. (mass_check1 > eps)) then
-      write(*,*) 'mass check warning positive', mass_check0, mass_check1
-    endif 
-    if ((mass_check1 < eps) .and. (mass_check0 > eps)) then
-      write(*,*) 'mass check warning negative', mass_check0, mass_check1
-    endif 
-
-    qv1 = sum(qv1d)
-    qc1 = sum(qc1d) + tempo_main_diags%cloud_precip/dz1d(1)/rho(1)
-    qr1 = sum(qr1d) + tempo_main_diags%rain_precip/dz1d(1)/rho(1)
-    qi1 = sum(qi1d) + tempo_main_diags%ice_liquid_equiv_precip/dz1d(1)/rho(1)
-    qs1 = sum(qs1d) + tempo_main_diags%snow_liquid_equiv_precip/dz1d(1)/rho(1)
-    qg1 = sum(qg1d) + tempo_main_diags%graupel_liquid_equiv_precip/dz1d(1)/rho(1)
-    ! if (abs(qv1-qv0) > max_clip_qv) write(*,*) 'qv check', qv0, qv1, max_clip_qv
-    ! if (abs(qc1-qc0) > max_clip) write(*,*) 'qc check', qc0, qc1, max_clip, abs(qc1-qc0)
-    ! if (abs(qr1-qr0) > max_clip) write(*,*) 'qr check', qr0, qr1, max_clip, abs(qr1-qr0)
-    ! if (abs(qi1-qi0) > max_clip) write(*,*) 'qi check', qi0, qi1, max_clip, abs(qi1-qi0)
-    ! if (abs(qs1-qs0) > max_clip) write(*,*) 'qs check', qs0, qs1, max_clip, abs(qs1-qs0)
-    ! if (abs(qg1-qg0) > max_clip) write(*,*) 'qg check', qg0, qg1, max_clip, abs(qg1-qg0)
-
     ! diagnostic output --------------------------------------------------------------------------
     ! frozen fraction
     tempo_main_diags%frozen_fraction = &
@@ -803,7 +756,8 @@ module module_mp_tempo_main
     ! 10-cm reflectivity
     if (tempo_cfgs%refl10cm_flag) then
       allocate(tempo_main_diags%refl10cm(nz), source=-35._wp)
-      call reflectivity_10cm(temp, l_qr, rr, nr, ilamr, &
+      call reflectivity_10cm(tempo_cfgs%refl10cm_from_melting_flag, &
+        temp, l_qr, rr, nr, ilamr, &
         l_qs, rs, smoc, smob, smoz, l_qg, rg, ng, idx_bg, ilamg, &
         tempo_main_diags%refl10cm)
     endif 
@@ -1179,9 +1133,8 @@ module module_mp_tempo_main
   subroutine graupel_init(rho, qg1d, ng1d, qb1d)
     !! initializes graupel number and volume if both are zero
     !! and hail-aware = true
-    use module_mp_tempo_params, only : r1, r2, nrhg, rho_g, mu_g, &
-      am_g, bm_g, ogg3, cgg, ogg2, obmg, d0r, idx_bg1, gonv_max, &
-      gonv_min, oge1, ogg1, d0g, meters3_to_liters
+    use module_mp_tempo_params, only : r1, meters3_to_liters, &
+      idx_bg1, am_g, bm_g, mu_g, ogg3, cgg
 
     real(wp), dimension(:), intent(in) :: rho
     real(wp), dimension(:), intent(in) :: qg1d
@@ -1472,7 +1425,7 @@ module module_mp_tempo_main
     real(wp), intent(inout), optional :: precip
     real(wp) :: odz, orho
     real(wp), allocatable, dimension(:) :: sed_r
-    integer :: n, k, nz, ktop, kb, kt
+    integer :: k, nz, ktop
 
     nz = size(xr)
     allocate(sed_r(nz), source=0._wp)
@@ -1522,7 +1475,7 @@ module module_mp_tempo_main
       orho, dql, dqh
     real(wp), dimension(:), allocatable :: zi, wi, za, dza, qa, qmi, qpi, net_flx, precip_flx, rr_save
     real(wp), intent(out), optional :: precip
-    integer :: k, nz, kk, kb, kt, n, m
+    integer :: k, nz, kk, kb, kt, m
 
     nz = size(dz1d)
     allocate(zi(nz+1))
@@ -1745,14 +1698,14 @@ module module_mp_tempo_main
   end subroutine rain_fallspeed
 
 
-  subroutine graupel_fallspeed(rhof, rho, temp, visco, l_qg, rg, rb, qb1d, idx, ilamg, &
+  subroutine graupel_fallspeed(rhof, rho, visco, l_qg, rg, rb, qb1d, idx, ilamg, &
       dz1d, vt, vtn, substeps_sedi, ktop_sedi)
     !! calculates mass and number weighted fall speeds for graupel
     !! and optionally the substepping required and the top k-level of sedimentation
     use module_mp_tempo_params, only : nrhg, rho_g, av_g_old, bv_g_old, &
       cgg, t0, mu_g, ogg2, ogg3, a_coeff, b_coeff, meters3_to_liters
 
-    real(wp), dimension(:), intent(in) :: rhof, rho, temp, visco, dz1d, rg, rb
+    real(wp), dimension(:), intent(in) :: rhof, rho, visco, dz1d, rg, rb
     real(wp), dimension(:), intent(in), optional :: qb1d
     real(dp), dimension(:), intent(in) :: ilamg
     logical, dimension(:), intent(in) :: l_qg
@@ -1905,8 +1858,7 @@ module module_mp_tempo_main
     logical, dimension(:), intent(in) :: l_qc
     real(wp), dimension(:), intent(inout) :: vt, vtn
     integer, intent(out) :: ktop_sedi
-    real(wp) :: dz_by_vt, hgt
-    real(dp) :: lamc
+    real(wp) :: hgt
     integer :: k, nz, nu_c
 
     nz = size(l_qc)
@@ -1933,8 +1885,8 @@ module module_mp_tempo_main
   subroutine cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
     nwfa, qv, qvs, l_qc, rc, nc, tend)
     !! cloud condensation and evaporation
-    use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, nbc, t_nc, &
-      nic1, tnc_wev, nt_c_min
+    use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, nbc, &
+      tnc_wev, nt_c_min
 
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
@@ -2005,7 +1957,7 @@ module module_mp_tempo_main
     vsc2, rhof2, qv, qvs, l_qr, rr, nr, ilamr, tend)
     !! rain evaporation that includes reduction in the evaporation rate
     !! in the presence of melting graupel
-    use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, tnc_wev, &
+    use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, &
       org2, cre, t1_qr_ev, t2_qr_ev, fv_r
 
     type(ty_tend), intent(inout) :: tend
@@ -2114,7 +2066,7 @@ module module_mp_tempo_main
     !! [Koop et al. (2000)](https://doi.org/10.1038/35020537)
     !! newer research suggests that the freezing rate should be lower 
     !! than original paper, so J_rate is reduced by two orders of magnitude
-    use module_mp_tempo_params, only : r_uni, ar_volume, nii2
+    use module_mp_tempo_params, only : r_uni, ar_volume
 
     real(wp), intent(in) :: temp, satw, naero
     real(wp) :: xni, mu_diff, a_w_i, delta_aw, log_j_rate, j_rate, prob_h
@@ -2223,7 +2175,7 @@ module module_mp_tempo_main
   subroutine warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend)
     !! computes warm-rain process rates -- condensation/evaporation happen later
     use module_mp_tempo_params, only : d0r, d0c, r1, nbr, t_efrw, &
-      t1_qr_qc, mu_r, am_r, ccg, obmr, ocg1, ocg2, dr, org2, cre, fv_r, &
+      t1_qr_qc, mu_r, am_r, ccg, obmr, ocg2, dr, org2, cre, fv_r, &
       autocon_nr_factor
 
     real(wp), dimension(:), intent(in) :: rhof, mvd_r, mvd_c, rr, nr, rc, nc
@@ -2303,8 +2255,8 @@ module module_mp_tempo_main
     !! snow and graupel riming
     use module_mp_tempo_params, only : d0c, d0s, nbs, ds, t_efsw, t1_qs_qc, &
       r_g, bm_g, mu_g, av_g, cgg, ogg3, bv_g, rho_w, t0, d0g, pi, cge, ogg2, &
-      rime_threshold, rime_conversion, av_s, bv_s, rho_s, xm0i, am_r, ccg, ocg1, &
-      obmr, eps, fv_s, meters3_to_liters
+      rime_threshold, rime_conversion, av_s, bv_s, rho_s, xm0i, eps, fv_s, &
+      meters3_to_liters
 
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: rhof, visco, temp, rc, nc, rs, rg, ng
@@ -2799,12 +2751,9 @@ module module_mp_tempo_main
 
   subroutine get_t1_subl(rho, temp, qvsi, tcond, diffu, ssati, t1_subl)
     !! calculations thermodynamic term used in depositional growth and melting
-    use module_mp_tempo_params, only : t0, d0i, bm_i, mu_i, lsub, orv, &
-      pi, c_sqrd, c_cube, oig1, cig, d0s, ntb_i, tpi_ide, tps_iaus, tni_iaus, &
-      obmi, r_s, ef_si, t1_qs_qi, r_r, org2, cre, t1_qr_qi, t2_qr_qi, &
-      fv_r, ef_ri, rho_i, t1_qs_sd, t2_qs_sd, eps, t1_qg_sd, &
-      sc3, ogg2, t1_qs_me, t2_qs_me, lvap0, olfus, &
-      t1_qg_me, rho_w, rho_g
+    use module_mp_tempo_params, only : t0, bm_i, mu_i, lsub, orv, &
+      pi, c_sqrd, c_cube, d0s, ntb_i, r_s, ef_si, r_r, fv_r, ef_ri, &
+      rho_i, eps, rho_w, rho_g
 
     real(wp), dimension(:), intent(in) :: rho, temp, qvsi, tcond, diffu, ssati
     real(wp) :: otemp, rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat
@@ -2831,28 +2780,25 @@ module module_mp_tempo_main
 
 
   subroutine ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
-    vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
-    rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx, tend)
+    vsc2, ssati, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo1, rr, nr, ilamr, &
+    mvd_r, l_qg, rg, ng, ilamg, idx, tend)
     !! ice processes including cloud ice depositional growth, conversion of cloud ice
     !! to snow, snow collecting cloud ice, rain collecting cloud ice, snow depositional growth, 
     !! and graupel sublimation
-    use module_mp_tempo_params, only : t0, d0i, bm_i, mu_i, am_i, lsub, orv, &
-      pi, c_sqrd, c_cube, oig1, cig, d0s, ntb_i, tpi_ide, tps_iaus, tni_iaus, &
+    use module_mp_tempo_params, only : t0, d0i, bm_i, mu_i, am_i, &
+      c_sqrd, c_cube, oig1, cig, d0s, ntb_i, tpi_ide, tps_iaus, tni_iaus, &
       obmi, r_s, ef_si, t1_qs_qi, r_r, org2, cre, t1_qr_qi, t2_qr_qi, &
       fv_r, ef_ri, rho_i, t1_qs_sd, t2_qs_sd, eps, t1_qg_sd, &
-      sc3, ogg2, cge, cgg, av_g, t1_qs_me, t2_qs_me, lvap0, olfus, &
-      t1_qg_me, rho_w, rho_g
+      sc3, ogg2, cge, cgg, av_g, rho_w, rho_g
 
     type(ty_tend), intent(inout) :: tend
     logical, dimension(:), intent(in) :: l_qi, l_qs, l_qg
     real(wp), dimension(:), intent(in) :: rhof, rhof2, rho, w1d, ri, ni, rs, rr, nr, &
-      temp, qv, qvsi, tcond, diffu, ssati, delqvs, vsc2, mvd_r, rg, ng
-    real(dp), dimension(:), intent(in) :: ilami, smoe, smof, smo0, smo1, ilamr, ilamg
+      temp, qv, qvsi, tcond, diffu, ssati, vsc2, mvd_r, rg, ng
+    real(dp), dimension(:), intent(in) :: ilami, smoe, smof, smo1, ilamr, ilamg
     integer, dimension(:), intent(in) :: idx
-    real(wp) :: xdi, xmi, oxmi, c_snow, tempc, rate_max, &
-      otemp, rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat, melt_f, &
-      t2_qg_me, t2_qg_sd
-    real(dp) :: lami, lamr, n0_r, n0_g, n0_melt, lamg
+    real(wp) :: xdi, xmi, oxmi, c_snow, rate_max, otemp, rvs, t2_qg_sd
+    real(dp) :: lami, lamr, n0_r, n0_g
     integer :: k, nz, idx_i, idx_i1
     real(wp), dimension(:), allocatable :: t1_subl
 
@@ -2962,31 +2908,26 @@ module module_mp_tempo_main
   end subroutine ice_processes
 
 
-  subroutine melting(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
-    vsc2, ssati, delqvs, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo0, smo1, &
-    rr, nr, ilamr, mvd_r, l_qg, rg, ng, ilamg, idx, tend)
+  subroutine melting(rhof2, rho, temp, qvsi, tcond, diffu, vsc2, ssati, &
+    delqvs, l_qs, rs, smof, smo0, smo1, l_qg, rg, ng, ilamg, idx, tend)
     !! melting of snow and graupel  
-    use module_mp_tempo_params, only : t0, d0i, bm_i, mu_i, am_i, lsub, orv, &
-      pi, c_sqrd, c_cube, oig1, cig, d0s, ntb_i, tpi_ide, tps_iaus, tni_iaus, &
-      obmi, r_s, ef_si, t1_qs_qi, r_r, org2, cre, t1_qr_qi, t2_qr_qi, &
-      fv_r, ef_ri, rho_i, t1_qs_sd, t2_qs_sd, eps, t1_qg_sd, &
-      sc3, ogg2, cge, cgg, av_g, t1_qs_me, t2_qs_me, lvap0, olfus, &
+    use module_mp_tempo_params, only : t0, bm_i, mu_i, pi, c_sqrd, c_cube, d0s, &
+      ntb_i, r_s, ef_si, r_r, fv_r, ef_ri, rho_i, t1_qs_sd, t2_qs_sd, eps, &
+      t1_qg_sd, sc3, ogg2, cge, cgg, av_g, t1_qs_me, t2_qs_me, lvap0, olfus, &
       t1_qg_me, rho_w, rho_g, meters3_to_liters, timestep_conversion_rime_to_rain
 
     type(ty_tend), intent(inout) :: tend
-    logical, dimension(:), intent(in) :: l_qi, l_qs, l_qg
-    real(wp), dimension(:), intent(in) :: rhof, rhof2, rho, w1d, ri, ni, rs, rr, nr, &
-      temp, qv, qvsi, tcond, diffu, ssati, delqvs, vsc2, mvd_r, rg, ng
-    real(dp), dimension(:), intent(in) :: ilami, smoe, smof, smo0, smo1, ilamr, ilamg
+    logical, dimension(:), intent(in) :: l_qs, l_qg
+    real(wp), dimension(:), intent(in) :: rhof2, rho, rs, &
+      temp, qvsi, tcond, diffu, ssati, delqvs, vsc2, rg, ng
+    real(dp), dimension(:), intent(in) :: smof, smo0, smo1, ilamg
     integer, dimension(:), intent(in) :: idx
-    real(wp) :: xdi, xmi, oxmi, c_snow, tempc, rate_max, &
-      otemp, rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat, melt_f, &
-      t2_qg_me, t2_qg_sd
-    real(dp) :: lami, lamr, n0_r, n0_g, n0_melt, lamg
-    integer :: k, nz, idx_i, idx_i1
+    real(wp) :: tempc, otemp, rvs, melt_f, t2_qg_me, t2_qg_sd
+    real(dp) :: n0_g, n0_melt, lamg
+    integer :: k, nz
     real(wp), dimension(:), allocatable :: t1_subl
 
-    nz = size(l_qi)
+    nz = size(l_qs)
     allocate(t1_subl(nz), source=0._wp)
     call get_t1_subl(rho, temp, qvsi, tcond, diffu, ssati, t1_subl)
 

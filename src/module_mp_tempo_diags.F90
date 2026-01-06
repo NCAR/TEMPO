@@ -1,6 +1,6 @@
 module module_mp_tempo_diags
   !! diagnostic output
-  use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi, tempo_cfgs
+  use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi
   use module_mp_tempo_utils, only : get_nuc, snow_moments
   
   implicit none
@@ -55,7 +55,8 @@ module module_mp_tempo_diags
   end subroutine effective_radius
 
 
-  subroutine reflectivity_10cm(temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
+  subroutine reflectivity_10cm(refl10cm_from_melting_flag, &
+    temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
     l_qg, rg, ng, idx, ilamg, dbz)
     !! 10-cm radar reflectivity
     !! 
@@ -64,6 +65,7 @@ module module_mp_tempo_diags
     !! \(Z_{e} = \int_0^\infty D^{6}n(D)dD\) and \(dbz = 10*log10(Z_{e}*1\times 10^{18})\)
     use module_mp_tempo_params, only : pi, org2, cre, crg, am_s, am_g, cge, cgg, ogg2
 
+    logical, intent(in) :: refl10cm_from_melting_flag
     logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
     real(wp), dimension(:), intent(in) :: temp, rg, ng, rr, nr, rs
     real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg
@@ -79,7 +81,7 @@ module module_mp_tempo_diags
     allocate(ze_graupel(nz), source=1.e-22_wp)
     allocate(dbz(nz), source=-35._wp)
 
-    if (tempo_cfgs%refl10cm_from_melting_flag) then
+    if (refl10cm_from_melting_flag) then
       k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
     endif
 
@@ -93,7 +95,7 @@ module module_mp_tempo_diags
         ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_s/900._wp)*(am_s/900._wp)*smoz(k)
         ! include melting
-        if (tempo_cfgs%refl10cm_from_melting_flag) then
+        if (refl10cm_from_melting_flag) then
           if (k_melt > 2 .and. k < k_melt-1) then
             ze_snow(k) = reflectivity_from_melting_snow(rs(k), &
               smob(k), smoc(k), rr(k))
@@ -105,7 +107,7 @@ module module_mp_tempo_diags
         ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
           (am_g(idx(k))/900._wp)*(am_g(idx(k))/900._wp) * n0_g*cgg(4,1)*ilamg(k)**cge(4,1)
         ! include melting
-        if (tempo_cfgs%refl10cm_from_melting_flag) then
+        if (refl10cm_from_melting_flag) then
           if (k_melt > 2 .and. k < k_melt-1) then
             ze_graupel(k) = reflectivity_from_melting_graupel(rg(k), ng(k), &
               ilamg(k), idx(k), rr(k))

@@ -2,7 +2,8 @@ module module_mp_tempo_init
   !! initialize variables for tempo microphysics
   !!
   !! includes a procedure to build and save tempo lookup tables
-  use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs, tempo_table_cfgs
+  use module_mp_tempo_cfgs, only :  ty_tempo_cfgs, ty_tempo_table_cfgs
+  use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
   use module_mp_tempo_ml, only : ty_tempo_ml_data, nc_ml_nodes, nc_ml_input, nc_ml_output, nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01, &
   save_or_read_ml_data
@@ -24,9 +25,11 @@ module module_mp_tempo_init
 
   public :: tempo_init, tempo_build_tables
 
+  type(ty_tempo_table_cfgs) :: tempo_table_cfgs
+
   contains
 
-  subroutine tempo_init(aerosolaware_flag, hailaware_flag)
+  subroutine tempo_init(aerosolaware_flag, hailaware_flag, tempo_cfgs)
     !! initialize tempo microphysics
     use module_mp_tempo_params, only : tempo_version, t_efrw, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
@@ -35,7 +38,8 @@ module module_mp_tempo_init
       initialize_bins_for_hail_size, initialize_bins_for_radar
 
     logical, intent(in), optional :: aerosolaware_flag, hailaware_flag
-
+    type(ty_tempo_cfgs), intent(out) :: tempo_cfgs
+  
     character(len=100) :: table_filename
     integer :: table_size
     logical :: initialize_mp_vars
