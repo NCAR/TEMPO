@@ -14,14 +14,15 @@ jobs:
     # Environmental variables
     env:
       driver_ROOT: /home/runner/work/TEMPO/TEMPO
-      testdrive_ROOT: /home/runner/work/test-drive
+      testdrive_ROOT: /home/runner/work/TEMPO/TEMPO/test-drive
   
     # Workflow steps
     steps:
     
     - name: Checkout test-drive
       run: |
-        pwd
+        cd ${driver_ROOT}
+        mkdir -p ${testdrive_ROOT}
         cd ${testdrive_ROOT}
         git clone https://github.com/fortran-lang/test-drive.git
         cd ${testdrive_ROOT}/test-drive
