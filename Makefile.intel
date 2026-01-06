@@ -89,6 +89,10 @@ build_tables: set-configs set-mpi check-compiler $(tables_exe)
 tempo_tests: set-configs check-compiler $(tempotest_exe)
 unit_tests: set-configs check-compiler set-utest $(unittest_exe)
 
+install : tempo_tests
+	mkdir -p rundir_tests
+	install $(tempotest_exe) ./rundir_tests/$(tempotest_exe)
+
 # dependency rules
 $(src_dir)/module_mp_tempo_params.o: $(src_dir)/machine.o
 $(src_dir)/module_mp_tempo_ml.o: $(src_dir)/module_mp_tempo_params.o

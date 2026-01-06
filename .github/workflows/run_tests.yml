@@ -21,33 +21,35 @@ jobs:
     - name: Checkout code (into ${driver_ROOT})
       uses: actions/checkout@v3
 
-    - name: Build unit tests
+    - name: Build tests
       run: |
-        cd ${driver_ROOT}/tests
-        make driver
+        cd ${driver_ROOT}
+        make tempo_tests -f Makefile.gfortran
+        make install -f Makefile.gfortran
 
     - name: Get runtime tables
       run: |
-        cd ${driver_ROOT}/tests
-        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL
-        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_QIautQS_DATA.DBL
-        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_QRacrQS_DATA.DBL
-        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/MP_TEMPO_freezeH2O_DATA.DBL
+        cd ${driver_ROOT}/rundir_tests
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/qr_acr_qg_data_tempo_v3
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/ qr_acr_qs_data_tempo_v3
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/freeze_water_data_tempo_v3
+        cp ${driver_ROOT}/tables/ccn_activate.bin .
 
-    - name: Run unit tests
+    - name: Run tests
       run: |
-        cd ${driver_ROOT}/tests
-        ./driver
+        cd ${driver_ROOT}/rundir_tests
+        ./run_tempo_tests
 
     - name: plot output
       run: |
-        cd ${driver_ROOT}/tests
+        cd ${driver_ROOT}/rundir_tests
+        cp ${driver_ROOT}/test/plot/plot_test_graupel_sedimentation.py .
         python --version
         pip install matplotlib
-        python plot_profile.py
+        python plot_test_graupel_sedimentation.py
 
     - name: Upload plot as GitHub Artifact.
       uses: actions/upload-artifact@v4
       with:
-        name: test-plot
-        path: /home/runner/work/TEMPO/TEMPO/tests/mpas_59lev_test_results.pdf
+        name: test-graupel-sedimentation-mpas_59lev
+        path: /home/runner/work/TEMPO/TEMPO/rundir_tests/plot_test_graupel_sedimentation_mpas_59lev.pdf

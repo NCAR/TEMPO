@@ -10,8 +10,8 @@ module module_mp_tempo_cfgs
   type :: ty_tempo_cfgs
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
-    logical :: ml_for_subgrid_cloud_num_flag = .false. !! flag to run machine-learning prediction for subgrid cloud number concentration
-    logical :: ml_for_cloud_num_flag = .false. !! flag to run machine-learning prediction for tempo cloud number concentration
+    logical :: ml_for_bl_nc_flag = .false. !! flag to run machine-learning prediction for subgrid cloud number concentration
+    logical :: ml_for_nc_flag = .false. !! flag to run machine-learning prediction for tempo cloud number concentration
     logical :: semi_sedi_flag = .false. !! flag for semi-lagrangian sedimentation
     logical :: refl10cm_from_melting_flag = .false. !! flag to calculate reflectivity for melting snow and graupel
     logical :: turn_off_micro_flag = .false. !! flag to turn off all microphysical processes
@@ -24,6 +24,7 @@ module module_mp_tempo_cfgs
     logical :: max_hail_diameter_flag = .true. !! flag to output maximum hail diameter
     logical :: rain_med_vol_diam_flag = .false. !! flag to output median volume diameter for rain
     logical :: graupel_med_vol_diam_flag = .false. !! flag to output median volume diameter for graupel
+    logical :: cloud_number_mixing_ratio_flag = .false. !! flag to output cloud number mixing ratio
   end type
 
   ! tempo lookup table filenames

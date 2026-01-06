@@ -25,7 +25,7 @@ tables_exe := run_build_tables
 fc := gfortran
 fc_mpi := mpif90
 ar := ar rcs
-fcflags := -c -Dstandalone -O2 -ffree-line-length-0 -fdefault-real-8 -fdefault-double-8 -J ./$(src_dir)
+fcflags := -c -Dstandalone -g -O0 -fbacktrace -fcheck=all -ffree-line-length-0  -fdefault-real-8 -fdefault-double-8 -J ./$(src_dir)
 
 # tempo library
 tempo_lib := $(patsubst %, lib%.a, $(name))
@@ -88,6 +88,10 @@ endif
 build_tables: set-configs set-mpi check-compiler $(tables_exe)
 tempo_tests: set-configs check-compiler $(tempotest_exe)
 unit_tests: set-configs check-compiler set-utest $(unittest_exe)
+
+install : tempo_tests
+	mkdir -p rundir_tests
+	install $(tempotest_exe) ./rundir_tests/$(tempotest_exe)
 
 # dependency rules
 $(src_dir)/module_mp_tempo_params.o: $(src_dir)/machine.o
