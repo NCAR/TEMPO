@@ -31,7 +31,7 @@ jobs:
       run: |
         cd ${driver_ROOT}/rundir_tests
         wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/qr_acr_qg_data_tempo_v3
-        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/ qr_acr_qs_data_tempo_v3
+        wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/qr_acr_qs_data_tempo_v3
         wget -q https://gsl.noaa.gov/thredds/fileServer/retro/jensen/freeze_water_data_tempo_v3
         cp ${driver_ROOT}/tables/ccn_activate.bin .
 
