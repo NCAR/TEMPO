@@ -24,8 +24,11 @@ jobs:
         cd ${driver_ROOT}
         mkdir -p ${testdrive_ROOT}
         cd ${testdrive_ROOT}
+        pwd
         git clone https://github.com/fortran-lang/test-drive.git
-        cd ${testdrive_ROOT}/test-drive
+        ls
+        cd ${testdrive_ROOT}
+        ls
         mkdir -p build
         cmake ../
         make
