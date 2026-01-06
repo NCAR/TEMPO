@@ -14,7 +14,7 @@ jobs:
     # Environmental variables
     env:
       driver_ROOT: /home/runner/work/TEMPO/TEMPO
-      testdrive_ROOT: /home/runner/work/TEMPO/TEMPO/test-drive
+      testdrive_ROOT: /home/runner/work/_temp
   
     # Workflow steps
     steps:
