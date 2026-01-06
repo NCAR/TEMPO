@@ -16,36 +16,6 @@ module module_mp_tempo_params
 
   character(len=11) :: tempo_version !! tempo version string (max is xxx.xxx.xxx)
 
-  ! tempo configuration flags for init
-  type :: ty_tempo_cfgs
-    logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
-    logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
-    logical :: ml_for_subgrid_cloud_num_flag = .false. !! flag to run machine-learning prediction for subgrid cloud number concentration
-    logical :: ml_for_cloud_num_flag = .false. !! flag to run machine-learning prediction for tempo cloud number concentration
-    logical :: semi_sedi_flag = .false. !! flag for semi-lagrangian sedimentation
-    logical :: refl10cm_from_melting_flag = .false. !! flag to calculate reflectivity for melting snow and graupel
-    logical :: turn_off_micro_flag = .false. !! flag to turn off all microphysical processes
-    logical :: refl10cm_flag = .true. !! flag to output 10cm reflectivity
-    logical :: re_cloud_flag = .true. !! flag to output cloud effective radius
-    logical :: re_ice_flag = .true. !! flag to output ice effective radius
-    logical :: re_snow_flag = .true. !! flag to output snow effective radius
-    logical :: max_hail_diameter_flag = .true. !! flag to output maximum hail diameter
-    logical :: rain_med_vol_diam_flag = .false. !! flag to output median volume diameter for rain
-    logical :: graupel_med_vol_diam_flag = .false. !! flag to output median volume diameter for graupel
-  end type
-
-  ! tempo lookup table filenames
-  type :: ty_tempo_table_cfgs
-    character(len=100) :: ccn_table_name = 'ccn_activate.bin' !! ccn table name
-    character(len=100) :: qrqg_table_name = 'qr_acr_qg_data_tempo_v3' !! rain-graupel collection table name
-    character(len=100) :: qrqs_table_name = 'qr_acr_qs_data_tempo_v3' !! rain-snow collection table name
-    character(len=100) :: freezewater_table_name = 'freeze_water_data_tempo_v3' !! freeze water collection table name
-  end type
-
-  ! tempo configurations
-  type(ty_tempo_cfgs) :: tempo_cfgs
-  type(ty_tempo_table_cfgs) :: tempo_table_cfgs
-
   ! parameters that can be changed ------------------------------------------------------------------------
   integer, parameter :: idx_bg1 = 6 !! index from rho_g when hail_aware = false: density = 500 \(kg\, m^{-3}\)
  
@@ -154,6 +124,7 @@ module module_mp_tempo_params
   real(wp), parameter :: min_qv = 1.e-10_wp !! minimum value of water vapor mixing ratio \([kg\, kg^{-1}]\)
   real(wp), parameter :: r1 = 1.e-12_wp !! minimum hydrometeor mass \([kg\, m^{-3}]\) 
   real(wp), parameter :: r2 = 1.e-6_wp !! minimum hydrometeor number \([kg\, m^{-3}]\)
+  real(wp), parameter :: low_limit_mass_for_precip = 1.e-9_wp !! minimum hydrometor mass needed in the lowest-model level for precipitation
   real(wp), parameter :: eps = 1.e-15_wp !! small non-zero number
   real(wp), parameter :: meters3_to_liters = 1000._wp !! number of liters in 1 \(m^{3}\)
   real(dp), parameter :: gonv_min = 1.e2_dp !! minimum graupel y-intercept \([m^{-4}]\)

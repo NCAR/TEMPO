@@ -1,6 +1,6 @@
 module tests
   !! TEMPO tests
-  use module_mp_tempo_params, only : tempo_cfgs
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs
   use module_mp_tempo_init, only : tempo_init
   use module_mp_tempo_driver, only : tempo_driver, ty_tempo_driver_diags
   implicit none
@@ -36,6 +36,7 @@ module tests
     character(len=20) :: dt_string, tt_string
     character(len=20) :: semi_sedi_string
     type(ty_tempo_driver_diags) :: tempo_driver_diags
+    type(ty_tempo_cfgs) :: tempo_cfgs
     integer :: io1, io2, io3, io4, k, total_timesteps
     integer, parameter :: integration_time = 1200
 
@@ -74,9 +75,9 @@ module tests
     qb(1,:,1) = volg_in * 1000. ! convert meters^3 -> liters
 
     ! set configs
-    tempo_cfgs%all_mp_processes_off = .true.
-    tempo_cfgs%graupel_med_vol_diam = .true.
-    tempo_cfgs%semi_sedi = semi_sedi
+    tempo_cfgs%turn_off_micro_flag = .true.
+    tempo_cfgs%graupel_med_vol_diam_flag = .true.
+    tempo_cfgs%semi_sedi_flag = semi_sedi
 
     total_timesteps = int(integration_time/dt)
     precip_sum = 0._wp
@@ -84,13 +85,13 @@ module tests
       status="new", action="write")
 
     do itimestep = 1, total_timesteps
-      call  tempo_driver(itimestep=itimestep, dt=dt, &
+      call  tempo_driver(tempo_cfgs=tempo_cfgs, itimestep=itimestep, dt=dt, &
                         ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
                         jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
                         kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
                         t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
                         qc=qc, qr=qr, qi=qi, qs=qs, qg=qg,  ni=ni, nr=nr, ng=ng, qb=qb, &
-                        tempo_driver_diags=tempo_driver_diags)
+                        tempo_diags=tempo_driver_diags)
       precip_sum = precip_sum + tempo_driver_diags%graupel_liquid_equiv_precip(1,1)
       write(io2,'(I7, 1E12.4)') int(itimestep*dt), precip_sum
 
@@ -130,6 +131,7 @@ module tests
     real(wp) :: precip_sum
     character(len=20) :: dt_string, tt_string
     type(ty_tempo_driver_diags) :: tempo_driver_diags
+    type(ty_tempo_cfgs) :: tempo_cfgs
     integer :: io1, io2, io3, io4, k, total_timesteps
     integer, parameter :: integration_time = 1200
 
@@ -163,7 +165,7 @@ module tests
     qb = 0._wp
 
     ! set configs
-    tempo_cfgs%all_mp_processes_off = .true.
+    tempo_cfgs%turn_off_micro_flag= .true.
 
     total_timesteps = int(integration_time/dt)
     precip_sum = 0._wp
@@ -171,13 +173,13 @@ module tests
       status="new", action="write")
 
     do itimestep = 1, total_timesteps
-      call  tempo_driver(itimestep=itimestep, dt=dt, &
+      call  tempo_driver(tempo_cfgs=tempo_cfgs, itimestep=itimestep, dt=dt, &
                         ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
                         jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
                         kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
                         t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
                         qc=qc, qr=qr, qi=qi, qs=qs, qg=qg,  ni=ni, nr=nr, ng=ng, qb=qb, &
-                        tempo_driver_diags=tempo_driver_diags)
+                        tempo_diags=tempo_driver_diags)
       precip_sum = precip_sum + tempo_driver_diags%snow_liquid_equiv_precip(1,1)
       write(io2,'(I7, 1E12.4)') int(itimestep*dt), precip_sum
 

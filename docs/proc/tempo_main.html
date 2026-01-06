@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="12.2% of total for procedures.">522 statements</a>
+                 title="11.7% of total for procedures.">500 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -152,7 +152,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine tempo_main(qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, kts, kte, dt, ii, jj, tempo_main_diags)  
+    <h2>public  subroutine tempo_main(tempo_cfgs, qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, qcfrac1d, qifrac1d, qc_bl1d, qcfrac_bl1d, thten_bl1d, qvten_bl1d, qcten_bl1d, qiten_bl1d, thten_lwrad1d, thten_swrad1d, kts, kte, dt, ii, jj, tempo_main_diags)  
 </h2>
     
 
@@ -172,7 +172,22 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv1d~2"></span>
+              <span class="anchor" id="variable-tempo_cfgs"></span>
+              type(<a href='../type/ty_tempo_cfgs.html'>ty_tempo_cfgs</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tempo_cfgs</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qv1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -188,7 +203,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc1d~2"></span>
+              <span class="anchor" id="variable-qc1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -204,7 +219,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi1d~2"></span>
+              <span class="anchor" id="variable-qi1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -220,7 +235,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qr1d~2"></span>
+              <span class="anchor" id="variable-qr1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -236,7 +251,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qs1d~2"></span>
+              <span class="anchor" id="variable-qs1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -252,7 +267,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qg1d~2"></span>
+              <span class="anchor" id="variable-qg1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -268,7 +283,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qb1d~2"></span>
+              <span class="anchor" id="variable-qb1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -284,7 +299,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni1d~2"></span>
+              <span class="anchor" id="variable-ni1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -300,7 +315,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr1d~2"></span>
+              <span class="anchor" id="variable-nr1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -316,7 +331,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc1d~2"></span>
+              <span class="anchor" id="variable-nc1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -332,7 +347,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng1d~2"></span>
+              <span class="anchor" id="variable-ng1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -348,7 +363,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa1d~2"></span>
+              <span class="anchor" id="variable-nwfa1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -364,7 +379,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa1d~2"></span>
+              <span class="anchor" id="variable-nifa1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -380,7 +395,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t1d~2"></span>
+              <span class="anchor" id="variable-t1d"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -396,7 +411,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p1d~2"></span>
+              <span class="anchor" id="variable-p1d"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -412,7 +427,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w1d~2"></span>
+              <span class="anchor" id="variable-w1d"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -428,7 +443,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz1d~4"></span>
+              <span class="anchor" id="variable-dz1d"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -444,7 +459,157 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts~5"></span>
+              <span class="anchor" id="variable-qcfrac1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qcfrac1d</strong></td>
+            <td>
+                <p>cloud fraction</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qifrac1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qifrac1d</strong></td>
+            <td>
+                <p>cloud ice fraction</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qc_bl1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qc_bl1d</strong></td>
+            <td>
+                <p>cloud water mixing ratio from boundary layer scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qcfrac_bl1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qcfrac_bl1d</strong></td>
+            <td>
+                <p>cloud fraction from boundary layer scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-thten_bl1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>thten_bl1d</strong></td>
+            <td>
+                <p>potential temperature tendency from boundary layer scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qvten_bl1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qvten_bl1d</strong></td>
+            <td>
+                <p>water vapor mixing ratio tendency from boundary layer scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qcten_bl1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qcten_bl1d</strong></td>
+            <td>
+                <p>cloud water mixing ratio tendency from boundary layer scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qiten_bl1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>qiten_bl1d</strong></td>
+            <td>
+                <p>cloud ice mixing ratio from boundary layer scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-thten_lwrad1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>thten_lwrad1d</strong></td>
+            <td>
+                <p>potential temperature tendency from longwave radiation scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-thten_swrad1d"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>thten_swrad1d</strong></td>
+            <td>
+                <p>potential temperature tendency from shortwave radiation scheme</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kts"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -459,7 +624,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kte~4"></span>
+              <span class="anchor" id="variable-kte"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -474,7 +639,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dt~5"></span>
+              <span class="anchor" id="variable-dt"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -519,7 +684,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tempo_main_diags~2"></span>
+              <span class="anchor" id="variable-tempo_main_diags"></span>
               type(<a href='../type/ty_tempo_main_diags.html'>ty_tempo_main_diags</a>),
             </td>
 <td>intent(out)</td>

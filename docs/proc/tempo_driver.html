@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 3.6% of total for procedures.">154 statements</a>
+                 title=" 4.3% of total for procedures.">185 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -152,7 +152,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine tempo_driver(dt, itimestep, t, th, pii, p, w, dz, qv, qc, qr, qi, qs, qg, ni, nr, nc, nwfa, nifa, ng, qb, ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte, tempo_diags)  
+    <h2>public  subroutine tempo_driver(tempo_cfgs, dt, itimestep, t, th, pii, p, w, dz, qv, qc, qr, qi, qs, qg, ni, nr, nc, nwfa, nifa, ng, qb, qc_bl, qcfrac_bl, qcfrac, qifrac, thten_bl, qvten_bl, qcten_bl, qiten_bl, thten_lwrad, thten_swrad, ids, ide, jds, jde, kds, kde, ims, ime, jms, jme, kms, kme, its, ite, jts, jte, kts, kte, tempo_diags)  
 </h2>
     
 
@@ -171,7 +171,22 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dt"></span>
+              <span class="anchor" id="variable-tempo_cfgs~5"></span>
+              type(<a href='../type/ty_tempo_cfgs.html'>ty_tempo_cfgs</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tempo_cfgs</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dt~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in)</td>
@@ -187,7 +202,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-itimestep"></span>
+              <span class="anchor" id="variable-itimestep~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -202,7 +217,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-t~2"></span>
+              <span class="anchor" id="variable-t~9"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -218,7 +233,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-th"></span>
+              <span class="anchor" id="variable-th~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -234,7 +249,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-pii"></span>
+              <span class="anchor" id="variable-pii~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -249,7 +264,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-p~3"></span>
+              <span class="anchor" id="variable-p~7"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -265,7 +280,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-w"></span>
+              <span class="anchor" id="variable-w~4"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -281,7 +296,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dz"></span>
+              <span class="anchor" id="variable-dz~3"></span>
               real(kind=wp),
             </td>
 <td>intent(in),</td>
@@ -297,7 +312,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qv"></span>
+              <span class="anchor" id="variable-qv~10"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -313,7 +328,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qc"></span>
+              <span class="anchor" id="variable-qc~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -329,7 +344,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qr"></span>
+              <span class="anchor" id="variable-qr~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -345,7 +360,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qi"></span>
+              <span class="anchor" id="variable-qi~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -361,7 +376,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qs"></span>
+              <span class="anchor" id="variable-qs~4"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -377,7 +392,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qg"></span>
+              <span class="anchor" id="variable-qg~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -393,7 +408,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ni"></span>
+              <span class="anchor" id="variable-ni~8"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -409,7 +424,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nr"></span>
+              <span class="anchor" id="variable-nr~12"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -425,7 +440,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc"></span>
+              <span class="anchor" id="variable-nc~12"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -440,7 +455,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nwfa"></span>
+              <span class="anchor" id="variable-nwfa~8"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -455,7 +470,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nifa"></span>
+              <span class="anchor" id="variable-nifa~7"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -470,7 +485,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ng"></span>
+              <span class="anchor" id="variable-ng~14"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -485,7 +500,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qb"></span>
+              <span class="anchor" id="variable-qb~3"></span>
               real(kind=wp),
             </td>
 <td>intent(inout),</td>
@@ -500,7 +515,157 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ids"></span>
+              <span class="anchor" id="variable-qc_bl"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qc_bl</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qcfrac_bl"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qcfrac_bl</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qcfrac"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qcfrac</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qifrac"></span>
+              real(kind=wp),
+            </td>
+<td>intent(inout),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qifrac</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-thten_bl"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>thten_bl</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qvten_bl"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qvten_bl</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qcten_bl"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qcten_bl</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qiten_bl"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>qiten_bl</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-thten_lwrad"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>thten_lwrad</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-thten_swrad"></span>
+              real(kind=wp),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(ims:ime, kms:kme, jms:jme)
+            </td>
+            <td>::</td>
+            <td><strong>thten_swrad</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ids~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -515,7 +680,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ide"></span>
+              <span class="anchor" id="variable-ide~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -530,7 +695,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jds"></span>
+              <span class="anchor" id="variable-jds~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -545,7 +710,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jde"></span>
+              <span class="anchor" id="variable-jde~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -560,7 +725,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kds"></span>
+              <span class="anchor" id="variable-kds~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -575,7 +740,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kde"></span>
+              <span class="anchor" id="variable-kde~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -590,7 +755,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ims"></span>
+              <span class="anchor" id="variable-ims~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -605,7 +770,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ime"></span>
+              <span class="anchor" id="variable-ime~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -620,7 +785,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jms"></span>
+              <span class="anchor" id="variable-jms~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -635,7 +800,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jme"></span>
+              <span class="anchor" id="variable-jme~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -650,7 +815,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kms"></span>
+              <span class="anchor" id="variable-kms~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -665,7 +830,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kme"></span>
+              <span class="anchor" id="variable-kme~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -680,7 +845,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-its"></span>
+              <span class="anchor" id="variable-its~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -695,7 +860,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ite"></span>
+              <span class="anchor" id="variable-ite~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -710,7 +875,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jts"></span>
+              <span class="anchor" id="variable-jts~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -725,7 +890,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-jte"></span>
+              <span class="anchor" id="variable-jte~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -740,7 +905,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kts"></span>
+              <span class="anchor" id="variable-kts~4"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -755,7 +920,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-kte"></span>
+              <span class="anchor" id="variable-kte~4"></span>
               integer,
             </td>
 <td>intent(in)</td>

@@ -1,7 +1,8 @@
 module module_mp_tempo_driver
   !! tempo driver that converts 3d model input to 1d arrays used by the main code
   !! also allocates and fills diagnostic arrays
-  use module_mp_tempo_params, only : wp, sp, dp, tempo_cfgs
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs
+  use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
   implicit none
   private
@@ -27,14 +28,19 @@ module module_mp_tempo_driver
 
   contains
 
-  subroutine tempo_driver(dt, itimestep, &
+  subroutine tempo_driver(tempo_cfgs, dt, itimestep, &
     t, th, pii, p, w, dz, &
     qv, qc, qr, qi, qs, qg, ni, nr, &
     nc, nwfa, nifa, ng, qb, &
+    qc_bl, qcfrac_bl, &
+    qcfrac, qifrac, &
+    thten_bl, qvten_bl, qcten_bl, qiten_bl, &
+    thten_lwrad, thten_swrad, &
     ids, ide, jds, jde, kds, kde, &
     ims, ime, jms, jme, kms, kme, &
     its, ite, jts, jte, kts, kte, tempo_diags)
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     real(wp), intent(in) :: dt !! timestep \([s]]\)
     integer, intent(in) :: itimestep !! integer timestep = integration time / dt
     integer, intent(in) :: ids, ide, jds, jde, kds, kde !! domain locations
@@ -64,6 +70,18 @@ module module_mp_tempo_driver
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: qb !! 3D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\) (hail-aware)
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: ng !! 3D graupel number mixing ratio \([kg^{-1}]\) (hail-aware)
 
+    ! additional optional arguments
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: qcfrac
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: qifrac
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qc_bl
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qcfrac_bl
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: thten_bl
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qvten_bl
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qcten_bl
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: qiten_bl
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: thten_lwrad
+    real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(in), optional :: thten_swrad
+
     real(wp), dimension(kts:kte) :: t1d !! 1D temperature \([K]\)
     real(wp), dimension(kts:kte) :: p1d !! 1D pressure \([Pa]\)
     real(wp), dimension(kts:kte) :: qv1d !! 1D water vapor mixing ratio \([kg\; kg^{-1}]\)
@@ -82,6 +100,19 @@ module module_mp_tempo_driver
     real(wp), dimension(:), allocatable :: nifa1d !! 1D ice-friendly aerosol number mixing ratio \([kg^{-1}]\) (aerosol-aware)
     real(wp), dimension(:), allocatable :: qb1d !! 1D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\) (hail-aware)
     real(wp), dimension(:), allocatable :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\) (hail-aware)
+
+    ! additional optional 1d arrays
+    real(wp), dimension(:), allocatable :: qcfrac1d
+    real(wp), dimension(:), allocatable :: qifrac1d
+    real(wp), dimension(:), allocatable :: qc_bl1d
+    real(wp), dimension(:), allocatable :: qcfrac_bl1d
+    real(wp), dimension(:), allocatable :: thten_bl1d
+    real(wp), dimension(:), allocatable :: qvten_bl1d
+    real(wp), dimension(:), allocatable :: qcten_bl1d
+    real(wp), dimension(:), allocatable :: qiten_bl1d
+    real(wp), dimension(:), allocatable :: thten_lwrad1d
+    real(wp), dimension(:), allocatable :: thten_swrad1d
+
     integer :: i, j, k, nz
     logical :: use_temperature 
 
@@ -95,6 +126,18 @@ module module_mp_tempo_driver
     if (present(nc)) allocate(nc1d(nz), source=0._wp)
     if (present(ng)) allocate(ng1d(nz), source=0._wp)
     if (present(qb)) allocate(qb1d(nz), source=0._wp)
+
+    ! additional optional 1d arrays
+    if (present(qcfrac)) allocate(qcfrac1d(nz), source=0._wp)
+    if (present(qifrac)) allocate(qifrac1d(nz), source=0._wp)
+    if (present(qc_bl)) allocate(qc_bl1d(nz), source=0._wp)
+    if (present(qcfrac_bl)) allocate(qcfrac_bl1d(nz), source=0._wp)
+    if (present(thten_bl)) allocate(thten_bl1d(nz), source=0._wp)
+    if (present(qvten_bl)) allocate(qvten_bl1d(nz), source=0._wp)
+    if (present(qcten_bl)) allocate(qcten_bl1d(nz), source=0._wp)  
+    if (present(qiten_bl)) allocate(qiten_bl1d(nz), source=0._wp)
+    if (present(thten_lwrad)) allocate(thten_lwrad1d(nz), source=0._wp)
+    if (present(thten_swrad)) allocate(thten_swrad1d(nz), source=0._wp) 
 
     ! allocate diagnostics
     ! 3d diagnostics have configuration flags
@@ -150,19 +193,22 @@ module module_mp_tempo_driver
           if (present(nifa)) nifa1d(k) = nifa(i,k,j)
           if (present(nc)) nc1d(k) = nc(i,k,j)
 
-          ! option for ml nc here
-
           ! ng and qb are optional hail-aware variables
           if ((present(ng)) .and. (present(qb))) then
             ng1d(k) = ng(i,k,j)
             qb1d(k) = qb(i,k,j)
           endif 
         enddo
-          
+
         ! main call to the 1d tempo microphysics
-        call tempo_main(qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
+        call tempo_main(tempo_cfgs=tempo_cfgs, &
+          qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
-          w1d=w1d, dz1d=dz1d, kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags)
+          w1d=w1d, dz1d=dz1d, &
+          qcfrac1d=qcfrac1d, qifrac1d=qifrac1d, qc_bl1d=qc_bl1d, qcfrac_bl1d=qcfrac_bl1d, &
+          thten_bl1d=thten_bl1d, qvten_bl1d=qvten_bl1d, qcten_bl1d=qcten_bl1d, qiten_bl1d=qiten_bl1d, &
+          thten_lwrad1d=thten_lwrad1d, thten_swrad1d=thten_swrad1d, &
+          kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags)
           
         ! precipitation
         tempo_diags%rain_precip(i,j) = tempo_main_diags%rain_precip
@@ -231,7 +277,7 @@ module module_mp_tempo_driver
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: nwfa 
     real(wp), dimension(ims:ime, jms:jme), intent(in) :: nwfa2d
     integer, intent(in) :: ims, ime, jms, jme, kms, kme, kts
-    integer :: i, j, k
+    integer :: i, j
 
     do j = jms, jme
       do i = ims, ime
