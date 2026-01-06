@@ -29,7 +29,8 @@ jobs:
         ls
         cd ${testdrive_ROOT}/test-drive
         ls
-        mkdir -p build
+        mkdir -p ${testdrive_ROOT}/test-drive/build
+        cd ${testdrive_ROOT}/test-drive/build
         cmake ../
         make
 
