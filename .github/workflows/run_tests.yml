@@ -37,15 +37,18 @@ jobs:
     - name: Build unit tests
       run: |
         cd ${driver_ROOT}
-        pwd
-        echo ${testdrive_ROOT}
-        ls ${testdrive_ROOT}/test-drive/build
         make unit_tests -f Makefile.gfortran testdrive_dir=${testdrive_ROOT}/test-drive/build
         make install_unit_tests -f Makefile.gfortran
+
+    - name: Run unit tests
+      run: |
+        cd ${driver_ROOT}/rundir_unit_tests
+        ./run_unit_tests
 
     - name: Build tests
       run: |
         cd ${driver_ROOT}
+        make clean -f Makefile.gfortran
         make tempo_tests -f Makefile.gfortran
         make install -f Makefile.gfortran
 
