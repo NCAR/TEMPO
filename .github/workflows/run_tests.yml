@@ -24,11 +24,8 @@ jobs:
         cd ${driver_ROOT}
         mkdir -p ${testdrive_ROOT}
         cd ${testdrive_ROOT}
-        pwd
         git clone https://github.com/fortran-lang/test-drive.git
-        ls
         cd ${testdrive_ROOT}/test-drive
-        ls
         mkdir -p ${testdrive_ROOT}/test-drive/build
         cd ${testdrive_ROOT}/test-drive/build
         cmake ../
@@ -40,6 +37,9 @@ jobs:
     - name: Build unit tests
       run: |
         cd ${driver_ROOT}
+        pwd
+        echo ${testdrive_ROOT}
+        ls ${testdrive_ROOT}/test-drive/build
         make unit_tests -f Makefile.gfortran testdrive_dir=${testdrive_ROOT}/test-drive/build
         make install_unit_tests -f Makefile.gfortran
 
