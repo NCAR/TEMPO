@@ -64,36 +64,44 @@ module module_mp_tempo_init
       if (present(ml_for_bl_nc_flag)) tempo_cfgs%ml_for_bl_nc_flag = ml_for_bl_nc_flag
       if (present(ml_for_nc_flag)) tempo_cfgs%ml_for_nc_flag = ml_for_nc_flag
 
-      write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
-      write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
-      write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
-      write(*,'(A,L)') 'tempo_init() --- ML for subgrid cloud number = ', tempo_cfgs%ml_for_bl_nc_flag
-      write(*,'(A,L)') 'tempo_init() --- ML for cloud number = ', tempo_cfgs%ml_for_nc_flag
+      if (tempo_cfgs%verbose) then
+        write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
+        write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
+        write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
+        write(*,'(A,L)') 'tempo_init() --- ML for subgrid cloud number = ', tempo_cfgs%ml_for_bl_nc_flag
+        write(*,'(A,L)') 'tempo_init() --- ML for cloud number = ', tempo_cfgs%ml_for_nc_flag
+      endif 
 
       ! set graupel variables from hail_aware_flag
       call initialize_graupel_vars(tempo_cfgs%hailaware_flag) 
-      write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_cfgs%hailaware_flag
+      if (tempo_cfgs%verbose) then
+        write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_cfgs%hailaware_flag
+      endif 
 
       ! set parameters that can depend on the host model
       call initialize_parameters() 
-      write(*,'(A)') 'tempo_init() --- initialized parameters'
-
+      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized parameters'
+      
       ! creates log-spaced bins of hydrometers for tables
       call initialize_bins_for_tables() 
-      write(*,'(A)') 'tempo_init() --- initialized bins for lookup tables'
+      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized bins for lookup tables'
 
       ! collision efficiencies between rain/snow and cloud water.
       call initialize_array_efrw()
       call compute_efrw()
-      write(*,'(A)') 'tempo_init() --- initialized collision efficiency data for rain collecting cloud water'
+      if (tempo_cfgs%verbose) then
+        write(*,'(A)') 'tempo_init() --- initialized collision efficiency data for rain collecting cloud water'
+      endif 
       call initialize_array_efsw()
       call compute_efsw()
-      write(*,'(A)') 'tempo_init() --- initialized collision efficiency data for snow collecting cloud water'
+      if (tempo_cfgs%verbose) then
+        write(*,'(A)') 'tempo_init() --- initialized collision efficiency data for snow collecting cloud water'
+      endif 
 
       ! drop evaporation
       call initialize_arrays_drop_evap()
       call compute_drop_evap()
-      write(*,'(A)') 'tempo_init() --- initialized drop evaporation data'
+      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized drop evaporation data'
 
       ! cloud ice to snow and depositional growth
       call initialize_arrays_qi_aut_qs()
@@ -103,46 +111,56 @@ module module_mp_tempo_init
       table_filename = tempo_table_cfgs%ccn_table_name
       call initialize_arrays_ccn(table_size)
       call read_table_ccn(trim(table_filename), table_size)
-      write(*,'(A)') 'tempo_init() --- initialized data for ccn lookup table'
+      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized data for ccn lookup table'
 
       ! freeze water collection lookup table
       table_filename = tempo_table_cfgs%freezewater_table_name
       call initialize_arrays_freezewater(table_size)
       call read_table_freezewater(trim(table_filename), table_size)
-      write(*,'(A)') 'tempo_init() --- initialized data for frozen cloud water and rain lookup table'
+      if (tempo_cfgs%verbose) then
+        write(*,'(A)') 'tempo_init() --- initialized data for frozen cloud water and rain lookup table'
+      endif 
 
       ! rain-snow collection lookup table
       table_filename = tempo_table_cfgs%qrqs_table_name
       call initialize_arrays_qr_acr_qs(table_size)
       call read_table_qr_acr_qs(trim(table_filename), table_size)
-      write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
+      if (tempo_cfgs%verbose) then
+        write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
+      endif 
 
       ! rain-graupel collection lookup table
       table_filename = tempo_table_cfgs%qrqg_table_name
       call initialize_arrays_qr_acr_qg(table_size)
       call read_table_qr_acr_qg(trim(table_filename), table_size)
-      write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
+      if (tempo_cfgs%verbose) then
+        write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
+      endif 
 
       ! bins used for optional refl10cm calculation with melting
       if (tempo_cfgs%refl10cm_from_melting_flag) then
         call initialize_bins_for_radar()
-        write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
-          tempo_cfgs%refl10cm_from_melting_flag
-        write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
+        if (tempo_cfgs%verbose) then
+          write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
+            tempo_cfgs%refl10cm_from_melting_flag
+          write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
+        endif 
       endif
 
       ! bins used for optional hail size calculation
       if (tempo_cfgs%max_hail_diameter_flag) then
         call initialize_bins_for_hail_size()
-        write(*,'(A,L)') 'tempo_init() ---  flag to calculate max hail diameter = ', &
-          tempo_cfgs%max_hail_diameter_flag
-        write(*,'(A)') 'tempo_init() --- initialized bins for hail size calculation'
+        if (tempo_cfgs%verbose) then
+          write(*,'(A,L)') 'tempo_init() ---  flag to calculate max hail diameter = ', &
+            tempo_cfgs%max_hail_diameter_flag
+          write(*,'(A)') 'tempo_init() --- initialized bins for hail size calculation'
+        endif
       endif
 
       ! data for machine learning
       if(tempo_cfgs%ml_for_bl_nc_flag .or. tempo_cfgs%ml_for_nc_flag) then
         call init_ml_data()
-        write(*,'(A)') 'tempo_init() --- initialized data for ML hookup'
+        if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized data for cloud number machine learning'
       endif 
     endif
   end subroutine tempo_init
@@ -675,7 +693,7 @@ module module_mp_tempo_init
     inquire(file=trim(filename), exist=fileexists)
     if (.not. fileexists) then
       version = ''
-      write(*,'(A)') 'Unable to determine TEMPO Microphysics Version'
+      ! write(*,'(A)') 'Unable to determine TEMPO Microphysics Version'
       return
     endif
   

@@ -16,7 +16,7 @@ module module_mp_tempo_cfgs
     logical :: refl10cm_from_melting_flag = .false. !! flag to calculate reflectivity for melting snow and graupel
     logical :: turn_off_micro_flag = .false. !! flag to turn off all microphysical processes
     logical :: verbose = .false. !! flag to turn on verbose print statements
-    ! below are flags to turn on/off diagnostic output
+    ! flags to turn on/off diagnostic output
     logical :: refl10cm_flag = .true. !! flag to output 10cm reflectivity
     logical :: re_cloud_flag = .true. !! flag to output cloud effective radius
     logical :: re_ice_flag = .true. !! flag to output ice effective radius

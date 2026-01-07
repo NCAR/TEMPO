@@ -134,8 +134,6 @@ module module_mp_tempo_main
     
     real(wp), dimension(kts:kte) :: xrx, xnx !! temporary arrays
     real(wp), dimension(:), allocatable :: xncx, xngx, xqbx, ncsave !! temporary arrays
-    real(dp), dimension(:), allocatable :: ilamx !! temporary arrays
-    logical, dimension(:), allocatable :: l_qx !! temporary arrays
 
     real(wp), dimension(kts:kte+1) :: vtrr, vtnr, vtrs, vtri, vtni, vtrg, vtng, vtrc, vtnc !! fallspeeds
     real(wp), dimension(kts:kte) :: vtboost !! snow fallspeed boost factor
@@ -677,7 +675,7 @@ module module_mp_tempo_main
         steps=substeps_sedi, ktop_sedi=ktop_sedi)
     endif 
 
-    ! After sedimentation freeze all cloud water below hgfrz temperature
+    ! after sedimentation freeze all cloud water below hgfrz temperature
     ! and melt all cloud ice above freezing
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call freeze_cloud_melt_ice(temp=temp, rho=rho, ocp=ocp, lvap=lvap, &
@@ -779,9 +777,13 @@ module module_mp_tempo_main
       allocate(tempo_main_diags%re_ice(nz), source=0._wp)
       allocate(tempo_main_diags%re_snow(nz), source=0._wp)
 
-      ! this diagnostic optionally adds pbl clouds to resolved clouds 
-      ! for the effective radius calculation, which will update the cloud properites
+      ! this next code block optionally adds pbl clouds to resolved clouds 
+      ! for the effective radius calculation
+      ! thus qc -> qc + qc_bl, a new value of nc is predicted with ML, 
+      ! and then ilamc is updated along with rc and nc before re is calculated
       ! please output any cloud diagnostics before this calculation
+      ! because rc, nc, ilamc, and mvd_c will include contributions from 
+      ! resolved and explicit clouds and qcten and ncten are zeroed
       if (present(qc_bl1d) .and. present(qcfrac_bl1d)) then
         xrx = qc1d
         if (.not. allocated(xncx)) allocate(xncx(nz), source=0._wp)

@@ -201,7 +201,7 @@ module module_mp_tempo_driver
             qb1d(k) = qb(i,k,j)
           endif 
 
-          !ML for pbl clouds
+          ! machine learning for pbl clouds
           if (present(qc_bl) .and. present(qcfrac_bl)) then
             qc_bl1d(k) = qc_bl(i,k,j)
             qcfrac_bl1d(k) = qcfrac_bl(i,k,j)
@@ -251,7 +251,8 @@ module module_mp_tempo_driver
         if (allocated(tempo_diags%max_hail_diameter_sfc) .and. allocated(tempo_diags%max_hail_diameter_column) .and. allocated(tempo_main_diags%max_hail_diameter)) then
           tempo_diags%max_hail_diameter_sfc(i,j) = tempo_main_diags%max_hail_diameter(1)
           tempo_diags%max_hail_diameter_column(i,j) = maxval(tempo_main_diags%max_hail_diameter)
-        endif 
+        endif
+
         ! return variables to model
         do k = kts, kte
           if (present(nc)) nc(i,k,j) = nc1d(k)
