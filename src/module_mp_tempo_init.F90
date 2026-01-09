@@ -786,30 +786,6 @@ module module_mp_tempo_init
   end subroutine check_before_table_read
 
 
-  subroutine rename_file_if_exists(oldfilename)
-    !! rename a lookup table if attempting to write to that file and it already exists
-    character(len=*), intent(in) :: oldfilename
-    character(len=100) :: newfilename
-    character(10) :: date
-    character(10) :: time
-    integer :: renamestat
-    character(len=20) :: fileappend
-
-    call date_and_time(date, time)
-    fileappend = '_old_' // trim(date) // '_' // trim(time)
-    newfilename = trim(oldfilename // trim(fileappend))
-    renamestat = rename(oldfilename, newfilename)
-    if (renamestat /= 0) then
-      write(*,'(3A)') 'rename_file_if_exists() --- *** FATAL *** unable to rename existing table file "', &
-        oldfilename, '" to "', newfilename, '"'
-      error stop '--- file rename failed.'
-    else
-    write(*,'(5A)') 'rename_file_if_exists() --- existing table file "', oldfilename, &
-      '" has been renamed to "', newfilename, '"'
-    endif
-  end subroutine rename_file_if_exists
-
-
   subroutine compute_efrw()
     !! collision efficiency for rain collecting cloud water from Beard and Grover (1974)
     !! if a/A < 0.25
