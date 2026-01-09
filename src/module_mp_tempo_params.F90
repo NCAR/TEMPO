@@ -3,18 +3,23 @@ module module_mp_tempo_params
 
 ! define machine precision
 #if defined(tempo_mpas)
-  use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
+  use mpas_kind_types, only : wp => RKIND, sp => R4KIND, dp => R8KIND
 #elif defined(tempo_ccpp)
-  use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+  use machine, only : wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #elif defined(wrfmodel)
-  use ccpp_kind_types, only: wp => kind_phys, sp => kind_phys, dp => kind_phys
+  use ccpp_kind_types, only : wp => kind_phys, sp => kind_phys
 #else
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #endif 
   use iso_fortran_env, only : real32, real64 ! for machine-independent lookup table precisions
+
   implicit none
 
   public
+
+#if defined(wrfmodel)
+  integer, parameter :: dp = selected_real_kind(15,307)
+#endif
 
   character(len=11) :: tempo_version !! tempo version string (max is xxx.xxx.xxx)
 
