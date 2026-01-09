@@ -8,10 +8,6 @@ module module_mp_tempo_init
   use module_mp_tempo_ml, only : ty_tempo_ml_data, nc_ml_nodes, nc_ml_input, nc_ml_output, nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01, &
   save_or_read_ml_data
 
-#ifdef tempo_intel
-  use ifport, only : rename
-#endif
-
 #ifdef build_tables_with_mpi
   use mpi_f08 
 #endif
@@ -248,8 +244,11 @@ module module_mp_tempo_init
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
-    if (fileexists) call rename_file_if_exists(filename)
-    
+    if (fileexists) then
+      error stop 'write_table_freezewater() --- please delete or move lookup table ', trim(filename), &
+        ' before attempted to create a new table'
+    endif
+
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
       iostat=istat, convert='big_endian')
@@ -437,7 +436,10 @@ module module_mp_tempo_init
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
-    if (fileexists) call rename_file_if_exists(filename)
+    if (fileexists) then
+      error stop 'write_table_qr_acr_qs() --- please delete or move lookup table ', trim(filename), &
+        ' before attempted to create a new table'
+    endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
@@ -597,7 +599,10 @@ module module_mp_tempo_init
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
-    if (fileexists) call rename_file_if_exists(filename)
+    if (fileexists) then
+      error stop 'write_table_qr_acr_qg() --- please delete or move lookup table ', trim(filename), &
+        ' before attempted to create a new table'
+   endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
