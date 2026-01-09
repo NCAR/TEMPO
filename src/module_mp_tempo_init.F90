@@ -245,8 +245,9 @@ module module_mp_tempo_init
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) then
-      error stop 'write_table_freezewater() --- please delete or move lookup table ', trim(filename), &
+      write(*,*) 'write_table_freezewater() --- please delete or move lookup table ', trim(filename), &
         ' before attempted to create a new table'
+      error stop 'attempting to overwrite a table that already exists'
     endif
 
     mp_unit = 11
@@ -437,8 +438,9 @@ module module_mp_tempo_init
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) then
-      error stop 'write_table_qr_acr_qs() --- please delete or move lookup table ', trim(filename), &
+      write(*,*) 'write_table_qr_acr_qs() --- please delete or move lookup table ', trim(filename), &
         ' before attempted to create a new table'
+      error stop 'attempting to overwrite a table that already exists'
     endif
 
     mp_unit = 11
@@ -600,8 +602,9 @@ module module_mp_tempo_init
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) then
-      error stop 'write_table_qr_acr_qg() --- please delete or move lookup table ', trim(filename), &
+      write(*,*) 'write_table_qr_acr_qg() --- please delete or move lookup table ', trim(filename), &
         ' before attempted to create a new table'
+      error stop 'attempting to overwrite a table that already exists'
    endif
 
     mp_unit = 11
