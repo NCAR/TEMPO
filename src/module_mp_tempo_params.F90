@@ -6,6 +6,8 @@ module module_mp_tempo_params
   use mpas_kind_types, only: wp => RKIND, sp => R4KIND, dp => R8KIND
 #elif defined(tempo_ccpp)
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+#elif defined(wrfmodel)
+  use ccpp_kind_types, only: wp => kind_phys, sp => kind_phys, dp => kind_phys
 #else
   use machine, only: wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #endif 
@@ -367,7 +369,7 @@ module module_mp_tempo_params
     tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2 !! rain-snow collection data arrays
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qcfz, tni_qcfz !! cloud droplet freezing data arrays
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz !! rain freezing data arrays
-  real(table_dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data array
+  real(dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data array
     
   ! -------------------------------------------------------------------------------------------------------
   ! -------------------------------------------------------------------------------------------------------
