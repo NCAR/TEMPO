@@ -4,6 +4,7 @@ name := tempo
 # to run unit tests, build test-drive and add the test-drive
 # directory to testdrive_dir. This directory should have libtest-drive.a
 # https://github.com/fortran-lang/test-drive
+# either set testdrive_dir here or set it in the make command
 # testdrive_dir = /set-this-dir/test-drive/build
 
 # compiles with mpi for faster table builds when mpi = 1
@@ -25,7 +26,7 @@ tables_exe := run_build_tables
 fc := gfortran
 fc_mpi := mpif90
 ar := ar rcs
-fcflags := -c -Dstandalone -g -O0 -fbacktrace -fcheck=all -ffree-line-length-0  -fdefault-real-8 -fdefault-double-8 -J ./$(src_dir)
+fcflags := -c -g -O0 -fbacktrace -fcheck=all -ffree-line-length-0  -fdefault-real-8 -fdefault-double-8 -J ./$(src_dir)
 
 # tempo library
 tempo_lib := $(patsubst %, lib%.a, $(name))
@@ -62,10 +63,6 @@ $(tempo_lib): $(tempo_objs)
 set-configs:
     compiler := $(fc)
     ld := $(fc)
-#     mpi_flag := 
-#     td_lib =
-#     td_inc :=
-#     ut_flag :=
 
 set-mpi: set-configs
 ifeq ($(mpi), 1)
@@ -101,37 +98,37 @@ install_unit_tests : unit_tests
 $(src_dir)/module_mp_tempo_params.o: $(src_dir)/machine.o
 $(src_dir)/module_mp_tempo_ml.o: $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_utils.o: $(src_dir)/module_mp_tempo_params.o
-$(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_params.o
-$(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_cfgs.o
-$(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_utils.o
-$(src_dir)/module_mp_tempo_init.o: $(src_dir)/module_mp_tempo_ml.o
-$(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_params.o
+$(src_dir)/module_mp_tempo_aerosols.o: $(src_dir)/module_mp_tempo_params.o
+$(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_tempo_params.o
+$(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_tempo_utils.o
+$(src_dir)/module_mp_tempo_tables.o: $(src_dir)/module_mp_tempo_cfgs.o
+$(src_dir)/module_mp_tempo_tables.o: $(src_dir)/module_mp_tempo_params.o
+$(src_dir)/module_mp_tempo_tables.o: $(src_dir)/module_mp_tempo_utils.o
+$(src_dir)/module_mp_tempo_driver.o: $(src_dir)/module_mp_tempo_cfgs.o
+$(src_dir)/module_mp_tempo_driver.o: $(src_dir)/module_mp_tempo_params.o
+$(src_dir)/module_mp_tempo_driver.o: $(src_dir)/module_mp_tempo_utils.o
+$(src_dir)/module_mp_tempo_driver.o: $(src_dir)/module_mp_tempo_ml.o
+$(src_dir)/module_mp_tempo_driver.o: $(src_dir)/module_mp_tempo_main.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_cfgs.o
+$(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_params.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_utils.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_diags.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_aerosols.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_ml.o
-$(src_dir)/module_mp_tempo_diags.o: $(src_dir)/module_mp_tempo_params.o
-$(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_params.o
-$(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_cfgs.o
-$(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_diags.o
-$(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_main.o
-$(src_dir)/module_mp_tempo_driver.o : $(src_dir)/module_mp_tempo_ml.o
+$(test_dir)/tests.o: $(src_dir)/module_mp_tempo_cfgs.o
 $(test_dir)/tests.o: $(src_dir)/module_mp_tempo_params.o
-$(test_dir)/tests.o: $(src_dir)/module_mp_tempo_init.o
 $(test_dir)/tests.o: $(src_dir)/module_mp_tempo_driver.o
 $(test_dir)/run_tempo_tests.o: $(test_dir)/tests.o
-$(tools_dir)/build_tables.o: $(src_dir)/module_mp_tempo_init.o
-$(tools_dir)/build_tables.o: $(src_dir)/module_mp_tempo_params.o
+$(unittest_dir)/test_tempo_init_suite.o: $(src_dir)/module_mp_tempo_params.o
 $(unittest_dir)/test_tempo_utils_suite.o: $(src_dir)/module_mp_tempo_params.o
 $(unittest_dir)/test_tempo_utils_suite.o: $(src_dir)/module_mp_tempo_utils.o
-$(unittest_dir)/test_tempo_init_suite.o: $(src_dir)/module_mp_tempo_params.o
-$(unittest_dir)/test_tempo_init_suite.o: $(src_dir)/module_mp_tempo_init.o
 $(unittest_dir)/test_tempo_main_suite.o: $(src_dir)/module_mp_tempo_params.o
 $(unittest_dir)/test_tempo_main_suite.o: $(src_dir)/module_mp_tempo_main.o
-$(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_utils_suite.o
 $(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_init_suite.o
+$(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_utils_suite.o
 $(unittest_dir)/run_unit_tests.o: $(unittest_dir)/test_tempo_main_suite.o
+$(tools_dir)/build_tables.o: $(src_dir)/module_mp_tempo_params.o
+$(tools_dir)/build_tables.o: $(src_dir)/module_mp_tempo_tables.o
 
 clean:
 	rm -rf $(src_dir)/*.o $(src_dir)/*.mod $(test_dir)/*.o $(test_dir)/*.mod $(unittest_dir)/*.o $(unittest_dir)/*.mod $(tools_dir)/*.o $(tools_dir)/*.mod $(tempo_lib) $(unittest_exe) $(tempotest_exe) $(tables_exe)

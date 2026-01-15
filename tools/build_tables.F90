@@ -15,7 +15,7 @@ program build_tables
   !> | mpiifort (-fp-model consistent) 13 processes | 120 |
 
   use module_mp_tempo_params, only : table_dp
-  use module_mp_tempo_init, only : tempo_build_tables
+  use module_mp_tempo_tables, only : tempo_build_tables
 
 #ifdef build_tables_with_mpi
   use mpi_f08 

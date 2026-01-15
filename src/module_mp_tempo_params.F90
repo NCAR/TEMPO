@@ -380,6 +380,33 @@ module module_mp_tempo_params
   ! -------------------------------------------------------------------------------------------------------
   contains
 
+  subroutine get_version(version)
+    !! returns the tempo version string from the README.md file
+    !! or returns empty string if not found
+  
+    character(len=*), intent(inout) :: version
+    character(len=100) :: first_line, filename
+    integer :: io_unit
+    logical :: fileexists
+
+    filename = 'README.md'
+    inquire(file=trim(filename), exist=fileexists)
+    if (.not. fileexists) then
+      version = ''
+      ! write(*,'(A)') 'Unable to determine TEMPO Microphysics Version'
+      return
+    endif
+  
+    open(newunit=io_unit, file=filename, status='old', action='read')
+    read(io_unit, '(A)') first_line
+    close(io_unit)
+
+    ! format is tempo-vX.X.X
+    version = trim(first_line(8:))
+    write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
+  end subroutine get_version
+
+
   subroutine initialize_graupel_vars(hail_flag)
     !! initialize graupel variables based on hail-aware configuration flag
 

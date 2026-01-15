@@ -1,6 +1,6 @@
 .SUFFIXES: .F90 .o
 
-all: dummy compiler-check microphysics
+all: dummy microphysics
 
 dummy:
 	echo "****** compiling TEMPO microphysics ******"
@@ -9,7 +9,6 @@ OBJS = \
 	module_mp_tempo_params.o    \
 	module_mp_tempo_cfgs.o      \
 	module_mp_tempo_utils.o     \
-	module_mp_tempo_init.o      \
 	module_mp_tempo_diags.o     \
 	module_mp_tempo_aerosols.o  \
 	module_mp_tempo_ml.o        \
@@ -22,33 +21,26 @@ microphysics: $(OBJS)
 module_mp_tempo_ml.o: module_mp_tempo_params.o
 module_mp_tempo_utils.o: module_mp_tempo_params.o
 module_mp_tempo_aerosols.o: module_mp_tempo_params.o
-module_mp_tempo_init.o: module_mp_tempo_params.o \
+module_mp_tempo_diags.o: module_mp_tempo_params.o \
+			module_mp_tempo_utils.o
+module_mp_tempo_driver.o : module_mp_tempo_params.o \
 			module_mp_tempo_cfgs.o \
 			module_mp_tempo_utils.o \
-			module_mp_tempo_ml.o
+			module_mp_tempo_diags.o \
+		    module_mp_tempo_main.o \
+		    module_mp_tempo_ml.o
 module_mp_tempo_main.o : module_mp_tempo_params.o \
 			module_mp_tempo_cfgs.o \
 			module_mp_tempo_utils.o \
 			module_mp_tempo_diags.o \
 			module_mp_tempo_aerosols.o \
 			module_mp_tempo_ml.o
-module_mp_tempo_diags.o: module_mp_tempo_params.o
-module_mp_tempo_driver.o : module_mp_tempo_params.o \
-			module_mp_tempo_cfgs.o \
-			module_mp_tempo_diags.o \
-		    module_mp_tempo_main.o \
-		    module_mp_tempo_ml.o
 
 clean:
 	$(RM) *.f90 *.o *.mod
 	@# Certain systems with intel compilers generate *.i files
 	@# This removes them during the clean process
 	$(RM) *.i
-
-compiler-check:
-ifeq ($(FC), mpiifort)
-    comp_flag = -Dtempo_intel
-endif
 
 %.o %.mod: src/%.F90
 	$(FC) $(CPPFLAGS) $(COREDEF) $(FFLAGS) $(comp_flag) -Dtempo_mpas -c src/$*.F90 $(CPPINCLUDES) $(FCINCLUDES) -I../.. -I../../physics_wrf -I../../physics_mmm -I../../../../framework -I../../../../external/esmf_time_f90

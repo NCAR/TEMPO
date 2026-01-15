@@ -1,8 +1,7 @@
 module tests
   !! TEMPO tests
   use module_mp_tempo_cfgs, only : ty_tempo_cfgs
-  use module_mp_tempo_init, only : tempo_init
-  use module_mp_tempo_driver, only : tempo_driver, ty_tempo_driver_diags
+  use module_mp_tempo_driver, only : tempo_init, tempo_driver, ty_tempo_driver_diags
   implicit none
   private
 

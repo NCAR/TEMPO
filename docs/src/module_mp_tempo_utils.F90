@@ -5,9 +5,9 @@ module module_mp_tempo_utils
   private
   
   public :: snow_moments, calc_gamma_p, get_nuc, get_constant_cloud_number, &
-    calc_rslf, calc_rsif
+    calc_rslf, calc_rsif, compute_efrw, compute_efsw, compute_drop_evap, qi_aut_qs
 
-  contains 
+  contains
 
   subroutine get_constant_cloud_number(land, nc)
     !! returns land-specific value of cloud droplet number concentration
@@ -317,5 +317,185 @@ module module_mp_tempo_utils
       nu_c = min(15, nint(nu_c_scale/nc) + 2)
     endif 
   end function get_nuc
+
+
+  subroutine compute_efrw()
+    !! collision efficiency for rain collecting cloud water from Beard and Grover (1974)
+    !! if a/A < 0.25
+    !! https://doi.org/10.1175/1520-0469(1974)031<0543:NCEFSR>2.0.CO;2
+    !! otherwise uses polynomials to get close match of Pruppacher and Klett Fig. 14-9
+    use module_mp_tempo_params, only : nbc, nbr, dc, dr, t_efrw, rho_w, pi
+
+    real(dp) :: vtr, stokes, reynolds, ef_rw
+    real(dp) :: p, yc0, f, g, h, z, k0, x
+    integer :: i, j
+
+    do j = 1, nbc
+      do i = 1, nbr
+        ef_rw = 0.0_dp
+        p = dc(j) / dr(i)
+        if (dr(i) < 50.e-6_dp .or. dc(j) < 3.e-6_dp) then
+          t_efrw(i,j) = 0.0_dp
+        elseif (p > 0.25_dp) then
+          x = dc(j) * 1.e6_dp
+          if (dr(i) < 75.e-6_dp) then
+            ef_rw = 0.026794_dp*x - 0.20604_dp
+          elseif (dr(i) < 125.e-6_dp) then
+            ef_rw = -0.00066842_dp*x*x + 0.061542_dp*x - 0.37089_dp
+          elseif (dr(i) < 175.e-6_dp) then
+            ef_rw = 4.091e-06_dp*x*x*x*x - 0.00030908_dp*x*x*x + &
+              0.0066237_dp*x*x - 0.0013687_dp*x - 0.073022_dp
+          elseif (dr(i) < 250.e-6_dp) then
+            ef_rw = 9.6719e-5_dp*x*x*x - 0.0068901_dp*x*x + 0.17305_dp*x - 0.65988_dp
+          elseif (dr(i) < 350.e-6_dp) then
+            ef_rw = 9.0488e-5_dp*x*x*x - 0.006585_dp*x*x + 0.16606_dp*x - 0.56125_dp
+          else
+            ef_rw = 0.00010721_dp*x*x*x - 0.0072962_dp*x*x + 0.1704_dp*x - 0.46929_dp
+          endif
+        else
+          vtr = -0.1021_dp + 4.932e3_dp*dr(i) - 0.9551e6_dp*dr(i)*dr(i) + 0.07934e9_dp*dr(i)*dr(i)*dr(i) &
+            - 0.002362e12_dp*dr(i)*dr(i)*dr(i)*dr(i)
+          stokes = dc(j) * dc(j) * vtr * rho_w / (9._dp*1.718e-5_dp*dr(i))
+          reynolds = 9._dp * stokes / (p*p*rho_w)
+
+          f = log(reynolds)
+          g = -0.1007_dp - 0.358_dp*f + 0.0261_dp*f*f
+          k0 = exp(g)
+          z = log(stokes / (k0+1.e-15_dp))
+          H = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
+          yc0 = 2.0_dp / pi * atan(h)
+          ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
+        endif
+        t_efrw(i,j) = max(0.0_dp, min(ef_rw, 0.95_dp))
+      enddo
+    enddo
+  end subroutine compute_efrw
+
+
+  subroutine compute_efsw()
+    !! collision efficiency for snow collecting cloud water from Wang and Ji (2000)
+    !! https://doi.org/10.1175/1520-0469(2000)057<1001:CEOICA>2.0.CO;2
+    !! equating melted snow diameter to effective collision cross-section
+    use module_mp_tempo_params, only : wp, sp, dp, &
+      nbc, dc, av_s, bv_s, ds, nbs, am_s, bm_s, am_r, obmr, fv_s, &
+      t_efsw, d0s, rho_w, pi
+
+    real(dp) :: ds_m, vts, vtc, stokes, reynolds, ef_sw
+    real(dp) :: p, yc0, f, g, h, z, k0
+    integer :: i, j
+
+    do j = 1, nbc
+      vtc = 1.19e4_dp * (1.0e4_dp*dc(j)*dc(j)*0.25_dp)
+      do i = 1, nbs
+        vts = av_s*ds(i)**bv_s * exp(real(-fv_s*ds(i), kind=dp)) - vtc
+        ds_m = (am_s*ds(i)**bm_s / am_r)**obmr
+        p = dc(j) / ds_m
+
+        if (p > 0.25_dp .or. ds(i) < d0s .or. dc(j) < 6.e-6_dp .or. vts < 1.e-3_dp) then
+          t_efsw(i,j) = 0.0_dp
+        else
+          stokes = dc(j) * dc(j) * vts * rho_w / (9.*1.718e-5_dp*ds_m)
+          reynolds = 9._dp * stokes / (p*p*rho_w)
+
+          f = log(reynolds)
+          g = -0.1007_dp - 0.358_dp*f + 0.0261_dp*f*f
+          k0 = exp(g)
+          z = log(stokes / (k0+1.e-15_dp))
+          h = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
+          yc0 = 2.0_dp / pi * atan(h)
+          ef_sw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
+
+          t_efsw(i,j) = max(0.0_dp, min(ef_sw, 0.95_dp))
+        endif
+      enddo
+    enddo
+  end subroutine compute_efsw
+
+
+  subroutine qi_aut_qs()
+    !! calculates cloud ice conversion to snow
+    !! and depositional growth by binning cloud ice distributions and 
+    !! determining both the size bins > d0s (that are converted to snow) and the 
+    !! depositional growth up to d0s (for cloud ice) and > d0s for snow 
+    !! following Harrington et al. (1995)
+    !! https://doi.org/10.1175/1520-0469(1995)052<4344:POICCP>2.0.CO;2
+    use module_mp_tempo_params, only : wp, sp, dp, &
+      nbi, ntb_i, ntb_i1, &
+      am_i, cie, cig, oig1, nt_i, r_i, obmi, bm_i, mu_i, d0s, d0i, &
+      tpi_ide, tps_iaus, tni_iaus, di, dti
+
+    integer :: i, j, n2
+    real(dp), dimension(nbi) :: n_i
+    real(dp) :: n0_i, lami, di_mean, t1, t2
+    real(wp) :: xlimit_intg
+
+    do j = 1, ntb_i1
+      do i = 1, ntb_i
+        lami = (am_i*cig(2)*oig1*nt_i(j)/r_i(i))**obmi
+        di_mean = (bm_i + mu_i + 1.) / lami
+        n0_i = nt_i(j)*oig1 * lami**cie(1)
+        t1 = 0.
+        t2 = 0.
+        if (real(di_mean, kind=wp) > 5.*d0s) then
+          t1 = r_i(i)
+          t2 = nt_i(j)
+          tpi_ide(i,j) = 0.
+        elseif (real(di_mean, kind=wp) < d0i) then
+          t1 = 0.
+          t2 = 0.
+          tpi_ide(i,j) = 1.
+        else
+          xlimit_intg = lami*d0s
+          tpi_ide(i,j) = real(calc_gamma_p(mu_i+2.0, xlimit_intg), kind=dp)
+          do n2 = 1, nbi
+            n_i(n2) = n0_i*di(n2)**mu_i * exp(-lami*di(n2))*dti(n2)
+            if (di(n2) >= d0s) then
+              t1 = t1 + n_i(n2) * am_i*di(n2)**bm_i
+              t2 = t2 + n_i(n2)
+            endif
+          enddo
+        endif
+        tps_iaus(i,j) = t1
+        tni_iaus(i,j) = t2
+      enddo
+    enddo
+  end subroutine qi_aut_qs
+
+
+  subroutine compute_drop_evap()
+    !! calculates droplet evaporation data
+    use module_mp_tempo_params, only: wp, sp, dp, &
+      nbc, am_r, dc, bm_r, nu_c_scale, nu_c_max, nu_c_min, &
+      t_nc, ntb_c, cce, ccg, ocg1, r_c, obmr, dtc, &
+      tpc_wev, tnc_wev
+
+    integer :: i, j, k, n
+    real(dp), dimension(nbc) :: n_c, massc
+    real(dp) :: summ, summ2, lamc, n0_c
+    integer :: nu_c
+
+    do n = 1, nbc
+      massc(n) = am_r*dc(n)**bm_r
+    enddo
+
+    do k = 1, nbc
+      nu_c = get_nuc(real(t_nc(k), kind=wp))
+      do j = 1, ntb_c
+        lamc = (t_nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
+        n0_c = t_nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
+        do i = 1, nbc
+          n_c(i) = n0_c* dc(i)**nu_c*exp(-lamc*dc(i))*dtc(i)
+          summ = 0._dp
+          summ2 = 0._dp
+          do n = 1, i
+            summ = summ + massc(n)*n_c(n)
+            summ2 = summ2 + n_c(n)
+          enddo
+          tpc_wev(i,j,k) = summ
+          tnc_wev(i,j,k) = summ2
+        enddo
+      enddo
+    enddo
+  end subroutine compute_drop_evap
 
 end module module_mp_tempo_utils

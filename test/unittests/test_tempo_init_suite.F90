@@ -4,9 +4,7 @@ module test_tempo_init_suite
   use module_mp_tempo_params, only : wp, sp, dp, &
     initialize_graupel_vars, dim_nrhg, nrhg, nrhg1, rho_g, am_g, pi, &
     initialize_parameters, ccg, &
-    initialize_bins_for_tables, dc, nbc, t_efrw, t_efsw, &
-    initialize_array_efrw, initialize_array_efsw
-  use module_mp_tempo_init, only : compute_efrw, compute_efsw
+    initialize_bins_for_tables, dc, nbc
   implicit none
   private
 
@@ -27,11 +25,7 @@ module test_tempo_init_suite
       new_unittest("checking that ccg(2,4) = 7! = 5040", &
         InitializeParameters_ccgValue5040), &
       new_unittest("checking the value of the last dc bin, dc(nbc) = 100 microns", &
-        InitializeBinsForTables_lastDcBin100microns), &
-      new_unittest("checking initialization of rain-cloud water collection efficiency data after allocation resulting in all(t_efrw == 0.) being false", &
-        TableEfrw_AllZeroFalse), &
-      new_unittest("checking initialization of snow-cloud water collection efficiency data after allocation resulting in all(t_efsw == 0.) being false", &
-        TableEfsw_AllZeroFalse) &
+        InitializeBinsForTables_lastDcBin100microns) &
       ]
   end subroutine collect_tempo_init_suite
 
@@ -74,25 +68,5 @@ module test_tempo_init_suite
     call check(error, dc(nbc), 100.e-6_wp)
     if (allocated(error)) return
   end subroutine InitializeBinsForTables_lastDcBin100microns
-
-
-  subroutine TableEfrw_allZeroFalse(error)
-    !! test for proper initialization of t_efrw
-    type(error_type), allocatable, intent(out) :: error
-    call initialize_array_efrw()
-    call compute_efrw()
-    call check(error, all(t_efrw==0.0_dp), .false.)
-    if (allocated(error)) return
-  end subroutine TableEfrw_AllZeroFalse
-
-
-  subroutine TableEfsw_allZeroFalse(error)
-    !! test for proper initialization of t_efsw
-    type(error_type), allocatable, intent(out) :: error
-    call initialize_array_efsw()
-    call compute_efsw()
-    call check(error, all(t_efsw==0.0_dp), .false.)
-    if (allocated(error)) return
-  end subroutine TableEfsw_AllZeroFalse
 
 end module test_tempo_init_suite

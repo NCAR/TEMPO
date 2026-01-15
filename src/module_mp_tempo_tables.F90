@@ -1,16 +1,10 @@
-module module_mp_tempo_init
+module module_mp_tempo_tables
   !! initialize variables for tempo microphysics
   !!
   !! includes a procedure to build and save tempo lookup tables
   use module_mp_tempo_cfgs, only :  ty_tempo_cfgs, ty_tempo_table_cfgs
   use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
-  use module_mp_tempo_ml, only : ty_tempo_ml_data, nc_ml_nodes, nc_ml_input, nc_ml_output, nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01, &
-  save_or_read_ml_data
-
-#ifdef tempo_intel
-  use ifport, only : rename
-#endif
 
 #ifdef build_tables_with_mpi
   use mpi_f08 
@@ -19,156 +13,15 @@ module module_mp_tempo_init
   implicit none
   private
 
-#ifdef unit_testing
-  public :: compute_efrw, compute_efsw
-#endif
-
-  public :: tempo_init, tempo_build_tables
+  public :: tempo_build_tables
 
   type(ty_tempo_table_cfgs) :: tempo_table_cfgs
 
   contains
 
-  subroutine tempo_init(aerosolaware_flag, hailaware_flag, &
-    ml_for_bl_nc_flag, ml_for_nc_flag, force_init_flag, tempo_cfgs)
-    !! initialize tempo microphysics
-    use module_mp_tempo_params, only : tempo_version, t_efrw, &
-      initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables, &
-      initialize_array_efrw, initialize_array_efsw, initialize_arrays_drop_evap, initialize_arrays_ccn, initialize_arrays_qi_aut_qs, &
-      initialize_arrays_qr_acr_qs, initialize_arrays_qr_acr_qg, initialize_arrays_freezewater, &
-      initialize_bins_for_hail_size, initialize_bins_for_radar
-
-    logical, intent(in), optional :: aerosolaware_flag, hailaware_flag, &
-      ml_for_bl_nc_flag, ml_for_nc_flag, force_init_flag
-    type(ty_tempo_cfgs), intent(out) :: tempo_cfgs
-  
-    character(len=100) :: table_filename
-    integer :: table_size
-    logical :: initialize_mp_vars, force_init
-
-    ! get tempo version from readme file
-    call get_version(tempo_version) 
-
-    ! check an allocatable array (t_efrw) to see if initialization can be skipped
-    ! but allow for force initialization useful for testing
-    force_init = .false.
-    if (present(force_init_flag)) force_init = force_init_flag
-
-    initialize_mp_vars = .true.
-    if (allocated(t_efrw)) initialize_mp_vars = .false.
-    if (force_init) initialize_mp_vars = .true.
-
-    if (initialize_mp_vars) then
-      if (present(aerosolaware_flag)) tempo_cfgs%aerosolaware_flag = aerosolaware_flag
-      if (present(hailaware_flag)) tempo_cfgs%hailaware_flag = hailaware_flag
-      if (present(ml_for_bl_nc_flag)) tempo_cfgs%ml_for_bl_nc_flag = ml_for_bl_nc_flag
-      if (present(ml_for_nc_flag)) tempo_cfgs%ml_for_nc_flag = ml_for_nc_flag
-
-      if (tempo_cfgs%verbose) then
-        write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
-        write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
-        write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
-        write(*,'(A,L)') 'tempo_init() --- ML for subgrid cloud number = ', tempo_cfgs%ml_for_bl_nc_flag
-        write(*,'(A,L)') 'tempo_init() --- ML for cloud number = ', tempo_cfgs%ml_for_nc_flag
-      endif 
-
-      ! set graupel variables from hail_aware_flag
-      call initialize_graupel_vars(tempo_cfgs%hailaware_flag) 
-      if (tempo_cfgs%verbose) then
-        write(*,'(A,L)') 'tempo_init() --- initialized graupel variables using hail aware = ', tempo_cfgs%hailaware_flag
-      endif 
-
-      ! set parameters that can depend on the host model
-      call initialize_parameters() 
-      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized parameters'
-      
-      ! creates log-spaced bins of hydrometers for tables
-      call initialize_bins_for_tables() 
-      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized bins for lookup tables'
-
-      ! collision efficiencies between rain/snow and cloud water.
-      call initialize_array_efrw()
-      call compute_efrw()
-      if (tempo_cfgs%verbose) then
-        write(*,'(A)') 'tempo_init() --- initialized collision efficiency data for rain collecting cloud water'
-      endif 
-      call initialize_array_efsw()
-      call compute_efsw()
-      if (tempo_cfgs%verbose) then
-        write(*,'(A)') 'tempo_init() --- initialized collision efficiency data for snow collecting cloud water'
-      endif 
-
-      ! drop evaporation
-      call initialize_arrays_drop_evap()
-      call compute_drop_evap()
-      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized drop evaporation data'
-
-      ! cloud ice to snow and depositional growth
-      call initialize_arrays_qi_aut_qs()
-      call qi_aut_qs()
-
-      ! CCN activation table
-      table_filename = tempo_table_cfgs%ccn_table_name
-      call initialize_arrays_ccn(table_size)
-      call read_table_ccn(trim(table_filename), table_size)
-      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized data for ccn lookup table'
-
-      ! freeze water collection lookup table
-      table_filename = tempo_table_cfgs%freezewater_table_name
-      call initialize_arrays_freezewater(table_size)
-      call read_table_freezewater(trim(table_filename), table_size)
-      if (tempo_cfgs%verbose) then
-        write(*,'(A)') 'tempo_init() --- initialized data for frozen cloud water and rain lookup table'
-      endif 
-
-      ! rain-snow collection lookup table
-      table_filename = tempo_table_cfgs%qrqs_table_name
-      call initialize_arrays_qr_acr_qs(table_size)
-      call read_table_qr_acr_qs(trim(table_filename), table_size)
-      if (tempo_cfgs%verbose) then
-        write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
-      endif 
-
-      ! rain-graupel collection lookup table
-      table_filename = tempo_table_cfgs%qrqg_table_name
-      call initialize_arrays_qr_acr_qg(table_size)
-      call read_table_qr_acr_qg(trim(table_filename), table_size)
-      if (tempo_cfgs%verbose) then
-        write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
-      endif 
-
-      ! bins used for optional refl10cm calculation with melting
-      if (tempo_cfgs%refl10cm_from_melting_flag) then
-        call initialize_bins_for_radar()
-        if (tempo_cfgs%verbose) then
-          write(*,'(A,L)') 'tempo_init() ---  flag to calcuate reflectivity with contributions from melting snow and graupel = ', &
-            tempo_cfgs%refl10cm_from_melting_flag
-          write(*,'(A)') 'tempo_init() --- initialized bins for reflectivity calcuation with meting snow and graupel'
-        endif 
-      endif
-
-      ! bins used for optional hail size calculation
-      if (tempo_cfgs%max_hail_diameter_flag) then
-        call initialize_bins_for_hail_size()
-        if (tempo_cfgs%verbose) then
-          write(*,'(A,L)') 'tempo_init() ---  flag to calculate max hail diameter = ', &
-            tempo_cfgs%max_hail_diameter_flag
-          write(*,'(A)') 'tempo_init() --- initialized bins for hail size calculation'
-        endif
-      endif
-
-      ! data for machine learning
-      if(tempo_cfgs%ml_for_bl_nc_flag .or. tempo_cfgs%ml_for_nc_flag) then
-        call init_ml_data()
-        if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized data for cloud number machine learning'
-      endif 
-    endif
-  end subroutine tempo_init
-
-
   subroutine tempo_build_tables(build_tables_rank, build_tables_num_proc)
     !! builds three lookup tables for tempo microphysics
-    use module_mp_tempo_params, only : tempo_version, &
+    use module_mp_tempo_params, only : get_version, tempo_version, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables
 
     integer, intent(in) :: build_tables_rank, build_tables_num_proc
@@ -248,8 +101,12 @@ module module_mp_tempo_init
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
-    if (fileexists) call rename_file_if_exists(filename)
-    
+    if (fileexists) then
+      write(*,*) 'write_table_freezewater() --- please delete or move lookup table ', trim(filename), &
+        ' before attempted to create a new table'
+      error stop 'attempting to overwrite a table that already exists'
+    endif
+
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
       iostat=istat, convert='big_endian')
@@ -261,30 +118,6 @@ module module_mp_tempo_init
     write(mp_unit) tni_qcfz
     close(unit=mp_unit)
   end subroutine write_table_freezewater
-
-
-  subroutine read_table_freezewater(filename, table_size)
-    !! read lookup table for frozen cloud and rain water
-    use module_mp_tempo_params, only : tpi_qrfz, tni_qrfz, &
-      tpg_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz
-
-    character(len=*), intent(in) :: filename
-    integer, intent(in) :: table_size
-    
-    integer :: mp_unit, istat
-
-    mp_unit = 11
-    call check_before_table_read(filename, table_size)
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
-      action='read', iostat=istat, convert='big_endian')
-    read(mp_unit) tpi_qrfz
-    read(mp_unit) tni_qrfz
-    read(mp_unit) tpg_qrfz
-    read(mp_unit) tnr_qrfz
-    read(mp_unit) tpi_qcfz
-    read(mp_unit) tni_qcfz
-    close(unit=mp_unit)
-  end subroutine read_table_freezewater
 
 
   subroutine build_table_qr_acr_qs(rank, num_proc)
@@ -437,7 +270,11 @@ module module_mp_tempo_init
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
-    if (fileexists) call rename_file_if_exists(filename)
+    if (fileexists) then
+      write(*,*) 'write_table_qr_acr_qs() --- please delete or move lookup table ', trim(filename), &
+        ' before attempted to create a new table'
+      error stop 'attempting to overwrite a table that already exists'
+    endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
@@ -456,37 +293,6 @@ module module_mp_tempo_init
     write(mp_unit) tnr_sacr2
     close(unit=mp_unit)
   end subroutine write_table_qr_acr_qs
-
-
-  subroutine read_table_qr_acr_qs(filename, table_size)
-    !! read lookup table for rain-snow collection
-    use module_mp_tempo_params, only : tcs_racs1, tmr_racs1, &
-      tcs_racs2, tmr_racs2, tcr_sacr1, tms_sacr1, tcr_sacr2, &
-      tms_sacr2, tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2
-
-    character(len=*), intent(in) :: filename
-    integer, intent(in) :: table_size
-    
-    integer :: mp_unit, istat
-
-    mp_unit = 11
-    call check_before_table_read(filename, table_size)
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
-      action='read', iostat=istat, convert='big_endian')
-    read(mp_unit) tcs_racs1
-    read(mp_unit) tmr_racs1
-    read(mp_unit) tcs_racs2
-    read(mp_unit) tmr_racs2
-    read(mp_unit) tcr_sacr1
-    read(mp_unit) tms_sacr1
-    read(mp_unit) tcr_sacr2
-    read(mp_unit) tms_sacr2
-    read(mp_unit) tnr_racs1
-    read(mp_unit) tnr_racs2
-    read(mp_unit) tnr_sacr1
-    read(mp_unit) tnr_sacr2
-    close(unit=mp_unit)
-  end subroutine read_table_qr_acr_qs
 
 
   subroutine build_table_qr_acr_qg(rank, num_proc)
@@ -597,7 +403,11 @@ module module_mp_tempo_init
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
-    if (fileexists) call rename_file_if_exists(filename)
+    if (fileexists) then
+      write(*,*) 'write_table_qr_acr_qg() --- please delete or move lookup table ', trim(filename), &
+        ' before attempted to create a new table'
+      error stop 'attempting to overwrite a table that already exists'
+   endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
@@ -609,29 +419,6 @@ module module_mp_tempo_init
     write(mp_unit) tnr_gacr
     close(unit=mp_unit)
   end subroutine write_table_qr_acr_qg
-
-
-  subroutine read_table_qr_acr_qg(filename, table_size)
-    !! read lookup table for rain-graupel collection
-    use module_mp_tempo_params, only : tcg_racg, tmr_racg, &
-      tcr_gacr, tnr_racg, tnr_gacr
-
-    character(len=*), intent(in) :: filename
-    integer, intent(in) :: table_size
-    
-    integer :: mp_unit, istat
-
-    mp_unit = 11
-    call check_before_table_read(filename, table_size)
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
-      action='read', iostat=istat, convert='big_endian')
-    read(mp_unit) tcg_racg
-    read(mp_unit) tmr_racg
-    read(mp_unit) tcr_gacr
-    read(mp_unit) tnr_racg
-    read(mp_unit) tnr_gacr
-    close(unit=mp_unit)
-  end subroutine read_table_qr_acr_qg
 
 #ifdef build_tables_with_mpi
   subroutine gather(local_flat, global_flat, sendcounts, displacements, ierror)
@@ -678,258 +465,6 @@ module module_mp_tempo_init
       end_idx = mod(idx, num_proc) + (rank+1) * values_per_proc
     endif
   end subroutine get_index_for_rank
-
-
-  subroutine get_version(version)
-    !! returns the tempo version string from the README.md file
-    !! or returns empty string if not found
-  
-    character(len=*), intent(inout) :: version
-    character(len=100) :: first_line, filename
-    integer :: io_unit
-    logical :: fileexists
-
-    filename = 'README.md'
-    inquire(file=trim(filename), exist=fileexists)
-    if (.not. fileexists) then
-      version = ''
-      ! write(*,'(A)') 'Unable to determine TEMPO Microphysics Version'
-      return
-    endif
-  
-    open(newunit=io_unit, file=filename, status='old', action='read')
-    read(io_unit, '(A)') first_line
-    close(io_unit)
-
-    ! format is tempo-vX.X.X
-    version = trim(first_line(8:))
-    write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
-  end subroutine get_version
-
-
-  subroutine read_table_ccn(filename, table_size)
-    !! read static file containing CCN activation of aerosols;
-    !! the data were created from a parcel model by Feingold and Heymsfield (1992)
-    !! https://doi.org/10.1175/1520-0469(1992)049<2325:POCGOD>2.0.CO;2
-    !! with further changes by Eidhammer and Kreidenweis
-    use module_mp_tempo_params, only : tnccn_act
-  
-    character(len=*), intent(in) :: filename
-    integer, intent(in) :: table_size
-    
-    integer :: mp_unit, istat
-
-    call check_before_table_read(filename=filename, table_size=table_size)
-
-    mp_unit = 11
-    open(unit=mp_unit, file=filename, form='unformatted', status='old', &
-      action='read', iostat=istat, convert='big_endian')
-    read(mp_unit) tnccn_act
-    close(unit=mp_unit)
-  end subroutine read_table_ccn
-
-  
-  subroutine check_before_table_read(filename, table_size)
-    !! checks that lookup tables exist and are the correct size
-    !! before attempting to read them
-
-    character(len=*), intent(in) :: filename
-    integer, intent(in) :: table_size
-
-    logical :: fileexists
-    integer :: filesize
-    character(len=100) :: int_to_str1, int_to_str2
-
-    inquire(file=filename, size=filesize, exist=fileexists)
-    if (.not. fileexists) then
-      write(*,'(3A)') 'tempo_init() --- *** FATAL *** file "', filename, &
-        '" was not found in this directory.'
-      write(*,'(A)') ''
-      write(*,'(A)') 'How to fix issues with tables (datasets stored in files):'
-      write(*,'(3A)') '   (1) The table ', trim(tempo_table_cfgs%ccn_table_name), &
-        ' is located in the TEMPO/tables/ directory. Copy this file to the directory where the model executable is located.'
-      write(*,'(8A)') '   (2) Three tables:', trim(tempo_table_cfgs%qrqs_table_name), ', ', trim(tempo_table_cfgs%qrqg_table_name), ', and ', &
-        trim(tempo_table_cfgs%freezewater_table_name), &
-        ' can be build by compiling and running the executable "build_tables" in the main TEMPO directory. ', &
-        'Then copy the file to the directory where the model executable is located.'
-      write(*,'(A)') '   (3) Ask the developers for tables. They are willing to share.' 
-      write(*,'(A)') ''      
-      error stop '--- file "' // filename // '" needed for TEMPO microphysics was not found.'
-    endif
-
-    if (filesize /= table_size) then
-      write(int_to_str1, '(I0)') filesize
-      write(int_to_str2, '(I0)') table_size
-      write(*,'(7A)') 'tempo_init() --- *** FATAL *** file "', filename, '" has a size of ', &
-        trim(int_to_str1), ' bytes but the array allocated to hold the data expects a file size of ', &
-          trim(int_to_str2), ' bytes.'
-      write(*,'(A)') ''
-      write(*,'(A)') 'How to fix issues with tables (datasets stored in files):'
-      write(*,'(3A)') '   (1) The table ', trim(tempo_table_cfgs%ccn_table_name), &
-        ' is located in the TEMPO/tables/ directory. Copy this file to the directory where the model executable is located.'
-      write(*,'(8A)') '   (2) Three tables: ', trim(tempo_table_cfgs%qrqs_table_name), ', ', trim(tempo_table_cfgs%qrqg_table_name), ', and ', &
-        trim(tempo_table_cfgs%freezewater_table_name), &
-        ' can be build by compiling and running the executable "build_tables" in the main TEMPO directory. ', &
-        'Then copy the file to the directory where the model executable is located.'
-      write(*,'(A)') '   (3) Ask the developers for tables. They are willing to share.' 
-      write(*,'(A)') ''
-      error stop '--- size of file "' // filename // '" needed for TEMPO microphysics is inconsistent with expected size.'
-    endif
-  end subroutine check_before_table_read
-
-
-  subroutine rename_file_if_exists(oldfilename)
-    !! rename a lookup table if attempting to write to that file and it already exists
-    character(len=*), intent(in) :: oldfilename
-    character(len=100) :: newfilename
-    character(10) :: date
-    character(10) :: time
-    integer :: renamestat
-    character(len=20) :: fileappend
-
-    call date_and_time(date, time)
-    fileappend = '_old_' // trim(date) // '_' // trim(time)
-    newfilename = trim(oldfilename // trim(fileappend))
-    renamestat = rename(oldfilename, newfilename)
-    if (renamestat /= 0) then
-      write(*,'(3A)') 'rename_file_if_exists() --- *** FATAL *** unable to rename existing table file "', &
-        oldfilename, '" to "', newfilename, '"'
-      error stop '--- file rename failed.'
-    else
-    write(*,'(5A)') 'rename_file_if_exists() --- existing table file "', oldfilename, &
-      '" has been renamed to "', newfilename, '"'
-    endif
-  end subroutine rename_file_if_exists
-
-
-  subroutine compute_efrw()
-    !! collision efficiency for rain collecting cloud water from Beard and Grover (1974)
-    !! if a/A < 0.25
-    !! https://doi.org/10.1175/1520-0469(1974)031<0543:NCEFSR>2.0.CO;2
-    !! otherwise uses polynomials to get close match of Pruppacher and Klett Fig. 14-9
-    use module_mp_tempo_params, only : nbc, nbr, dc, dr, t_efrw, rho_w, pi
-
-    real(dp) :: vtr, stokes, reynolds, ef_rw
-    real(dp) :: p, yc0, f, g, h, z, k0, x
-    integer :: i, j
-
-    do j = 1, nbc
-      do i = 1, nbr
-        ef_rw = 0.0_dp
-        p = dc(j) / dr(i)
-        if (dr(i) < 50.e-6_dp .or. dc(j) < 3.e-6_dp) then
-          t_efrw(i,j) = 0.0_dp
-        elseif (p > 0.25_dp) then
-          x = dc(j) * 1.e6_dp
-          if (dr(i) < 75.e-6_dp) then
-            ef_rw = 0.026794_dp*x - 0.20604_dp
-          elseif (dr(i) < 125.e-6_dp) then
-            ef_rw = -0.00066842_dp*x*x + 0.061542_dp*x - 0.37089_dp
-          elseif (dr(i) < 175.e-6_dp) then
-            ef_rw = 4.091e-06_dp*x*x*x*x - 0.00030908_dp*x*x*x + &
-              0.0066237_dp*x*x - 0.0013687_dp*x - 0.073022_dp
-          elseif (dr(i) < 250.e-6_dp) then
-            ef_rw = 9.6719e-5_dp*x*x*x - 0.0068901_dp*x*x + 0.17305_dp*x - 0.65988_dp
-          elseif (dr(i) < 350.e-6_dp) then
-            ef_rw = 9.0488e-5_dp*x*x*x - 0.006585_dp*x*x + 0.16606_dp*x - 0.56125_dp
-          else
-            ef_rw = 0.00010721_dp*x*x*x - 0.0072962_dp*x*x + 0.1704_dp*x - 0.46929_dp
-          endif
-        else
-          vtr = -0.1021_dp + 4.932e3_dp*dr(i) - 0.9551e6_dp*dr(i)*dr(i) + 0.07934e9_dp*dr(i)*dr(i)*dr(i) &
-            - 0.002362e12_dp*dr(i)*dr(i)*dr(i)*dr(i)
-          stokes = dc(j) * dc(j) * vtr * rho_w / (9._dp*1.718e-5_dp*dr(i))
-          reynolds = 9._dp * stokes / (p*p*rho_w)
-
-          f = log(reynolds)
-          g = -0.1007_dp - 0.358_dp*f + 0.0261_dp*f*f
-          k0 = exp(g)
-          z = log(stokes / (k0+1.e-15_dp))
-          H = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
-          yc0 = 2.0_dp / pi * atan(h)
-          ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
-        endif
-        t_efrw(i,j) = max(0.0_dp, min(ef_rw, 0.95_dp))
-      enddo
-    enddo
-  end subroutine compute_efrw
-
-
-  subroutine compute_efsw()
-    !! collision efficiency for snow collecting cloud water from Wang and Ji (2000)
-    !! https://doi.org/10.1175/1520-0469(2000)057<1001:CEOICA>2.0.CO;2
-    !! equating melted snow diameter to effective collision cross-section
-    use module_mp_tempo_params, only : wp, sp, dp, &
-      nbc, dc, av_s, bv_s, ds, nbs, am_s, bm_s, am_r, obmr, fv_s, &
-      t_efsw, d0s, rho_w, pi
-
-    real(dp) :: ds_m, vts, vtc, stokes, reynolds, ef_sw
-    real(dp) :: p, yc0, f, g, h, z, k0
-    integer :: i, j
-
-    do j = 1, nbc
-      vtc = 1.19e4_dp * (1.0e4_dp*dc(j)*dc(j)*0.25_dp)
-      do i = 1, nbs
-        vts = av_s*ds(i)**bv_s * exp(real(-fv_s*ds(i), kind=dp)) - vtc
-        ds_m = (am_s*ds(i)**bm_s / am_r)**obmr
-        p = dc(j) / ds_m
-
-        if (p > 0.25_dp .or. ds(i) < d0s .or. dc(j) < 6.e-6_dp .or. vts < 1.e-3_dp) then
-          t_efsw(i,j) = 0.0_dp
-        else
-          stokes = dc(j) * dc(j) * vts * rho_w / (9.*1.718e-5_dp*ds_m)
-          reynolds = 9._dp * stokes / (p*p*rho_w)
-
-          f = log(reynolds)
-          g = -0.1007_dp - 0.358_dp*f + 0.0261_dp*f*f
-          k0 = exp(g)
-          z = log(stokes / (k0+1.e-15_dp))
-          h = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
-          yc0 = 2.0_dp / pi * atan(h)
-          ef_sw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
-
-          t_efsw(i,j) = max(0.0_dp, min(ef_sw, 0.95_dp))
-        endif
-      enddo
-    enddo
-  end subroutine compute_efsw
-
-
- subroutine compute_drop_evap()
-    !! calculates droplet evaporation data
-    use module_mp_tempo_params, only: wp, sp, dp, &
-      nbc, am_r, dc, bm_r, nu_c_scale, nu_c_max, nu_c_min, &
-      t_nc, ntb_c, cce, ccg, ocg1, r_c, obmr, dtc, &
-      tpc_wev, tnc_wev
-
-    integer :: i, j, k, n
-    real(dp), dimension(nbc) :: n_c, massc
-    real(dp) :: summ, summ2, lamc, n0_c
-    integer :: nu_c
-
-    do n = 1, nbc
-      massc(n) = am_r*dc(n)**bm_r
-    enddo
-
-    do k = 1, nbc
-      nu_c = get_nuc(real(t_nc(k), kind=wp))
-      do j = 1, ntb_c
-        lamc = (t_nc(k)*am_r* ccg(2,nu_c)*ocg1(nu_c) / r_c(j))**obmr
-        n0_c = t_nc(k)*ocg1(nu_c) * lamc**cce(1,nu_c)
-        do i = 1, nbc
-          n_c(i) = n0_c* dc(i)**nu_c*exp(-lamc*dc(i))*dtc(i)
-          summ = 0._dp
-          summ2 = 0._dp
-          do n = 1, i
-            summ = summ + massc(n)*n_c(n)
-            summ2 = summ2 + n_c(n)
-          enddo
-          tpc_wev(i,j,k) = summ
-          tnc_wev(i,j,k) = summ2
-        enddo
-      enddo
-    enddo
-  end subroutine compute_drop_evap
 
 
   subroutine qr_acr_qs(local_start, local_end, &
@@ -1246,85 +781,4 @@ module module_mp_tempo_init
     enddo
   end subroutine freezewater
 
-
-  subroutine qi_aut_qs()
-    !! calculates cloud ice conversion to snow
-    !! and depositional growth by binning cloud ice distributions and 
-    !! determining both the size bins > d0s (that are converted to snow) and the 
-    !! depositional growth up to d0s (for cloud ice) and > d0s for snow 
-    !! following Harrington et al. (1995)
-    !! https://doi.org/10.1175/1520-0469(1995)052<4344:POICCP>2.0.CO;2
-    use module_mp_tempo_params, only : wp, sp, dp, &
-      nbi, ntb_i, ntb_i1, &
-      am_i, cie, cig, oig1, nt_i, r_i, obmi, bm_i, mu_i, d0s, d0i, &
-      tpi_ide, tps_iaus, tni_iaus, di, dti
-
-    integer :: i, j, n2
-    real(dp), dimension(nbi) :: n_i
-    real(dp) :: n0_i, lami, di_mean, t1, t2
-    real(wp) :: xlimit_intg
-
-    do j = 1, ntb_i1
-      do i = 1, ntb_i
-        lami = (am_i*cig(2)*oig1*nt_i(j)/r_i(i))**obmi
-        di_mean = (bm_i + mu_i + 1.) / lami
-        n0_i = nt_i(j)*oig1 * lami**cie(1)
-        t1 = 0.
-        t2 = 0.
-        if (real(di_mean, kind=wp) > 5.*d0s) then
-          t1 = r_i(i)
-          t2 = nt_i(j)
-          tpi_ide(i,j) = 0.
-        elseif (real(di_mean, kind=wp) < d0i) then
-          t1 = 0.
-          t2 = 0.
-          tpi_ide(i,j) = 1.
-        else
-          xlimit_intg = lami*d0s
-          tpi_ide(i,j) = real(calc_gamma_p(mu_i+2.0, xlimit_intg), kind=dp)
-          do n2 = 1, nbi
-            n_i(n2) = n0_i*di(n2)**mu_i * exp(-lami*di(n2))*dti(n2)
-            if (di(n2) >= d0s) then
-              t1 = t1 + n_i(n2) * am_i*di(n2)**bm_i
-              t2 = t2 + n_i(n2)
-            endif
-          enddo
-        endif
-        tps_iaus(i,j) = t1
-        tni_iaus(i,j) = t2
-      enddo
-    enddo
-  end subroutine qi_aut_qs
-
-
-  subroutine init_ml_data()
-    !! initialize machine learning data for tempo microphysics
-    type(ty_tempo_ml_data), dimension(1) :: tempo_ml_data
-
-    ! cloud water
-    tempo_ml_data(1)%input_size = nc_ml_input
-    tempo_ml_data(1)%node_size = nc_ml_nodes
-    tempo_ml_data(1)%output_size = nc_ml_output
-
-    if (.not.allocated(tempo_ml_data(1)%transform_mean)) allocate(tempo_ml_data(1)%transform_mean(nc_ml_input))
-    if (.not.allocated(tempo_ml_data(1)%transform_var)) allocate(tempo_ml_data(1)%transform_var(nc_ml_input))
-
-    tempo_ml_data(1)%transform_mean = nc_ml_trans_mean
-    tempo_ml_data(1)%transform_var = nc_ml_trans_var
-
-    if (.not.allocated(tempo_ml_data(1)%weights00)) allocate(tempo_ml_data(1)%weights00(nc_ml_nodes,nc_ml_input))
-    if (.not.allocated(tempo_ml_data(1)%weights01)) allocate(tempo_ml_data(1)%weights01(nc_ml_output,nc_ml_nodes))
-    if (.not.allocated(tempo_ml_data(1)%bias00)) allocate(tempo_ml_data(1)%bias00(nc_ml_nodes))
-    if (.not.allocated(tempo_ml_data(1)%bias01)) allocate(tempo_ml_data(1)%bias01(nc_ml_output))
-
-    tempo_ml_data(1)%weights00 = reshape(nc_ml_w00, (/nc_ml_nodes, nc_ml_input/))
-    tempo_ml_data(1)%weights01 = reshape(nc_ml_w01, (/nc_ml_output, nc_ml_nodes/))
-    tempo_ml_data(1)%bias00 = nc_ml_b00
-    tempo_ml_data(1)%bias01 = nc_ml_b01
-
-    ! save neural network
-    call save_or_read_ml_data(ml_data_in=tempo_ml_data)
-
-  end subroutine init_ml_data
-
-end module module_mp_tempo_init
+end module module_mp_tempo_tables
