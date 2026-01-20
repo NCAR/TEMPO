@@ -15,6 +15,10 @@ module module_mp_tempo_main
 
   public :: tempo_main, ty_tempo_main_diags
 
+#ifdef FV3
+  public :: cloud_check_and_update, ice_check_and_update, snow_check_and_update
+#endif
+  
 #ifdef unit_testing
   public :: get_cloud_table_index, get_snow_table_index, &
     get_temperature_table_index, get_rain_table_index, &

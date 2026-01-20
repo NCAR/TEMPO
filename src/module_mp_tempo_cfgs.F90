@@ -5,6 +5,10 @@ module module_mp_tempo_cfgs
   private
 
   public :: ty_tempo_cfgs, ty_tempo_table_cfgs
+
+!> \section arg_table_ty_tempo_cfgs Argument Table
+!! \htmlinclude ty_tempo_cfgs.html
+!!
   
   ! tempo configuration flags for init
   type :: ty_tempo_cfgs

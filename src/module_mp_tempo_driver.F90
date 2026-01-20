@@ -11,7 +11,7 @@ module module_mp_tempo_driver
   implicit none
   private
 
-  public :: tempo_init, tempo_driver, ty_tempo_driver_diags, tempo_aerosol_surface_emissions
+  public :: tempo_init, tempo_run, ty_tempo_driver_diags, tempo_aerosol_surface_emissions
   
   type(ty_tempo_table_cfgs) :: tempo_table_cfgs
 
@@ -35,6 +35,10 @@ module module_mp_tempo_driver
 
   contains
 
+!> initialize tempo microphysics
+!! \section arg_table_tempo_init Argument Table
+!! \htmlinclude tempo_init.html
+!!
   subroutine tempo_init(aerosolaware_flag, hailaware_flag, &
     ml_for_bl_nc_flag, ml_for_nc_flag, force_init_flag, tempo_cfgs)
     !! initialize tempo microphysics
@@ -172,8 +176,10 @@ module module_mp_tempo_driver
     endif
   end subroutine tempo_init
 
-
-  subroutine tempo_driver(tempo_cfgs, dt, itimestep, &
+!> \section arg_table_tempo_run Argument Table
+!! \htmlinclude tempo_run.html
+!!
+  subroutine tempo_run(tempo_cfgs, dt, itimestep, &
     t, th, pii, p, w, dz, &
     qv, qc, qr, qi, qs, qg, ni, nr, &
     nc, nwfa, nifa, ng, qb, &
@@ -310,7 +316,7 @@ module module_mp_tempo_driver
     elseif (present(th) .and. present(pii)) then
       use_temperature = .false.
     else  
-      error stop "tempo_driver() --- requires either temperature or theta and Exner function"
+      error stop "tempo_run() --- requires either temperature or theta and Exner function"
     endif 
 
     ! tempo driver code
@@ -424,7 +430,7 @@ module module_mp_tempo_driver
         enddo
       enddo
     enddo
-  end subroutine tempo_driver
+  end subroutine tempo_run
 
 
   subroutine tempo_aerosol_surface_emissions(dt, nwfa, nwfa2d, ims, ime, jms, jme, kms, kme, kts)
