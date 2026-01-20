@@ -20,7 +20,7 @@ module module_mp_tempo_diags
     real(wp), dimension(:), intent(in) :: temp, nc, rs
     real(dp), dimension(:), intent(in) :: ilamc, ilami
     logical, dimension(:), intent(in) :: l_qc, l_qi, l_qs
-    real(wp), dimension(:), allocatable, intent(out) :: re_qc, re_qi, re_qs
+    real(wp), dimension(:), intent(out) :: re_qc, re_qi, re_qs
     real(wp), dimension(15), parameter :: g_ratio = &
       [24._wp,60._wp,120._wp,210._wp,336._wp,504._wp,720._wp,990._wp, &
       1320._wp,1716._wp,2184._wp,2730._wp,3360._wp,4080._wp,4896._wp]
@@ -29,10 +29,11 @@ module module_mp_tempo_diags
     integer :: k, nz, nu_c
 
     nz = size(l_qc)
-    allocate(re_qc(nz), source=0._wp)
-    allocate(re_qi(nz), source=0._wp)
-    allocate(re_qs(nz), source=0._wp)
     do k = 1, nz
+       re_qc(k) = 0._wp
+       re_qi(k) = 0._wp
+       re_qs(k) = 0._wp
+
       !> @note
       !> limiting values of \(2.51-50 \mu m\) for cloud water, \(2.51-125 \mu m\) for
       !> cloud ice, and \(5.01-999 \mu m\) for snow are consistent with RRTMG radiation
@@ -70,7 +71,7 @@ module module_mp_tempo_diags
     real(wp), dimension(:), intent(in) :: temp, rg, ng, rr, nr, rs
     real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg
     integer, dimension(:), intent(in) :: idx
-    real(wp), dimension(:), allocatable, intent(out) :: dbz
+    real(wp), dimension(:), intent(out) :: dbz
     real(wp), allocatable, dimension(:) :: ze_rain, ze_snow, ze_graupel
     real(dp) :: n0_r, lamr, n0_g
     integer :: k, nz, k_melt
@@ -79,13 +80,14 @@ module module_mp_tempo_diags
     allocate(ze_rain(nz), source=1.e-22_wp)
     allocate(ze_snow(nz), source=1.e-22_wp)
     allocate(ze_graupel(nz), source=1.e-22_wp)
-    allocate(dbz(nz), source=-35._wp)
 
     if (refl10cm_from_melting_flag) then
       k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
     endif
 
     do k = nz, 1, -1
+      dbz(k) = -35._wp
+       
       if (l_qr(k)) then
         lamr = 1._dp/ilamr(k)
         n0_r = nr(k)*org2*lamr**cre(2)
