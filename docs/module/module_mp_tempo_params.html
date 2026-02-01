@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="10.3% of total for modules and submodules.">511 statements</a>
+                 title="10.0% of total for modules and submodules.">493 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -213,7 +213,7 @@
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-t0">t0</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_w">rho_w</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-rho_g">rho_g</a>
-            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-sc">sc</a>
+            <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-sc~2">sc</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-pi">pi</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-lsub">lsub</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#variable-lvap0">lvap0</a>
@@ -336,7 +336,6 @@
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_graupel_vars">initialize_graupel_vars</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_parameters">initialize_parameters</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_bins_for_tables">initialize_bins_for_tables</a>
-            <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-check_bins">check_bins</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_bins_for_hail_size">initialize_bins_for_hail_size</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-initialize_bins_for_radar">initialize_bins_for_radar</a>
             <a class="list-group-item" href="../module/module_mp_tempo_params.html#proc-create_bins">create_bins</a>
@@ -373,10 +372,10 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item">mpas_kind_types</li>
-                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
                   <li class="list-inline-item">ccpp_kind_types</li>
+                  <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
                   <li class="list-inline-item"><a href='machine.html'>machine</a></li>
+                  <li class="list-inline-item">mpas_kind_types</li>
               </ul>
             </li>
             <li class="list-group-item">
@@ -3411,7 +3410,7 @@ parameter,               dimension(nrhg)
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-sc"></span>
+              <span class="anchor" id="variable-sc~2"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -5219,76 +5218,6 @@ or returns empty string if not found</p>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-check_bins"></span> <h3>public  subroutine <a href='../proc/check_bins.html'>check_bins</a>(lowval, highval, bins)  
-</h3></div>
-    <div class="card-body">
-          
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-lowval"></span>
-              real(kind=dp),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>lowval</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-highval"></span>
-              real(kind=dp),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>highval</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-bins"></span>
-              real(kind=dp),
-            </td>
-<td>intent(in),</td>
-              <td></td>            <td>
-              dimension(:)
-            </td>
-            <td>::</td>
-            <td><strong>bins</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-    </div>
-  </div>
-
-              <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-initialize_bins_for_hail_size"></span> <h3>public  subroutine <a href='../proc/initialize_bins_for_hail_size.html'>initialize_bins_for_hail_size</a>()  
 </h3></div>
     <div class="card-body">
@@ -5379,7 +5308,7 @@ or returns empty string if not found</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bins~2"></span>
+              <span class="anchor" id="variable-bins"></span>
               real(kind=dp),
             </td>
 <td>intent(out),</td>
@@ -5434,7 +5363,7 @@ or returns empty string if not found</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-table_size"></span>
+              <span class="anchor" id="variable-table_size~7"></span>
               integer,
             </td>
 <td>intent(out),</td>
@@ -5474,7 +5403,7 @@ or returns empty string if not found</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-table_size~2"></span>
+              <span class="anchor" id="variable-table_size~8"></span>
               integer,
             </td>
 <td>intent(out),</td>
@@ -5514,7 +5443,7 @@ or returns empty string if not found</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-table_size~3"></span>
+              <span class="anchor" id="variable-table_size~9"></span>
               integer,
             </td>
 <td>intent(out),</td>
@@ -5554,7 +5483,7 @@ or returns empty string if not found</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-table_size~4"></span>
+              <span class="anchor" id="variable-table_size~10"></span>
               integer,
             </td>
 <td>intent(out),</td>
