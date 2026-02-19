@@ -26,7 +26,6 @@ module module_mp_tempo_main
 #endif
  
   real(wp) :: global_dt, global_inverse_dt
-  real(wp), dimension(:), allocatable :: ncsave
 
   type :: ty_tempo_main_diags
     real(wp) :: rain_precip
@@ -138,7 +137,7 @@ module module_mp_tempo_main
     real(dp), dimension(kts:kte) :: smob, smo2, smo1, smo0, smoc, smoe, smof, smog, ns, smoz !! snow moments
     
     real(wp), dimension(kts:kte) :: xrx, xnx !! temporary arrays
-    real(wp), dimension(:), allocatable :: xncx, xngx, xqbx !! temporary arrays
+    real(wp), dimension(:), allocatable :: xncx, xngx, xqbx, ncsave !! temporary arrays
 
     real(wp), dimension(kts:kte+1) :: vtrr, vtnr, vtrs, vtri, vtni, vtrg, vtng, vtrc, vtnc !! fallspeeds
     real(wp), dimension(kts:kte) :: vtboost !! snow fallspeed boost factor
@@ -346,8 +345,9 @@ module module_mp_tempo_main
       endif
       allocate(ncsave(nz), source=nc)
     endif
+
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
-      rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
+      ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
 
     ! init ng and qb
     if (first_call_main) then
@@ -383,10 +383,7 @@ module module_mp_tempo_main
 
     ! check for hydrometeors or supersaturation --------------------------------------------------
     do_micro = any(l_qc) .or. any(l_qr) .or. any(l_qi) .or. any(l_qs) .or. any(l_qg)
-    if (.not. do_micro .and. .not. supersaturated) then
-      if (allocated(ncsave)) deallocate(ncsave)
-      return
-    endif
+    if (.not. do_micro .and. .not. supersaturated) return
 
     ! main microphysical processes ---------------------------------------------------------------
     if (.not. tempo_cfgs%turn_off_micro_flag) then
@@ -447,7 +444,7 @@ module module_mp_tempo_main
       xncx = nc1d
     endif 
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=xrx, nc1d=xncx, &
-      rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
+      ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
 
     xrx = qr1d
     xnx = nr1d
@@ -513,7 +510,7 @@ module module_mp_tempo_main
         xncx = nc1d
       endif 
       call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=xrx, nc1d=xncx, &
-        rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
+        ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
 
       do k = 1, nz
         qv(k) = max(min_qv, qv1d(k) + qvten(k)*global_dt)
@@ -697,7 +694,7 @@ module module_mp_tempo_main
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call freeze_cloud_melt_ice(temp=temp, rho=rho, ocp=ocp, lvap=lvap, &
         qi1d=qi1d, ni1d=ni1d, qiten=qiten, niten=niten, qc1d=qc1d, nc1d=nc1d, &
-        qcten=qcten, ncten=ncten, tten=tten)
+        qcten=qcten, ncten=ncten, tten=tten, ncsave=ncsave)
     endif 
 
     ! final update -------------------------------------------------------------------------------
@@ -714,7 +711,7 @@ module module_mp_tempo_main
     enddo
     
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
-      rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
+      ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c)
 
     call rain_check_and_update(rho, l_qr, qr1d, nr1d, rr, nr, qrten, nrten, ilamr, mvd_r) 
     
@@ -824,8 +821,7 @@ module module_mp_tempo_main
       endif 
       call effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
         tempo_main_diags%re_cloud, tempo_main_diags%re_ice, tempo_main_diags%re_snow)
-   endif
-   if (allocated(ncsave)) deallocate(ncsave)
+    endif
   end subroutine tempo_main
 
 
@@ -852,18 +848,18 @@ module module_mp_tempo_main
   end subroutine aerosol_check_and_update
 
 
-  subroutine cloud_check_and_update(rho, l_qc, qc1d, nc1d, rc, nc, &
+  subroutine cloud_check_and_update(rho, l_qc, qc1d, nc1d, ncsave, rc, nc, &
     qcten, ncten, ilamc, mvd_c, dt)
     !! computes cloud water contents, ilamc, and mvd_c and checks bounds
     use module_mp_tempo_params, only : r1, nt_c_max, nt_c_min, nu_c_scale, &
-      am_r, bm_r, cce, ccg, d0c, d0r, ocg1, ocg2, obmr, nt_c_l, d0r
+      am_r, bm_r, cce, ccg, d0c, d0r, ocg1, ocg2, obmr, nt_c_l, d0r, nt_c_l
 
     real(wp), intent(in), optional :: dt
     real(wp), dimension(:), intent(in) :: rho
     real(wp), dimension(:), intent(inout) :: qc1d, qcten, ncten, rc, nc
     real(wp), dimension(:), intent(out) :: mvd_c
     real(dp), dimension(:), intent(out) :: ilamc
-    real(wp), dimension(:), intent(inout), optional :: nc1d
+    real(wp), dimension(:), intent(inout), optional :: nc1d, ncsave
     logical, dimension(:), intent(inout) :: l_qc
     real(wp) :: dt_, odt_
     integer :: k, nz, nu_c
@@ -918,7 +914,11 @@ module module_mp_tempo_main
           nc1d(k) = max(nt_c_min/rho(k), &
             min(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r, nt_c_max/rho(k)))
         else
-          if (allocated(ncsave)) nc(k) = ncsave(k)
+          if (present(ncsave)) then
+            nc(k) = ncsave(k)
+          else
+            nc(k) = nt_c_l
+          endif
         endif
         nu_c = get_nuc(nc(k))
         lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
@@ -2091,13 +2091,13 @@ module module_mp_tempo_main
 
 
   subroutine freeze_cloud_melt_ice(temp, rho, ocp, lvap, qi1d, ni1d, qiten, niten, &
-    qc1d, nc1d, qcten, ncten, tten)
+    qc1d, nc1d, qcten, ncten, tten, ncsave)
     ! freezes all cloud water and melts all cloud ice instantly given the temperature
     use module_mp_tempo_params, only : t0, lfus, lsub, hgfrz, nt_c_l
 
     real(wp), dimension(:), intent(in) :: temp, rho, ocp, lvap, qi1d, ni1d, qc1d
     real(wp), dimension(:), intent(inout) :: qiten, niten, qcten, ncten, tten
-    real(wp), dimension(:), intent(in), optional :: nc1d
+    real(wp), dimension(:), intent(in), optional :: nc1d, ncsave
     real(wp) :: xri, xrc, lfus2, xnc
     integer :: k, nz
 
@@ -2118,7 +2118,7 @@ module module_mp_tempo_main
         lfus2 = lsub - lvap(k)
         if (present(nc1d)) then
           xnc = nc1d(k) + ncten(k)*global_dt
-        elseif (allocated(ncsave)) then
+        elseif (present(ncsave)) then
           xnc = ncsave(k)/rho(k) + ncten(k)*global_dt
         else
           xnc = nt_c_l/rho(k) + ncten(k)*global_dt
