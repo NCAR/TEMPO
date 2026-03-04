@@ -17,12 +17,12 @@ module module_mp_tempo_aerosols
     !! is provided by the host model
     real(wp), dimension(:), intent(in) :: dz1d
     real(wp), dimension(:), intent(inout) :: nwfa
-    real(wp), dimension(:), allocatable :: hgt
+    real(wp) :: hgt(size(dz1d))
     real(wp) :: h_01, niccn3
     integer :: k, nz
     
     nz = size(dz1d)
-    allocate(hgt(nz), source=0._wp)
+    hgt = 0._wp
     do k = 2, nz
       hgt(k) = hgt(k-1) + dz1d(k)
     enddo
@@ -91,7 +91,7 @@ module module_mp_tempo_aerosols
     rho_p = rho_w
     ! rain
     if (species == 'r') then
-      vt = -0.1021 + 4.932e3_wp*d - 0.9551e6_wp*d*d + &
+      vt = -0.1021_wp + 4.932e3_wp*d - 0.9551e6_wp*d*d + &
         0.07934e9_wp*d*d*d - 0.002362e12_wp*d*d*d*d
       rho_p = rho_w
     ! snow
@@ -103,7 +103,7 @@ module module_mp_tempo_aerosols
       vt = av_g(idx_bg1)*d**bv_g(idx_bg1)
       rho_p = rho_g(idx_bg1)
     endif
-    cc = 1._wp + 2._wp*meanpath/da *(1.257_wp+0.4_wp*exp(-0.55*da/meanpath))
+    cc = 1._wp + 2._wp*meanpath/da *(1.257_wp+0.4_wp*exp(-0.55_wp*da/meanpath))
     diff = boltzman*temp*cc/(3._wp*pi*visc*da)
     re = 0.5_wp*rhoa*d*vt/visc
     sc = visc/(rhoa*diff)
