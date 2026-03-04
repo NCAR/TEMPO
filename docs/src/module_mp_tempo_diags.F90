@@ -72,14 +72,14 @@ module module_mp_tempo_diags
     real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(out) :: dbz
-    real(wp), allocatable, dimension(:) :: ze_rain, ze_snow, ze_graupel
+    real(wp) :: ze_rain(size(temp)), ze_snow(size(temp)), ze_graupel(size(temp))
     real(dp) :: n0_r, lamr, n0_g
     integer :: k, nz, k_melt
 
     nz = size(temp)
-    allocate(ze_rain(nz), source=1.e-22_wp)
-    allocate(ze_snow(nz), source=1.e-22_wp)
-    allocate(ze_graupel(nz), source=1.e-22_wp)
+    ze_rain = 1.e-22_wp
+    ze_snow = 1.e-22_wp
+    ze_graupel = 1.e-22_wp
 
     if (refl10cm_from_melting_flag) then
       k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
@@ -233,7 +233,7 @@ module module_mp_tempo_diags
     m_i_0 = complex_ice_maetzler(lambda_radar, 0._dp)
     k_w = (abs((m_w_0*m_w_0 - 1._dp) /(m_w_0*m_w_0 + 2._dp)))**2
 
-    sr = max(0.01_dp, min(1.0_dp - rg/(rg + rr), 0.99_dp))
+    sr = max(0.01_dp, min(1.0_dp - rg/max(rg + rr, r1), 0.99_dp))
     fmelt = real(sr*sr, kind=dp)
     eta = 0._dp
     lamg = 1._dp/ilamg
