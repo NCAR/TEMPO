@@ -44,7 +44,7 @@ module module_mp_tempo_main
   end type
 
   type :: ty_tend
-    real(dp), pointer, dimension(:) :: &
+    real(dp), pointer, contiguous, dimension(:) :: &
       prr_wau, pnr_wau, pnc_wau, prr_rcw, pnc_rcw, pnr_rcr, & ! warm rain
       prs_scw, pnc_scw, png_scw, pbg_scw, prg_gcw, pnc_gcw, pbg_gcw, & ! riming
       pri_ihm, pni_ihm, prs_ihm, prg_ihm, prg_scw, & ! riming
@@ -1109,7 +1109,6 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(in) :: rho
     real(wp), dimension(:), intent(inout) :: qs1d, rs, qsten
     logical, dimension(:), intent(inout) :: l_qs
-    real(wp) :: dt_, odt_
     integer :: k, nz
 
     nz = size(qs1d)
