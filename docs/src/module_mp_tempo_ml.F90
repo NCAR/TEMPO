@@ -111,26 +111,25 @@ module module_mp_tempo_ml
     type(ty_tempo_ml_data), dimension(1) :: get_ml_data
     type(ty_tempo_ml_data) :: ml_data
     integer, parameter :: input_rows = 1
-    real(wp), dimension(:,:), allocatable :: input, input_transformed
-    real(wp), dimension(:,:), allocatable :: output00, output00_activ, reshaped_bias00
-    real(wp), dimension(:,:), allocatable :: output01, output01_activ, reshaped_bias01
-    real(wp), parameter :: logMin = -6.0 ! r2
-    real(wp), parameter :: logMax = 9.3010299957 ! 2000 cm^-3
+
+    real(wp) :: input(nc_ml_input, size(qc))
+    real(wp) :: input_transformed(nc_ml_input, size(qc))
+    real(wp) :: output00(nc_ml_nodes, size(qc))
+    real(wp) :: output00_activ(nc_ml_nodes, size(qc))
+    real(wp) :: reshaped_bias00(nc_ml_nodes, size(qc))
+    real(wp) :: output01(nc_ml_output, size(qc))
+    real(wp) :: output01_activ(nc_ml_output, size(qc))
+    real(wp) :: reshaped_bias01(nc_ml_output, size(qc))
+
+    real(wp), parameter :: logMin = -6.0_wp       ! r2
+    real(wp), parameter :: logMax = 9.3010299957_wp ! 2000 cm^-3
     real(wp) :: predicted_exp, bias_corr
     integer :: k, nz
 
     ! get neural network data
     call save_or_read_ml_data(ml_data_out=get_ml_data)
     ml_data = get_ml_data(1)
-
     nz = size(qc)
-    ! allocate arrays for input data and transformation
-    if (.not. allocated(input)) then
-      allocate(input(ml_data%input_size, nz))
-    endif
-    if (.not. allocated(input_transformed)) then
-      allocate(input_transformed(ml_data%input_size, nz))
-    endif
 
     ! collect input data
     input(1,:) = qc
@@ -144,26 +143,6 @@ module module_mp_tempo_ml
     ! transform input data
     call standard_scaler_transform(mean=ml_data%transform_mean, var=ml_data%transform_var, &
          raw_data=input, transformed_data=input_transformed)
-
-    ! Allocate arrays
-    if (.not. allocated(output00)) then
-      allocate(output00(ml_data%node_size, nz))
-    endif
-    if (.not. allocated(output00_activ)) then
-      allocate(output00_activ(ml_data%node_size, nz))
-    endif
-    if (.not. allocated(reshaped_bias00)) then
-      allocate(reshaped_bias00(ml_data%node_size, nz))
-    endif
-    if (.not. allocated(output01)) then
-      allocate(output01(ml_data%output_size, nz))
-    endif
-    if (.not. allocated(output01_activ)) then
-      allocate(output01_activ(ml_data%output_size, nz))
-    endif
-    if (.not. allocated(reshaped_bias01)) then
-      allocate(reshaped_bias01(ml_data%output_size, nz))
-    endif
 
     do k = 1, nz
       reshaped_bias00(:,k) = ml_data%bias00
@@ -184,7 +163,7 @@ module module_mp_tempo_ml
       predicted_exp = min(logMax, max(logMin, output01_activ(1,k)))
 
       ! bias correction
-      bias_corr = 1.0
+      bias_corr = 1.0_wp
       if ((predicted_exp >= 0._wp) .and. (predicted_exp < 3._wp)) then
         bias_corr = -0.2704_wp*predicted_exp**5 + 1.838_wp*predicted_exp**4 - &
           5.127_wp*predicted_exp**3 + 8.547_wp*predicted_exp**2 - &
@@ -196,15 +175,13 @@ module module_mp_tempo_ml
 
 
   subroutine standard_scaler_transform(mean, var, raw_data, transformed_data)
-    !! standard scaler tranformer
+    !! standard scaler transformer
   
     real(wp), dimension(:,:), intent(in) :: raw_data
     real(wp), dimension(:), intent(in) :: mean, var
-    real(wp), dimension(:,:), allocatable, intent(out) :: transformed_data
+    real(wp), dimension(:,:), intent(out) :: transformed_data
     integer :: i
     
-    allocate(transformed_data(size(raw_data, 1), size(raw_data, 2)))
-
     do i = 1, size(raw_data, 1)
       transformed_data(i,:) = (raw_data(i,:) - mean(i)) / sqrt(var(i))
     end do
@@ -215,13 +192,11 @@ module module_mp_tempo_ml
    !! relu activation function
 
     real(wp), dimension(:,:), intent(in) :: input
-    real(wp), dimension(:,:), allocatable, intent(out) :: output
+    real(wp), dimension(:,:), intent(out) :: output
     integer :: i, j
     
-    allocate(output(size(input, 1), size(input, 2)))
-
     do i = 1, size(input, 1)
-      do j = 1, size(input,2)
+      do j = 1, size(input, 2)
         output(i, j) = max(input(i,j), 0._wp)
       end do
     end do
