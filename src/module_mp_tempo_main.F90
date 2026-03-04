@@ -142,7 +142,7 @@ module module_mp_tempo_main
     integer :: substeps_sedi, ktop_sedi, n !! sedimentation substepping variables
     real(wp) :: semi_sedi_factor !! semi-lagrangian sedimentation factor
 
-    real(dp), target, dimension(kts:kte, 74) :: tend_work
+    real(dp), target, dimension(kts:kte, 74) :: tend_work !! array to store tendencies
     
     ! local variables
     real(wp) :: tempc, tc0, odt
@@ -157,8 +157,7 @@ module module_mp_tempo_main
 
     nz = size(qv1d)
 
-    ! --- Map pointers to the contiguous stack workspace ---
-    ! (Instantaneous, Zero Heap Allocation)
+    ! map pointers to the contiguous stack workspace
     ! warm rain
     tend%prr_wau => tend_work(:, 1)
     tend%pnr_wau => tend_work(:, 2)
@@ -175,8 +174,6 @@ module module_mp_tempo_main
     tend%prg_gcw => tend_work(:, 11)
     tend%pnc_gcw => tend_work(:, 12)
     tend%pbg_gcw => tend_work(:, 13)
-
-    ! riming (splintering & conversion)
     tend%pri_ihm => tend_work(:, 14)
     tend%pni_ihm => tend_work(:, 15)
     tend%prs_ihm => tend_work(:, 16)
@@ -263,7 +260,7 @@ module module_mp_tempo_main
     tend%pnd_scd => tend_work(:, 73)
     tend%pnd_gcd => tend_work(:, 74)
 
-    ! Zero out ALL tendencies instantly using array syntax
+    ! zero out all mp tendencies
     tend_work = 0._dp
     
     ! zero tendencies
@@ -713,7 +710,7 @@ module module_mp_tempo_main
     ktop_sedi = 1
     substeps_sedi = 1
     if (any(l_qc)) then
-      call cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vtrc, vtnc, ktop_sedi, dt=dt)
+      call cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vtrc, vtnc, ktop_sedi)
       call sedimentation(xr=rc, vt=vtrc, dz1d=dz1d, rho=rho, xten=qcten, limit=r1, &
         steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%cloud_precip, dt=dt)
       call sedimentation(xr=nc, vt=vtnc, dz1d=dz1d, rho=rho, xten=ncten, limit=r2, &
@@ -1940,12 +1937,11 @@ module module_mp_tempo_main
 
 
   subroutine cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vt, vtn, &
-    ktop_sedi, dt)
+    ktop_sedi)
     !! calculates mass and number weighted fall speeds for cloud
     !! and the top k-level of sedimentation
     use module_mp_tempo_params, only : av_c, ccg, ocg1, ocg2, bv_c, r2
 
-    real(wp), intent(in) :: dt    
     real(wp), dimension(:), intent(in) :: rhof, w1d, dz1d, rc, nc
     real(dp), dimension(:), intent(in) :: ilamc
     logical, dimension(:), intent(in) :: l_qc

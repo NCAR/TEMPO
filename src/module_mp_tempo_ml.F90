@@ -140,7 +140,7 @@ module module_mp_tempo_ml
     input(6,:) = temp
     input(7,:) = w
 
-    ! transform input data (now writes directly to the pre-sized automatic array)
+    ! transform input data
     call standard_scaler_transform(mean=ml_data%transform_mean, var=ml_data%transform_var, &
          raw_data=input, transformed_data=input_transformed)
 

@@ -353,7 +353,7 @@ module module_mp_tempo_driver
       endif
     endif
 
-! 2d diagnostics
+    ! 2d diagnostics
     if (tempo_cfgs%max_hail_diameter_flag) then
       if (.not. allocated(tempo_diags%max_hail_diameter_sfc)) then
         allocate(tempo_diags%max_hail_diameter_sfc(its:ite, jts:jte), source=0._wp)
