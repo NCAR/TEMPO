@@ -448,8 +448,8 @@ module module_mp_tempo_params
     lfus = lsub - lvap0
     olfus = 1.0_wp / lfus
     orv = 1.0_wp / rv
-    rho_not = 101325.0 / (rdry*298.0)
-    rho_not0 = 101325.0 / (rdry*t0)
+    rho_not = 101325.0_wp / (rdry*298.0_wp)
+    rho_not0 = 101325.0_wp / (rdry*t0)
 
     ! Schmidt number to one-third used numerous times
     sc3 = sc**(1.0_wp/3.0_wp)
