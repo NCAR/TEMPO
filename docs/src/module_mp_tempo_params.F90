@@ -146,6 +146,7 @@ module module_mp_tempo_params
     500._wp, 600._wp, 700._wp, 800._wp] !! !! densities of graupel when hail_aware = true \([kg\, m^{-3}]\)
 
   real(wp), parameter :: sc = 0.632_wp !! [schmidt number](https://glossary.ametsoc.org/wiki/Schmidt_number)
+  real(wp), parameter :: earth_gravity = 9.8_wp !! gravity of Earth \([m\, s^{-2}]\)
 
   ! these can be overwritten by a host model and don't have a parameter attribute
   real(wp) :: pi = 3.1415926536_wp !! pi is approximately 355/113

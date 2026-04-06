@@ -707,7 +707,7 @@ module module_mp_tempo_tables
     real(dp), dimension(nbc):: massc
     real(dp) :: sum1, sum2, sumn1, sumn2, &
         prob, vol, texp, orho_w, &
-        lam_exp, lamr, N0_r, lamc, n0_c
+        lam_exp, lamr, n0_r, lamc, n0_c
     integer :: nu_c
     real(wp) :: t_adjust
 
