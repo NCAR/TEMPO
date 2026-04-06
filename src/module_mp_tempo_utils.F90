@@ -362,7 +362,7 @@ module module_mp_tempo_utils
           g = -0.1007_dp - 0.358_dp*f + 0.0261_dp*f*f
           k0 = exp(g)
           z = log(stokes / (k0+1.e-15_dp))
-          H = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
+          h = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
           yc0 = 2.0_dp / pi * atan(h)
           ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
         endif

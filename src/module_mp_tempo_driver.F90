@@ -51,7 +51,7 @@ module module_mp_tempo_driver
 
     logical, intent(in), optional :: aerosolaware_flag, hailaware_flag, refl10cm_from_melting_flag, &
       ml_for_bl_nc_flag, ml_for_nc_flag, force_init_flag, semi_sedi_flag, cloud_condensation_flag
-    type(ty_tempo_cfgs), intent(out) :: tempo_cfgs
+    type(ty_tempo_cfgs), intent(inout) :: tempo_cfgs
 
     character(len=100) :: table_filename
     integer :: table_size
