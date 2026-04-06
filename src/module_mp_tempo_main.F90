@@ -3,7 +3,7 @@ module module_mp_tempo_main
   use module_mp_tempo_cfgs, only : ty_tempo_cfgs
   use module_mp_tempo_params, only : wp, sp, dp, &
     min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, &
-    meters3_to_liters, eps, aero_max, nwfa_default, nifa_default
+    meters3_to_liters, eps, aero_max, nwfa_default, nifa_default, nt_c_l, nt_c_o
   use module_mp_tempo_utils, only : get_nuc, get_constant_cloud_number, snow_moments, calc_rslf, calc_rsif
   use module_mp_tempo_diags, only : reflectivity_10cm, effective_radius, max_hail_diam, &
     freezing_rain
@@ -71,7 +71,7 @@ module module_mp_tempo_main
 
   subroutine tempo_main(tempo_cfgs, &
     qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
-    nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, &
+    nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, land1d, &
     qcfrac1d, qifrac1d, qc_bl1d, qcfrac_bl1d, &
     thten_bl1d, qvten_bl1d, qcten_bl1d, qiten_bl1d, &
     thten_lwrad1d, thten_swrad1d, &
@@ -101,6 +101,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(inout), optional :: ng1d !! 1D graupel number mixing ratio \([kg^{-1}]\)
     real(wp), dimension(kts:kte), intent(in) :: w1d !! 1D vertical velocity \(m\; s^{-1}]\)
     real(wp), dimension(kts:kte), intent(in) :: dz1d !! 1D vertical grid spacing \([m]\)
+    integer, intent(in), optional :: land1d !! grid-point land type
 
     ! additional optional arrays
     real(wp), dimension(:), intent(inout), optional :: qcfrac1d !! cloud fraction
@@ -364,8 +365,12 @@ module module_mp_tempo_main
         call get_cloud_number(xrx, qr1d, qi1d, qs1d, pres, temp, w1d, xnx)
         nc = xnx * rho
       else
-        ! single modment constant value
-        call get_cloud_number(nc=nc)
+        ! single moment constant value
+        if (present(land1d)) then
+          call get_cloud_number(land=land1d, nc=nc)
+        else
+          nc = tempo_cfgs%get_nc_val(val_land=nt_c_l, val_ocean=nt_c_o)
+        endif
       endif
       allocate(ncsave(nz), source=nc)
     endif
@@ -420,12 +425,12 @@ module module_mp_tempo_main
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-        nifa, nwfa, ni, smo0, rc, nc, rr, nr, ilamr, tend, dt, odt)
+        nwfa1d, nifa1d, nwfa, nifa, ni, smo0, rc, nc, rr, nr, ilamr, tend, dt, odt)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
-      vsc2, ssati, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo1, rr, nr, &
-      ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend, odt)
+        vsc2, ssati, l_qi, ri, ni, ilami, l_qs, rs, smoe, smof, smo1, rr, nr, &
+        ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, tend, odt)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
@@ -433,11 +438,13 @@ module module_mp_tempo_main
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call melting(rhof2, rho, temp, qvsi, tcond, diffu, vsc2, ssati, delqvs, &
-      l_qs, rs, smof, smo0, smo1, l_qg, rg, ng, ilamg, idx_bg, tend, dt, odt)
+        l_qs, rs, smof, smo0, smo1, l_qg, rg, ng, ilamg, idx_bg, tend, dt, odt)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
-      call aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, l_qr, nr, ilamr, &
-      mvd_r, l_qs, rs, smob, smoc, smoe, l_qg, rg, ng, ilamg, idx_bg, tend, odt)
+      if (present(nwfa1d) .or. present(nifa1d)) then
+        call aerosol_scavenging(temp, rho, rhof, visco, nwfa, nifa, l_qr, nr, ilamr, &
+          mvd_r, l_qs, rs, smob, smoc, smoe, l_qg, rg, ng, ilamg, idx_bg, tend, odt)
+      endif
     endif 
 
     ! check and sum tendencies -------------------------------------------------------------------
@@ -520,7 +527,7 @@ module module_mp_tempo_main
     ! cloud condensation
     if (.not. tempo_cfgs%turn_off_micro_flag .and. tempo_cfgs%cloud_condensation_flag) then
       call cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
-        nwfa, qv, qvs, l_qc, rc, nc, tend, dt, odt)
+        nwfa1d, nwfa, ncsave, qv, qvs, l_qc, rc, nc, tend, dt, odt)
 
       do k = 1, nz
         qvten(k) = qvten(k) - tend%prw_vcd(k)
@@ -1969,15 +1976,16 @@ module module_mp_tempo_main
 
 
   subroutine cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
-    nwfa, qv, qvs, l_qc, rc, nc, tend, dt, odt)
+    nwfa1d, nwfa, ncsave, qv, qvs, l_qc, rc, nc, tend, dt, odt)
     !! cloud condensation and evaporation
     use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, nbc, &
-      tnc_wev, nt_c_min
+      tnc_wev, nt_c_min, nt_c_l
 
     real(wp), intent(in) :: dt, odt
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
       nwfa, qv, qvs, rc, nc
+    real(wp), dimension(:), intent(in), optional :: nwfa1d, ncsave
     logical, dimension(:), intent(in) :: l_qc
     real(wp) :: clap, fcd, dfcd, xrc, xnc, orho, tempc, otemp, &
       rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat, t1_evap
@@ -2003,7 +2011,13 @@ module module_mp_tempo_main
         tend%prw_vcd(k) = clap*odt
 
         if (clap > eps) then ! condensation
-          xnc = max(nt_c_min, activate_cloud_number(temp(k), w1d(k), nwfa(k)))
+          if (present(nwfa1d)) then
+            xnc = max(nt_c_min, activate_cloud_number(temp(k), w1d(k), nwfa(k)))
+          elseif (present(ncsave)) then
+            xnc = ncsave(k)
+          else
+            xnc = nt_c_l
+          endif
           tend%pnc_wcd(k) = 0.5_wp*(xnc-nc(k) + abs(xnc-nc(k)))*odt*orho
         elseif (l_qc(k) .and. ssatw(k) < -1.e-6_wp .and. clap < -eps) then ! evaporation
           tempc = temp(k) - t0
@@ -2712,18 +2726,19 @@ module module_mp_tempo_main
 
 
   subroutine ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-      nifa, nwfa, ni, smo0, rc, nc, rr, nr, ilamr, tend, dt, odt)
+      nwfa1d, nifa1d, nwfa, nifa, ni, smo0, rc, nc, rr, nr, ilamr, tend, dt, odt)
     !! ice nulceation
     use module_mp_tempo_params, only : r_r, r_c, hgfrz, rho_i, xm0i, &
       tpg_qrfz, tpi_qrfz, tni_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz, &
-      demott_nuc_ssati, eps, icenuc_max, tno, ato, max_ni, meters3_to_liters
+      demott_nuc_ssati, eps, icenuc_max, tno, ato, max_ni, meters3_to_liters, &
+      demott_nuc_tempc
 
     real(wp), intent(in) :: dt, odt
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: qv, temp, rho, qvsi, rr, nr, rc, nc, w1d, &
-      ssati, ssatw, ni
+      ssati, ssatw, ni, nwfa, nifa
     real(dp), dimension(:), intent(in) :: ilamr, smo0
-    real(wp), dimension(:), intent(in), optional :: nifa, nwfa
+    real(wp), dimension(:), intent(in), optional :: nwfa1d, nifa1d
     real(wp) :: rate_max, tempc, xni, xnc
     integer :: k, nz, idx_in, idx_r, idx_r1, idx_tc, idx_c, idx_n
 
@@ -2733,7 +2748,7 @@ module module_mp_tempo_main
         tempc = temp(k) - t0
         idx_tc = max(1, min(nint(-tempc), 45))
         rate_max = (qv(k)-qvsi(k))*rho(k)*odt*0.999_wp
-        if (present(nifa)) then
+        if (present(nifa1d)) then
           xni = demott_nucleation(tempc, rho(k), nifa(k))
         else  
           xni = 1._wp * 1000._wp ! 1 / Liter
@@ -2776,8 +2791,8 @@ module module_mp_tempo_main
         !> deposition nucleation from dust is from
         !> [DeMott et al. (2010)](https://doi.org/10.1073/pnas.0910818107)
         if ((ssati(k) >= demott_nuc_ssati) .or. (ssatw(k) > eps &
-            .and. tempc < -20._wp)) then
-          if (present(nifa)) then
+            .and. tempc < demott_nuc_tempc)) then
+          if (present(nifa1d)) then
             xnc = demott_nucleation(tempc, rho(k), nifa(k))
           else
             xnc = min(icenuc_max, tno*exp(ato*(t0-temp(k))))
@@ -2790,7 +2805,7 @@ module module_mp_tempo_main
         !>
         !> freezing of aqueous aerosols is based on [Koop et al. (2000)](https://doi.org/10.1038/35020537)
         xni = smo0(k)+ni(k) + (tend%pni_rfz(k)+tend%pni_wfz(k)+tend%pni_inu(k))*dt
-        if (present(nwfa)) then
+        if (present(nwfa1d)) then
           if ((xni <= max_ni) .and.(temp(k) < 238._wp) .and. (ssati(k) >= 0.4_wp)) then
             xnc = koop_nucleation(temp(k), ssatw(k), nwfa(k), dt)
             tend%pni_iha(k) = xnc*odt
