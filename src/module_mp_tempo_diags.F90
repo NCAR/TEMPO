@@ -50,7 +50,7 @@ module module_mp_tempo_diags
       if (l_qs(k)) then
         tc0 = min(-0.1, temp(k)-t0)
         call snow_moments(rs=rs(k), tc=tc0, smob=smob, smoc=smoc)
-        re_qs(k) = max(5.01e-6_wp, min(0.5_wp*(smoc/smob), 999.e-6_wp))
+        re_qs(k) = max(5.01e-6_wp, min(real(0.5_wp*(smoc/smob), kind=wp), 999.e-6_wp))
       endif 
     enddo 
   end subroutine effective_radius
@@ -116,7 +116,7 @@ module module_mp_tempo_diags
           endif
         endif 
       endif
-      dbz(k) = max(-35._wp, 10._wp*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp))
+      dbz(k) = max(-35._wp, 10._wp*real(log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp), kind=wp))
     enddo
   end subroutine reflectivity_10cm
 
