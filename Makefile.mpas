@@ -15,6 +15,21 @@ else
     TEMPO_FFLAGS =
 endif
 
+# Check if the compiler is GNU Fortran by querying its version string
+IS_GNU := $(shell $(FC) --version 2>/dev/null | grep -i "GNU Fortran")
+
+# Evaluate the logic and print statements
+ifneq ($(IS_GNU),)
+    # Check if -std=f2008 is present in FFLAGS
+    ifneq (,$(findstring -std=f2008,$(FFLAGS)))
+        TEMPO_FFLAGS += -DTEMPO_IGNORE_CONVERT_ARG
+        # Prevent duplication: check if big-endian is ALREADY in FFLAGS
+        ifeq (,$(findstring -fconvert=big-endian,$(FFLAGS)))
+            TEMPO_FFLAGS += -fconvert=big-endian
+        endif
+    endif
+endif
+
 OBJS = \
 	module_mp_tempo_params.o    \
 	module_mp_tempo_cfgs.o      \
