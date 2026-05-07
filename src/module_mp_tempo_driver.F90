@@ -514,9 +514,9 @@ module module_mp_tempo_driver
   subroutine tempo_aerosol_surface_emissions(dt, nwfa, nwfa2d, ims, ime, jms, jme, kms, kme, kts)
     !! adds aerosol surface emissions to the 3D field
     real(wp), intent(in) :: dt
+    integer, intent(in) :: ims, ime, jms, jme, kms, kme, kts
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout) :: nwfa 
     real(wp), dimension(ims:ime, jms:jme), intent(in) :: nwfa2d
-    integer, intent(in) :: ims, ime, jms, jme, kms, kme, kts
     integer :: i, j
 
     do j = jms, jme
@@ -540,7 +540,11 @@ module module_mp_tempo_driver
     mp_unit = 11
     call check_before_table_read(filename, table_size)
     open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
-      action='read', iostat=istat, convert='big_endian')
+      action='read', iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     read(mp_unit) tpi_qrfz
     read(mp_unit) tni_qrfz
     read(mp_unit) tpg_qrfz
@@ -565,7 +569,11 @@ module module_mp_tempo_driver
     mp_unit = 11
     call check_before_table_read(filename, table_size)
     open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
-      action='read', iostat=istat, convert='big_endian')
+      action='read', iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     read(mp_unit) tcs_racs1
     read(mp_unit) tmr_racs1
     read(mp_unit) tcs_racs2
@@ -595,7 +603,11 @@ module module_mp_tempo_driver
     mp_unit = 11
     call check_before_table_read(filename, table_size)
     open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
-      action='read', iostat=istat, convert='big_endian')
+      action='read', iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     read(mp_unit) tcg_racg
     read(mp_unit) tmr_racg
     read(mp_unit) tcr_gacr
@@ -621,7 +633,11 @@ module module_mp_tempo_driver
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='old', &
-      action='read', iostat=istat, convert='big_endian')
+      action='read', iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     read(mp_unit) tnccn_act
     close(unit=mp_unit)
   end subroutine read_table_ccn
@@ -651,8 +667,9 @@ module module_mp_tempo_driver
         ' can be build by compiling and running the executable "build_tables" in the main TEMPO directory. ', &
         'Then copy the file to the directory where the model executable is located.'
       write(*,'(A)') '   (3) Ask the developers for tables. They are willing to share.' 
-      write(*,'(A)') ''      
-      error stop '--- file "' // filename // '" needed for TEMPO microphysics was not found.'
+      write(*,'(A)') ''
+      write(*,'(A)') '--- file "' // filename // '" needed for TEMPO microphysics was not found.'
+      error stop 'program aborted'
     endif
 
     if (filesize /= table_size) then
@@ -671,7 +688,8 @@ module module_mp_tempo_driver
         'Then copy the file to the directory where the model executable is located.'
       write(*,'(A)') '   (3) Ask the developers for tables. They are willing to share.' 
       write(*,'(A)') ''
-      error stop '--- size of file "' // filename // '" needed for TEMPO microphysics is inconsistent with expected size.'
+      write(*,'(A)') '--- size of file "' // filename // '" needed for TEMPO microphysics is inconsistent with expected size.'
+      error stop 'program aborted'
     endif
   end subroutine check_before_table_read
 
