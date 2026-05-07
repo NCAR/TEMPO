@@ -113,7 +113,7 @@ module module_mp_tempo_params
 
   real(wp), parameter :: demott_nuc_ssati = 0.25_wp !! ice supersaturation threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
   real(wp), parameter :: demott_nuc_tempc = -20._wp !! temperature threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
-  real(dp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
+  real(wp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
   real(wp), parameter :: icenuc_max = 1000.e3_wp !! maximum ice nucleation number \([m^{-3}]\)
   real(wp), parameter :: rime_threshold = 2.0_wp !! snow to graupel rime threshold parameter
   real(wp), parameter :: rime_conversion = 0.95_wp !! snow to graupel rime conversion parameter
