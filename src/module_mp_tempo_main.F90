@@ -942,7 +942,7 @@ module module_mp_tempo_main
 
           if (hit_limit) ncten(k) = (nc(k)/rho(k) - nc1d(k)) * odt
           nc1d(k) = max(nt_c_min/rho(k), &
-            min(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r, nt_c_max/rho(k)))
+            min(real(ccg(1,nu_c)*ocg2(nu_c)*qc1d(k)/am_r*lamc**bm_r, kind=wp), nt_c_max/rho(k)))
         else
           if (present(ncsave)) then
             nc(k) = ncsave(k)
@@ -953,7 +953,7 @@ module module_mp_tempo_main
         nu_c = get_nuc(nc(k))
         lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
         ilamc(k) = 1._dp / lamc
-        mvd_c(k) = max(min((3.0_wp + nu_c + 0.672_wp) * ilamc(k), d0r), d0c)
+        mvd_c(k) = max(min(real((3.0_wp + nu_c + 0.672_wp) * ilamc(k), kind=wp), d0r), d0c)
       else
         l_qc(k) = .false.
         rc(k) = r1
@@ -1071,7 +1071,7 @@ module module_mp_tempo_main
         if (ni(k) <= r2) then
           hit_limit = .true.
           lami = cie(2)/5.e-6_dp
-          ni(k) = min(max_ni, cig(1)*oig2*ri(k)/am_i*lami**bm_i)
+          ni(k) = min(max_ni, real(cig(1)*oig2*ri(k)/am_i*lami**bm_i, kind=wp))
         endif
 
         ! check size
@@ -1080,7 +1080,7 @@ module module_mp_tempo_main
         if (xdi < 5.e-6_dp) then
           hit_limit = .true.
           lami = cie(2)/5.e-6_dp
-          ni(k) = min(max_ni, cig(1)*oig2*ri(k)/am_i*lami**bm_i)
+          ni(k) = min(max_ni, real(cig(1)*oig2*ri(k)/am_i*lami**bm_i, kind=wp))
         elseif (xdi > d0s) then
           hit_limit = .true.
           lami = cie(2)/d0s
@@ -1089,7 +1089,7 @@ module module_mp_tempo_main
         
         if (hit_limit) niten(k) = (ni(k)/rho(k) - ni1d(k))*odt
         ni1d(k) = max(r2/rho(k), &
-          min(cig(1)*oig2*qi1d(k)/am_i*lami**bm_i, max_ni/rho(k)))
+          min(real(cig(1)*oig2*qi1d(k)/am_i*lami**bm_i, kind=wp), max_ni/rho(k)))
         ilami(k) = 1._dp / lami
       else
         l_qi(k) = .false.
@@ -2415,8 +2415,8 @@ module module_mp_tempo_main
                 tend%prg_scw(k) = 0._dp
                 tend%png_scw(k) = 0._dp
               endif
-              snow_dens_frac = min(1._wp, max(0._wp, rs(k)*odt / &
-                (rs(k)*odt + tend%prg_scw(k))))
+              snow_dens_frac = min(1._wp, max(0._wp, real(rs(k)*odt / &
+                (rs(k)*odt + tend%prg_scw(k)), kind=wp)))
               tend%pbg_scw(k) = meters3_to_liters*tend%prg_scw(k) / &
                 (rho_s * snow_dens_frac + rime_dens * (1._wp-snow_dens_frac))
               ! tend%pbg_scw(k) = meters3_to_liters*tend%prg_scw(k) / &
@@ -3082,7 +3082,7 @@ module module_mp_tempo_main
             t2_qg_me*rhof2(k)*vsc2(k)*ilamg(k)**cge(11,idx(k)))
           tend%prr_gml(k) = min(real(rg(k)*odt, kind=dp), max(0._dp, tend%prr_gml(k)))
           if (tend%prr_gml(k) > 0._dp) then
-            melt_f = max(0.05_wp, min(tend%prr_gml(k)*dt/rg(k),1._wp))
+            melt_f = max(0.05_wp, min(real(tend%prr_gml(k)*dt/rg(k), kind=wp),1._wp))
             ! 1000 is density water, 50 is lower limit (max ice density is 800)
             tend%pbg_gml(k) = meters3_to_liters*tend%prr_gml(k) / &
               max(min(melt_f*rho_g(idx(k)), rho_w), 50._wp)
