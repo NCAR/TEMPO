@@ -15,9 +15,10 @@ module module_mp_tempo_main
 
   public :: tempo_main, ty_tempo_main_diags
 
-#ifdef FV3
+  !! needed for effective radius calculations when using FV3 since advection
+  !! happens between the effective radius calcuation and call to radiation
   public :: cloud_check_and_update, ice_check_and_update, snow_check_and_update
-#endif
+
   
 #ifdef unit_testing
   public :: get_cloud_table_index, get_snow_table_index, &
