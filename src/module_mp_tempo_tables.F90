@@ -109,7 +109,11 @@ module module_mp_tempo_tables
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
-      iostat=istat, convert='big_endian')
+      iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     write(mp_unit) tpi_qrfz
     write(mp_unit) tni_qrfz
     write(mp_unit) tpg_qrfz
@@ -278,7 +282,11 @@ module module_mp_tempo_tables
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
-      iostat=istat, convert='big_endian')
+      iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     write(mp_unit) tcs_racs1
     write(mp_unit) tmr_racs1
     write(mp_unit) tcs_racs2
@@ -411,7 +419,11 @@ module module_mp_tempo_tables
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
-      iostat=istat, convert='big_endian')
+      iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     write(mp_unit) tcg_racg
     write(mp_unit) tmr_racg
     write(mp_unit) tcr_gacr
