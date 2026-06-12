@@ -16,6 +16,7 @@ program build_tables
 
   use module_mp_tempo_params, only : table_dp
   use module_mp_tempo_tables, only : tempo_build_tables
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs
 
 #ifdef build_tables_with_mpi
   use mpi_f08 
@@ -24,6 +25,7 @@ program build_tables
   implicit none
 
   integer :: build_tables_rank, build_tables_num_proc
+  type(ty_tempo_cfgs) :: tempo_cfgs
 
 #ifdef build_tables_with_mpi
     integer :: ierror, mpi_dp_size  
@@ -44,7 +46,7 @@ program build_tables
   endif
 #endif
 
-  call tempo_build_tables(build_tables_rank, build_tables_num_proc)
+  call tempo_build_tables(build_tables_rank, build_tables_num_proc, tempo_cfgs)
 
 #ifdef build_tables_with_mpi
   call MPI_Finalize(ierror)

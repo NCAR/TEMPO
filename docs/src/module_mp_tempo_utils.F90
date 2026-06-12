@@ -34,8 +34,15 @@ module module_mp_tempo_utils
     real(wp), intent(in) :: a, x
     real(wp) :: gamma_p
 
-    if ((x < 0.0_wp) .or. (a <= 0.0_wp)) stop "Invalid arguments for function gamma_p"
-    if (x < (a+1.0_wp)) then
+    if ((x < 0.0_wp) .or. (a <= 0.0_wp)) then
+      write(*,*) "Invalid arguments for function gamma_p"
+      return
+    endif
+
+    ! tests show that the continued fraction solution will blow up
+    ! if a = x + 1, and so while faster, series expansion is used
+    ! for a > x - 1
+    if (x < (a + 1.0_wp)) then
       gamma_p = calc_gamma_series(a, x)
     else
       ! gammma_cf computes the upper series
@@ -52,54 +59,74 @@ module module_mp_tempo_utils
     !! see [Equation 8.7.1](https://dlmf.nist.gov/8.7)
     !! \(\gamma(a,x) = exp(-x) * \sum_{k=0}^{\infty} \frac{x^{k}}{\Gamma(a+k+1)}\)
     !!
+    !! see also [Equation 8.2.6](https://dlmf.nist.gov/8.2#E6)
+    !! see also Numerical Recipes in Fortran
+    !!
     !! input: a = gamma function argument, x = upper limit of integration
     !!
     !! output: normalized lower gamma function \(\gamma(a, x) / \Gamma(a)\)
+
+    ! Iterations:
+    ! k_term = k-1_term * x * (Gamma(a+k)/Gamma(a+k+1)) = k-1_term * x * (1 / (a + k))
+
     real(wp), intent(in) :: a, x
     integer :: k
     integer, parameter :: it_max = 100
     real(wp), parameter :: smallvalue = 1.e-7_wp
-    real(wp) :: ap1, sum_term, sum
+    real(wp) :: aj, sum_term, sum
     real(wp) :: gamma_series
 
-    if (x <= 0.0_wp) stop "Invalid arguments for function gamma_series"
+    ! if (x <= 0.0_wp) stop "Invalid arguments for function gamma_series"
     ! k = 0 summation term is 1 / Gamma(a+1)
-    ap1 = a
-    sum_term = 1.0_wp / gamma(ap1+1.0_wp)
+    aj = a
+    sum_term = 1.0_wp / gamma(aj+1.0_wp)
     sum = sum_term
     do k = 1, it_max
-      ap1 = ap1 + 1.0_wp
-      sum_term = sum_term * x / ap1
+      aj = aj + 1.0_wp
+      sum_term = sum_term * x / aj
       sum = sum + sum_term
       if (abs(sum_term) < (abs(sum) * smallvalue)) exit
     enddo
-    if (k == it_max) stop "gamma_series solution did not converge"
+    ! if (k == it_max) stop "gamma_series solution did not converge"
     gamma_series = sum * x**a * exp(-x)
   end function calc_gamma_series
     
 
   function calc_gamma_cf(a, x) result(gamma_cf)
-  !! solves the normalized upper gamma function \(\gamma(a,x) / \Gamma(a)\)
-  !! using a continued fractions method
-  !! [(modified Lentz Algorithm)](http://functions.wolfram.com/06.06.10.0003.01)
-  !!
-  !!input: a = gamma function argument, x = lower limit of integration
-  !!
-  !!output: normalized upper gamma function: \(\gamma(a, x) / \Gamma(a)\)
+    !! solves the normalized upper gamma function \(\gamma(a,x) / \Gamma(a)\)
+    !! using a continued fractions method
+    !! [(modified Lentz Algorithm)](http://functions.wolfram.com/06.06.10.0003.01)
+    !! see also Numerical Recipes in Fortran
+    !!
+    !!input: a = gamma function argument, x = lower limit of integration
+    !!
+    !!output: normalized upper gamma function: \(\gamma(a, x) / \Gamma(a)\)
+
+    ! Iteration:
+    ! set f0 = b0, where b0 = 0
+    ! set c0 = f0
+    ! set d0 = 0
+    ! dj = bj + aj * dj-1 (set dj to TINY if dj = 0)
+    ! cj = bj + aj / cj-1 (set cj to TINY if cj = 0)
+    ! dj = 1 / dj
+    ! deltaj = cj * dj
+    ! fj = fj-1 * deltaj
+
     real(wp), intent(in) :: a, x
     integer :: k
     integer, parameter :: it_max = 100
     real(wp), parameter :: smallvalue = 1.e-7_wp
     real(wp), parameter :: offset = 1.e-30_wp
-    real(wp) :: b, d, h0, c, delta, h, aj
+    real(wp) :: b, d, f0, c, delta, f, aj
     real(wp) :: gamma_cf
-  
+
+    f0 = offset
+    ! iteration 1
     b = 1.0_wp - a + x
     d = 1.0_wp / b
-    h0 = offset
-    c = b + (1.0_wp/offset)
+    c = b + (1.0_wp / f0)
     delta = c * d
-    h = h0 * delta
+    f = f0 * delta
 
     do k = 1, it_max
       aj = k * (a-k)
@@ -110,11 +137,11 @@ module module_mp_tempo_utils
       if(abs(c) < offset) c = offset
       d = 1.0_wp / d
       delta = c * d
-      h = h * delta
+      f = f * delta
       if (abs(delta-1.0_wp) < smallvalue) exit
     enddo
-    if (k == it_max) stop "gamma_cf solution did not converge"
-    gamma_cf = exp(-x+a*log(x)) * h / gamma(a)
+    ! if (k == it_max) stop "gamma_cf solution did not converge"
+    gamma_cf = exp(-x+a*log(x)) * f / gamma(a)
   end function calc_gamma_cf   
 
 

@@ -112,7 +112,8 @@ module module_mp_tempo_params
   real(wp) :: rho_s = 100.0_wp !! density of snow \([kg\, m^{-3}]\)
 
   real(wp), parameter :: demott_nuc_ssati = 0.25_wp !! ice supersaturation threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
-  real(dp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
+  real(wp), parameter :: demott_nuc_tempc = -20._wp !! temperature threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
+  real(wp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
   real(wp), parameter :: icenuc_max = 1000.e3_wp !! maximum ice nucleation number \([m^{-3}]\)
   real(wp), parameter :: rime_threshold = 2.0_wp !! snow to graupel rime threshold parameter
   real(wp), parameter :: rime_conversion = 0.95_wp !! snow to graupel rime conversion parameter
@@ -139,9 +140,6 @@ module module_mp_tempo_params
   real(dp), parameter :: gonv_min = 1.e2_dp !! minimum graupel y-intercept \([m^{-4}]\)
   real(dp), parameter :: gonv_max = 1.e6_dp !! maximum graupel y-intercept \([m^{-4}]\)
 
-  real(wp), parameter :: t0 = 273.15_wp !! melting point of ice \([K]\)
-  real(wp), parameter :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
-
   real(wp), dimension(nrhg), parameter :: rho_g = [50._wp, 100._wp, 200._wp, 300._wp, 400._wp, &
     500._wp, 600._wp, 700._wp, 800._wp] !! !! densities of graupel when hail_aware = true \([kg\, m^{-3}]\)
 
@@ -150,16 +148,18 @@ module module_mp_tempo_params
 
   ! these can be overwritten by a host model and don't have a parameter attribute
   real(wp) :: pi = 3.1415926536_wp !! pi is approximately 355/113
+  real(wp) :: t0 = 273.15_wp !! melting point of ice \([K]\)
+  real(wp) :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
   real(wp) :: lsub = 2.834e6_wp !! enthalpy of sublimation \([J\, kg^{-1}]\)
   real(wp) :: lvap0 = 2.5e6_wp !! enthalpy of vaporization \([J\, kg^{-1}]\)
   real(wp) :: rv = 461.5_wp !! gas constant for water vapor \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: rdry = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: roverrv = 0.622_wp !! dry gas constant divided by water vapor gas constant
-  real(wp) :: r = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
+  real(wp) :: cp = 1004.0_wp !! heat capacity of air at constant pressure \([J\, K^{-1}\, kg^{-1}]\)
+  real(wp) :: r_uni = 8.314_wp  !! gas constant \([J\, K^{-1}\, mol^{-1}]\)
+  real(wp) :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
   real(wp) :: rho_not !! density constant \([kg\, m^{-3}]\)
   real(wp) :: rho_not0 !! density constant \([kg\, m^{-3}]\)
-  real(wp) :: cp = 1004.0_wp !! heat capacity of air at constant pressure \([J\, K^{-1}\, kg^{-1}]\)
-  real(wp) :: r_uni = 8.314  !! gas constant \([J\, K^{-1}\, mol^{-1}]\)
 
   real(wp), parameter :: kap0 = 490.6_wp !! snow parameter from [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
   real(wp), parameter :: kap1 = 17.46_wp !! snow parameter from [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
@@ -305,7 +305,6 @@ module module_mp_tempo_params
   real(wp), protected :: am_i !! ice mass-diameter power-law coefficient
   real(wp), protected :: am_r !! rain mass-diameter power-law coefficient
   real(wp), protected, dimension (nrhg) :: am_g !! graupel mass-diameter power-law coefficient
-  real(wp), protected :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
   real(wp), protected :: olfus !! 1 / lfus \([kg\, J^{-1}]\)
   real(wp), protected :: orv !! 1 / rv \([K\, kg\, J^{-1}]\)
   real(wp), protected :: ar_volume !! volume for Koop nucleation
@@ -381,11 +380,12 @@ module module_mp_tempo_params
   ! -------------------------------------------------------------------------------------------------------
   contains
 
-  subroutine get_version(version)
+  subroutine get_version(version, verbose_flag)
     !! returns the tempo version string from the README.md file
     !! or returns empty string if not found
   
     character(len=*), intent(inout) :: version
+    logical, intent(in) :: verbose_flag
     character(len=100) :: first_line, filename
     integer :: io_unit
     logical :: fileexists
@@ -404,7 +404,7 @@ module module_mp_tempo_params
 
     ! format is tempo-vX.X.X
     version = trim(first_line(8:))
-    write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
+    if (verbose_flag) write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
   end subroutine get_version
 
 
@@ -448,6 +448,7 @@ module module_mp_tempo_params
 
     lfus = lsub - lvap0
     olfus = 1.0_wp / lfus
+    roverrv = rdry / rv
     orv = 1.0_wp / rv
     rho_not = 101325.0_wp / (rdry*298.0_wp)
     rho_not0 = 101325.0_wp / (rdry*t0)

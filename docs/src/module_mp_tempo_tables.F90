@@ -19,11 +19,12 @@ module module_mp_tempo_tables
 
   contains
 
-  subroutine tempo_build_tables(build_tables_rank, build_tables_num_proc)
+  subroutine tempo_build_tables(build_tables_rank, build_tables_num_proc, tempo_cfgs)
     !! builds three lookup tables for tempo microphysics
     use module_mp_tempo_params, only : get_version, tempo_version, &
       initialize_graupel_vars, initialize_parameters, initialize_bins_for_tables
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     integer, intent(in) :: build_tables_rank, build_tables_num_proc
 
     character(len=100) :: table_filename
@@ -37,79 +38,87 @@ module module_mp_tempo_tables
     num_proc = build_tables_num_proc
 
     ! get tempo version from readme file
-    call get_version(tempo_version) 
+    call get_version(tempo_version, tempo_cfgs%verbose)
 
 #ifdef build_tables_with_mpi
-      write(*,'(A,I4,A)') 'tempo_build_tables() --- building lookup tables with MPI and', num_proc, ' process(es)' 
+      if (tempo_cfgs%verbose) write(*,'(A,I4,A)') 'tempo_build_tables() --- building lookup tables with MPI and', num_proc, ' process(es)'
 #else
-      write(*,'(A,I4,A)') 'tempo_build_tables() --- building lookup tables with', num_proc, ' process' 
+      if (tempo_cfgs%verbose) write(*,'(A,I4,A)') 'tempo_build_tables() --- building lookup tables with', num_proc, ' process'
 #endif
 
       ! hard-code hail aware = true to build lookup tables
       call initialize_graupel_vars(build_table_hail_flag) 
-      write(*,'(A,L)') 'tempo_build_tables() --- initialized graupel variables using hail aware = ', build_table_hail_flag
+      if (tempo_cfgs%verbose) write(*,'(A,L)') 'tempo_build_tables() --- initialized graupel variables using hail aware = ', build_table_hail_flag
 
       ! set parameters that can depend on the host model
       call initialize_parameters() 
-      write(*,'(A)') 'tempo_build_tables() --- initialized parameters'
+      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_build_tables() --- initialized parameters'
 
       ! creates log-spaced bins of hydrometers for tables
       call initialize_bins_for_tables() 
-      write(*,'(A)') 'tempo_build_tables() --- initialized bins for lookup tables'
+      if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_build_tables() --- initialized bins for lookup tables'
 
       ! freeze water collection lookup table
       table_filename = tempo_table_cfgs%freezewater_table_name
-      write(*,'(2A)') 'tempo_build_tables() --- building table ', trim(table_filename)
-      call build_table_freezewater()
-      if (rank == 0) call write_table_freezewater(trim(table_filename))
+      if (tempo_cfgs%verbose) write(*,'(2A)') 'tempo_build_tables() --- building table ', trim(table_filename)
+      call build_table_freezewater(tempo_cfgs)
+      if (rank == 0) call write_table_freezewater(trim(table_filename), tempo_cfgs)
 
       ! rain-snow collection lookup table
       table_filename = tempo_table_cfgs%qrqs_table_name
-      write(*,'(2A)') 'tempo_build_tables() --- building table ', trim(table_filename)
+      if (tempo_cfgs%verbose) write(*,'(2A)') 'tempo_build_tables() --- building table ', trim(table_filename)
       call build_table_qr_acr_qs(rank, num_proc)
-      if (rank == 0) call write_table_qr_acr_qs(trim(table_filename))
+      if (rank == 0) call write_table_qr_acr_qs(trim(table_filename), tempo_cfgs)
 
       ! rain-graupel collection lookup table
       table_filename = tempo_table_cfgs%qrqg_table_name
-      write(*,'(2A)') 'tempo_build_tables() --- building table ', trim(table_filename)
+      if (tempo_cfgs%verbose) write(*,'(2A)') 'tempo_build_tables() --- building table ', trim(table_filename)
       call build_table_qr_acr_qg(rank, num_proc)
-      if (rank == 0) call write_table_qr_acr_qg(trim(table_filename))
+      if (rank == 0) call write_table_qr_acr_qg(trim(table_filename), tempo_cfgs)
   end subroutine tempo_build_tables
 
 
-  subroutine build_table_freezewater()
+  subroutine build_table_freezewater(tempo_cfgs)
     !! build lookup table data for frozen cloud and rain water
     use module_mp_tempo_params, only : initialize_arrays_freezewater
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     real(wp) :: timing_start, timing_end
 
     call initialize_arrays_freezewater()
     call cpu_time(timing_start)
     call freezewater()
     call cpu_time(timing_end)
-    write(*,'(A,I5,A)') 'build_table_freezewater() --- time to build table: ', int(timing_end - timing_start), ' s'
+    if (tempo_cfgs%verbose) write(*,'(A,I5,A)') 'build_table_freezewater() --- time to build table: ', int(timing_end - timing_start), ' s'
   end subroutine build_table_freezewater 
 
 
- subroutine write_table_freezewater(filename)
+ subroutine write_table_freezewater(filename, tempo_cfgs)
     !! write data for frozen cloud water and rain to a file
     use module_mp_tempo_params, only : tpi_qrfz, tni_qrfz, tpg_qrfz, &
       tnr_qrfz, tpi_qcfz, tni_qcfz
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer :: mp_unit, istat
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) then
-      write(*,*) 'write_table_freezewater() --- please delete or move lookup table ', trim(filename), &
-        ' before attempted to create a new table'
-      error stop 'attempting to overwrite a table that already exists'
+      if (tempo_cfgs%verbose) then
+        write(*,*) 'write_table_freezewater() --- please delete or move lookup table ', trim(filename), &
+          ' before attempted to create a new table'
+      ! error stop 'attempting to overwrite a table that already exists'
+      endif
     endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
-      iostat=istat, convert='big_endian')
+      iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     write(mp_unit) tpi_qrfz
     write(mp_unit) tni_qrfz
     write(mp_unit) tpg_qrfz
@@ -207,7 +216,7 @@ module module_mp_tempo_tables
 #else
     call cpu_time(timing_end)
 #endif
-    if (rank == 0) write(*,'(A,I5,A)') 'build_table_qr_acr_qs() --- time to build table: ', int(timing_end - timing_start), ' s'
+    ! if (rank == 0) write(*,'(A,I5,A)') 'build_table_qr_acr_qs() --- time to build table: ', int(timing_end - timing_start), ' s'
 
 #ifdef build_tables_with_mpi
     call MPI_Barrier(MPI_COMM_WORLD, ierror)
@@ -259,26 +268,33 @@ module module_mp_tempo_tables
   end subroutine build_table_qr_acr_qs
 
 
-  subroutine write_table_qr_acr_qs(filename)
+  subroutine write_table_qr_acr_qs(filename, tempo_cfgs)
     !! write data for rain-snow collection to a file
     use module_mp_tempo_params, only : tcs_racs1, tmr_racs1, tcs_racs2, &
       tmr_racs2, tcr_sacr1, tms_sacr1, tcr_sacr2, tms_sacr2, tnr_racs1, &
       tnr_racs2, tnr_sacr1, tnr_sacr2
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer :: mp_unit, istat
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) then
-      write(*,*) 'write_table_qr_acr_qs() --- please delete or move lookup table ', trim(filename), &
-        ' before attempted to create a new table'
-      error stop 'attempting to overwrite a table that already exists'
+      if (tempo_cfgs%verbose) then
+        write(*,*) 'write_table_qr_acr_qs() --- please delete or move lookup table ', trim(filename), &
+          ' before attempted to create a new table'
+      ! error stop 'attempting to overwrite a table that already exists'
+      endif
     endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
-      iostat=istat, convert='big_endian')
+      iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     write(mp_unit) tcs_racs1
     write(mp_unit) tmr_racs1
     write(mp_unit) tcs_racs2
@@ -362,7 +378,7 @@ module module_mp_tempo_tables
 #else
     call cpu_time(timing_end)
 #endif
-    if (rank == 0) write(*,'(A,I5,A)') 'build_table_qr_acr_qg() --- time to build table: ', int(timing_end - timing_start), ' s'
+    ! if (rank == 0) write(*,'(A,I5,A)') 'build_table_qr_acr_qg() --- time to build table: ', int(timing_end - timing_start), ' s'
 
 #ifdef build_tables_with_mpi
     call MPI_Barrier(MPI_COMM_WORLD, ierror)
@@ -393,25 +409,32 @@ module module_mp_tempo_tables
   end subroutine build_table_qr_acr_qg
 
 
-  subroutine write_table_qr_acr_qg(filename)
+  subroutine write_table_qr_acr_qg(filename, tempo_cfgs)
     !! write data for rain-graupel collection to a file
     use module_mp_tempo_params, only : tcg_racg, tmr_racg, &
       tcr_gacr, tnr_racg, tnr_gacr
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer :: mp_unit, istat
     logical :: fileexists
 
     inquire(file=filename, exist=fileexists)
     if (fileexists) then
-      write(*,*) 'write_table_qr_acr_qg() --- please delete or move lookup table ', trim(filename), &
-        ' before attempted to create a new table'
-      error stop 'attempting to overwrite a table that already exists'
+      if (tempo_cfgs%verbose) then
+        write(*,*) 'write_table_qr_acr_qg() --- please delete or move lookup table ', trim(filename), &
+          ' before attempted to create a new table'
+      ! error stop 'attempting to overwrite a table that already exists'
+     endif
    endif
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='new', access='stream', &
-      iostat=istat, convert='big_endian')
+      iostat=istat &
+#ifndef TEMPO_IGNORE_CONVERT_ARG
+      , convert='big_endian' &
+#endif
+    )
     write(mp_unit) tcg_racg
     write(mp_unit) tmr_racg
     write(mp_unit) tcr_gacr
@@ -446,10 +469,10 @@ module module_mp_tempo_tables
     integer, intent(out) :: start_idx, end_idx
     integer :: values_per_proc
 
-    if (num_proc > idx) then
-      write(*,'(A,I4,A,I4)') 'num_proc', num_proc, 'cannot be larger than idx', idx
-      error stop '--- reduce the number of processes'
-    endif
+    ! if (num_proc > idx) then
+    !   write(*,'(A,I4,A,I4)') 'num_proc', num_proc, 'cannot be larger than idx', idx
+    !   error stop '--- reduce the number of processes'
+    ! endif
 
     values_per_proc = idx/num_proc
 

@@ -91,7 +91,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>26.0% of total for derived types.</p>Including implementation: 19 statements, 26.0% of total for derived types.">19 statements</a>
+                 title="<p>29.9% of total for derived types.</p>Including implementation: 39 statements, 41.9% of total for derived types.">23 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -138,10 +138,12 @@
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-ml_for_bl_nc_flag~2">ml_for_bl_nc_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-ml_for_nc_flag~2">ml_for_nc_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-semi_sedi_flag~2">semi_sedi_flag</a>
-            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_from_melting_flag~2">refl10cm_from_melting_flag</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_from_melting_flag~3">refl10cm_from_melting_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-turn_off_micro_flag">turn_off_micro_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-cloud_condensation_flag~2">cloud_condensation_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-verbose">verbose</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-check_tables">check_tables</a>
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-single_moment_nc_opt">single_moment_nc_opt</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-refl10cm_flag">refl10cm_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_cloud_flag">re_cloud_flag</a>
             <a class="list-group-item" href="../type/ty_tempo_cfgs.html#variable-re_ice_flag">re_ice_flag</a>
@@ -169,7 +171,18 @@
   
   
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#boundprocs-0"
+         aria-expanded="false" aria-controls="boundprocs-0">
+         <h4 class="card-header bg-primary text-white">Type-Bound Procedures</h4>
+      </a>
+      <div id="boundprocs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../type/ty_tempo_cfgs.html#boundprocedure-get_nc_val">get_nc_val</a>
+        </div>
+      </div>
+    </div>
+
   
   
 
@@ -284,7 +297,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-refl10cm_from_melting_flag~2"></span>
+              <span class="anchor" id="variable-refl10cm_from_melting_flag~3"></span>
               logical,
             </td>
               <td>public</td>
@@ -348,6 +361,40 @@
                 <td>.false.</td>
             <td>
                 <p>flag to turn on verbose print statements</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-check_tables"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>check_tables</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                <p>flag to turn on check for lookup tables</p>
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-single_moment_nc_opt"></span>
+              character(len=32),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>single_moment_nc_opt</strong></td>
+<td> =</td>
+                <td>&#39;land&#39;</td>
+            <td>
+                <p>option for single moment cloud number concentration when land input is not present (options include 'land' that uses the parameter nt_c_l, 'ocean' that uses nt_c_o, or string value in m^-3, e.g. '10.e6')</p>
             </td>
         </tr>
         <tr>
@@ -494,6 +541,98 @@
     
 
 
+      <section>
+        <h2>Type-Bound Procedures</h2>
+          <div class="row">
+              <div class="card mt-3">
+    <div class="card-header codesum">
+      <span class="anchor" id="boundprocedure-get_nc_val"></span>
+      <h3>
+          procedure, public ::
+  <strong>get_nc_val</strong> => <a href='/Users/Anders.Jensen/docs/TEMPO/docs/proc/resolve_nc_value.html'>resolve_nc_value</a>
+        
+      </h3>
+    </div>
+      <ul class="list-group">
+          <li class="list-group-item">
+                    <h3>
+    private  function <a href='../proc/resolve_nc_value.html'>resolve_nc_value</a>(this, val_land, val_ocean)  
+</h3>
+    
+
+  <p>resolve the cloud number concentration value based on the input option</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              class(<a href='ty_tempo_cfgs.html'>ty_tempo_cfgs</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>val_land</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" ></span>
+              real,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>val_ocean</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real</small>
+    </h4>
+    
+
+          </li>
+      </ul>
+  </div>
+
+          </div>
+      </section>
 
     
     </div>
