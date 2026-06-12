@@ -32,7 +32,7 @@ jobs:
         make
 
     - name: Checkout code (into ${driver_ROOT})
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
 
     - name: Build unit tests
       run: |

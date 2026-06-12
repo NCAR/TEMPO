@@ -15,6 +15,12 @@ else
     TEMPO_FFLAGS =
 endif
 
+# The MPAS build system ensures that compiler-specific flags are used to
+# set big-endian byte order for unformatted file I/O, so the non-standard
+# convert='big_endian' argument to open(...) is not necessary
+
+TEMPO_FFLAGS += -DTEMPO_IGNORE_CONVERT_ARG
+
 OBJS = \
 	module_mp_tempo_params.o    \
 	module_mp_tempo_cfgs.o      \
