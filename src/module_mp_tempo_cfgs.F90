@@ -21,6 +21,7 @@ module module_mp_tempo_cfgs
     logical :: turn_off_micro_flag = .false. !! flag to turn off all microphysical processes
     logical :: cloud_condensation_flag = .true. !! flag to control cloud condensation
     logical :: verbose = .false. !! flag to turn on verbose print statements
+    logical :: check_tables = .false. !! flag to turn on check for lookup tables
     character(len=32) :: single_moment_nc_opt = 'land' !! option for single moment cloud number concentration when land input is not present (options include 'land' that uses the parameter nt_c_l, 'ocean' that uses nt_c_o, or string value in m^-3, e.g. '10.e6')
     ! flags to turn on/off diagnostic output
     logical :: refl10cm_flag = .true. !! flag to output 10cm reflectivity
@@ -64,8 +65,9 @@ module module_mp_tempo_cfgs
 
       ! catch typos
       if (read_status /= 0) then
-        write(*,*) "invalid input: ", trim(this%single_moment_nc_opt)
-        error stop "config error: must be 'land', 'ocean', or a number."
+        resolve_nc_value = val_land
+        ! write(*,*) "invalid input: ", trim(this%single_moment_nc_opt)
+        ! error stop "config error: single_moment_nc_opt must be 'land', 'ocean', or a number."
       end if
     end select
   end function resolve_nc_value

@@ -380,11 +380,12 @@ module module_mp_tempo_params
   ! -------------------------------------------------------------------------------------------------------
   contains
 
-  subroutine get_version(version)
+  subroutine get_version(version, verbose_flag)
     !! returns the tempo version string from the README.md file
     !! or returns empty string if not found
   
     character(len=*), intent(inout) :: version
+    logical, intent(in) :: verbose_flag
     character(len=100) :: first_line, filename
     integer :: io_unit
     logical :: fileexists
@@ -403,7 +404,7 @@ module module_mp_tempo_params
 
     ! format is tempo-vX.X.X
     version = trim(first_line(8:))
-    write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
+    if (verbose_flag) write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
   end subroutine get_version
 
 

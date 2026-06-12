@@ -58,7 +58,7 @@ module module_mp_tempo_driver
     logical :: initialize_mp_vars, force_init
 
     ! get tempo version from readme file
-    call get_version(tempo_version) 
+    call get_version(tempo_version, tempo_cfgs%verbose)
 
     ! check an allocatable array (t_efrw) to see if initialization can be skipped
     ! but allow for force initialization useful for testing
@@ -126,13 +126,13 @@ module module_mp_tempo_driver
       ! CCN activation table
       table_filename = tempo_table_cfgs%ccn_table_name
       call initialize_arrays_ccn(table_size)
-      call read_table_ccn(trim(table_filename), table_size)
+      call read_table_ccn(trim(table_filename), table_size, tempo_cfgs)
       if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized data for ccn lookup table'
 
       ! freeze water collection lookup table
       table_filename = tempo_table_cfgs%freezewater_table_name
       call initialize_arrays_freezewater(table_size)
-      call read_table_freezewater(trim(table_filename), table_size)
+      call read_table_freezewater(trim(table_filename), table_size, tempo_cfgs)
       if (tempo_cfgs%verbose) then
         write(*,'(A)') 'tempo_init() --- initialized data for frozen cloud water and rain lookup table'
       endif 
@@ -140,7 +140,7 @@ module module_mp_tempo_driver
       ! rain-snow collection lookup table
       table_filename = tempo_table_cfgs%qrqs_table_name
       call initialize_arrays_qr_acr_qs(table_size)
-      call read_table_qr_acr_qs(trim(table_filename), table_size)
+      call read_table_qr_acr_qs(trim(table_filename), table_size, tempo_cfgs)
       if (tempo_cfgs%verbose) then
         write(*,'(A)') 'tempo_init() --- initialized data for rain-snow collection lookup table'
       endif 
@@ -148,7 +148,7 @@ module module_mp_tempo_driver
       ! rain-graupel collection lookup table
       table_filename = tempo_table_cfgs%qrqg_table_name
       call initialize_arrays_qr_acr_qg(table_size)
-      call read_table_qr_acr_qg(trim(table_filename), table_size)
+      call read_table_qr_acr_qg(trim(table_filename), table_size, tempo_cfgs)
       if (tempo_cfgs%verbose) then
         write(*,'(A)') 'tempo_init() --- initialized data for rain-graupel collection lookup table'
       endif 
@@ -390,8 +390,8 @@ module module_mp_tempo_driver
       use_temperature = .true.
     elseif (present(th) .and. present(pii)) then
       use_temperature = .false.
-    else  
-      error stop "tempo_run() --- requires either temperature or theta and Exner function"
+    ! else
+    !   error stop "tempo_run() --- requires either temperature or theta and Exner function"
     endif 
 
     ! tempo driver code
@@ -527,18 +527,19 @@ module module_mp_tempo_driver
   end subroutine tempo_aerosol_surface_emissions
 
 
-  subroutine read_table_freezewater(filename, table_size)
+  subroutine read_table_freezewater(filename, table_size, tempo_cfgs)
     !! read lookup table for frozen cloud and rain water
     use module_mp_tempo_params, only : tpi_qrfz, tni_qrfz, &
       tpg_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer, intent(in) :: table_size
     
     integer :: mp_unit, istat
 
     mp_unit = 11
-    call check_before_table_read(filename, table_size)
+    if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
     open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
       action='read', iostat=istat &
 #ifndef TEMPO_IGNORE_CONVERT_ARG
@@ -555,19 +556,20 @@ module module_mp_tempo_driver
   end subroutine read_table_freezewater
 
 
-  subroutine read_table_qr_acr_qs(filename, table_size)
+  subroutine read_table_qr_acr_qs(filename, table_size, tempo_cfgs)
     !! read lookup table for rain-snow collection
     use module_mp_tempo_params, only : tcs_racs1, tmr_racs1, &
       tcs_racs2, tmr_racs2, tcr_sacr1, tms_sacr1, tcr_sacr2, &
       tms_sacr2, tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer, intent(in) :: table_size
     
     integer :: mp_unit, istat
 
     mp_unit = 11
-    call check_before_table_read(filename, table_size)
+    if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
     open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
       action='read', iostat=istat &
 #ifndef TEMPO_IGNORE_CONVERT_ARG
@@ -590,18 +592,19 @@ module module_mp_tempo_driver
   end subroutine read_table_qr_acr_qs
 
 
-  subroutine read_table_qr_acr_qg(filename, table_size)
+  subroutine read_table_qr_acr_qg(filename, table_size, tempo_cfgs)
     !! read lookup table for rain-graupel collection
     use module_mp_tempo_params, only : tcg_racg, tmr_racg, &
       tcr_gacr, tnr_racg, tnr_gacr
 
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer, intent(in) :: table_size
     
     integer :: mp_unit, istat
 
     mp_unit = 11
-    call check_before_table_read(filename, table_size)
+    if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
     open(unit=mp_unit, file=filename, form='unformatted', status='old', access='stream', &
       action='read', iostat=istat &
 #ifndef TEMPO_IGNORE_CONVERT_ARG
@@ -617,19 +620,20 @@ module module_mp_tempo_driver
   end subroutine read_table_qr_acr_qg
 
 
-  subroutine read_table_ccn(filename, table_size)
+  subroutine read_table_ccn(filename, table_size, tempo_cfgs)
     !! read static file containing CCN activation of aerosols;
     !! the data were created from a parcel model by Feingold and Heymsfield (1992)
     !! https://doi.org/10.1175/1520-0469(1992)049<2325:POCGOD>2.0.CO;2
     !! with further changes by Eidhammer and Kreidenweis
     use module_mp_tempo_params, only : tnccn_act
-  
+
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     character(len=*), intent(in) :: filename
     integer, intent(in) :: table_size
     
     integer :: mp_unit, istat
 
-    call check_before_table_read(filename=filename, table_size=table_size)
+    if (tempo_cfgs%check_tables) call check_before_table_read(filename=filename, table_size=table_size)
 
     mp_unit = 11
     open(unit=mp_unit, file=filename, form='unformatted', status='old', &
