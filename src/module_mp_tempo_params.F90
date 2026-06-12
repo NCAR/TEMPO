@@ -148,18 +148,18 @@ module module_mp_tempo_params
 
   ! these can be overwritten by a host model and don't have a parameter attribute
   real(wp) :: pi = 3.1415926536_wp !! pi is approximately 355/113
+  real(wp) :: t0 = 273.15_wp !! melting point of ice \([K]\)
+  real(wp) :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
   real(wp) :: lsub = 2.834e6_wp !! enthalpy of sublimation \([J\, kg^{-1}]\)
   real(wp) :: lvap0 = 2.5e6_wp !! enthalpy of vaporization \([J\, kg^{-1}]\)
-  real(wp) :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
   real(wp) :: rv = 461.5_wp !! gas constant for water vapor \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: rdry = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: roverrv = 0.622_wp !! dry gas constant divided by water vapor gas constant
+  real(wp) :: cp = 1004.0_wp !! heat capacity of air at constant pressure \([J\, K^{-1}\, kg^{-1}]\)
+  real(wp) :: r_uni = 8.314_wp  !! gas constant \([J\, K^{-1}\, mol^{-1}]\)
+  real(wp) :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
   real(wp) :: rho_not !! density constant \([kg\, m^{-3}]\)
   real(wp) :: rho_not0 !! density constant \([kg\, m^{-3}]\)
-  real(wp) :: cp = 1004.0_wp !! heat capacity of air at constant pressure \([J\, K^{-1}\, kg^{-1}]\)
-  real(wp) :: r_uni = 8.314  !! gas constant \([J\, K^{-1}\, mol^{-1}]\)
-  real(wp) :: t0 = 273.15_wp !! melting point of ice \([K]\)
-  real(wp) :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
 
   real(wp), parameter :: kap0 = 490.6_wp !! snow parameter from [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
   real(wp), parameter :: kap1 = 17.46_wp !! snow parameter from [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
