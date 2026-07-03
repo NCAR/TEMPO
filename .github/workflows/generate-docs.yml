@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+      - update_docs
     paths:
       - '**.F90'
       - '**.f90'
       - 'docs/**'   # Triggers if you update documentation settings/markdown files
+  workflow_dispatch:
 
 # Set permissions for the GITHUB_TOKEN to allow GitHub Pages deployment
 permissions:
