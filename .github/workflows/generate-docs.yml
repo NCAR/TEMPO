@@ -49,7 +49,7 @@ jobs:
           ford tempo_documentation.md
 
       - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: './docs'  # Points directly to your FORD output folder
 
