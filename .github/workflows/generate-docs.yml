@@ -1,0 +1,58 @@
+name: Deploy Documentation to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.F90'
+      - '**.f90'
+      - 'docs/**'   # Triggers if you update documentation settings/markdown files
+  workflow_dispatch:
+
+# Set permissions for the GITHUB_TOKEN to allow GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment to avoid collision issues
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Graphviz & FORD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz
+          pip install ford
+
+      - name: Run FORD Generator
+        run: |
+          # Replace 'ford-settings.md' with the actual path/name of your FORD project file
+          # If it's inside the docs directory, use: ford docs/ford-settings.md
+          ford tempo_documentation.md
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs'  # Points directly to your FORD output folder
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
