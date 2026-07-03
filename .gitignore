@@ -8,3 +8,6 @@
 
 # Driver file
 module_mp_tempo.F90
+
+# Docs
+docs/
