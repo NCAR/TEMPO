@@ -273,7 +273,7 @@ module module_mp_tempo_driver
     real(wp), dimension(:), allocatable :: thten_swrad1d
 
     integer :: i, j, k, nz
-    logical :: use_temperature 
+    logical :: use_temperature, is_first_step
 
     type(ty_tempo_main_diags) :: tempo_main_diags
     type(ty_tempo_driver_diags), intent(inout) :: tempo_diags
@@ -394,6 +394,8 @@ module module_mp_tempo_driver
     !   error stop "tempo_run() --- requires either temperature or theta and Exner function"
     endif 
 
+    is_first_step = (itimestep == 1)
+
     ! tempo driver code
     do j = jts, jte
       do i = its, ite
@@ -437,7 +439,7 @@ module module_mp_tempo_driver
         if (present(land_input)) land1d = land_input(i,j)
 
         ! main call to the 1d tempo microphysics
-        call tempo_main(tempo_cfgs=tempo_cfgs, &
+        call tempo_main(tempo_cfgs=tempo_cfgs, is_first_step=is_first_step, &
           qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
           ni1d=ni1d, nr1d=nr1d, nc1d=nc1d, ng1d=ng1d, nwfa1d=nwfa1d, nifa1d=nifa1d, t1d=t1d, p1d=p1d, &
           w1d=w1d, dz1d=dz1d, land1d=land1d, &

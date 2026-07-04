@@ -70,7 +70,7 @@ module module_mp_tempo_main
 
   contains
 
-  subroutine tempo_main(tempo_cfgs, &
+  subroutine tempo_main(tempo_cfgs, is_first_step, &
     qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d, nr1d, nc1d, ng1d, &
     nwfa1d, nifa1d, t1d, p1d, w1d, dz1d, land1d, &
     qcfrac1d, qifrac1d, qc_bl1d, qcfrac_bl1d, &
@@ -85,6 +85,7 @@ module module_mp_tempo_main
     type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     integer, intent(in) :: kts, kte, ii, jj
     real(wp), intent(in) :: dt
+    logical, intent(in), optional :: is_first_step
     real(wp), dimension(kts:kte), intent(inout) :: t1d !! 1D temperature \([K]\)
     real(wp), dimension(kts:kte), intent(in) :: p1d !! 1D pressure \([Pa]\)
     real(wp), dimension(kts:kte), intent(inout) :: qv1d !! 1D water vapor mixing ratio \([kg\; kg^{-1}]\)
@@ -148,11 +149,13 @@ module module_mp_tempo_main
     
     ! local variables
     real(wp) :: tempc, tc0, odt
-    logical :: do_micro, supersaturated
-    logical, save :: first_call_main = .true.
+    logical :: do_micro, supersaturated, local_first_step
     integer :: k, nz
 
     ! --------------------------------------------------------------------------------------------
+    local_first_step = .false.
+    if (present(is_first_step)) local_first_step = is_first_step
+
     do_micro = .false.
     supersaturated = .false.
     odt = 1._wp / dt
@@ -323,7 +326,7 @@ module module_mp_tempo_main
     enddo
 
     if (present(nwfa1d)) then
-      if (first_call_main) then
+      if (local_first_step) then
         if (sum(nwfa1d) < eps) call init_water_friendly_aerosols(dz1d, nwfa)
       endif
     else
@@ -331,7 +334,7 @@ module module_mp_tempo_main
     endif
     
     if (present(nifa1d)) then
-      if (first_call_main) then
+      if (local_first_step) then
         if (sum(nifa1d) < eps) call init_ice_friendly_aerosols(dz1d, nifa)
       endif
     else
@@ -381,7 +384,7 @@ module module_mp_tempo_main
       dt=dt, odt=odt)
 
     ! init ng and qb
-    if (first_call_main) then
+    if (local_first_step) then
       if (present(ng1d) .and. present(qb1d)) then
         if (sum(qg1d) > r1 .and. sum(ng1d) < eps .and. sum(qb1d) < eps) then
           call graupel_init(rho, qg1d, ng1d, qb1d)
@@ -409,8 +412,6 @@ module module_mp_tempo_main
     call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
       supersaturated)
-
-    if (first_call_main) first_call_main = .false.
 
     ! check for hydrometeors or supersaturation --------------------------------------------------
     do_micro = any(l_qc) .or. any(l_qr) .or. any(l_qi) .or. any(l_qs) .or. any(l_qg)
