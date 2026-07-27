@@ -1,7 +1,7 @@
 [ccpp-table-properties]
   name = ty_tempo_cfgs
   type = ddt
-  dependencies = ../../../hooks/machine.F
+  dependencies = ../../../../hooks/machine.F
   module_name = module_mp_tempo_params
 
 [ccpp-arg-table]
