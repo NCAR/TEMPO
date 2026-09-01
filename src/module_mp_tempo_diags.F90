@@ -1,6 +1,33 @@
+! ------------------------------------------------------------------
+! TEMPO_STRIDE1 compile-time specialization (per-column CPU fast build)
+! When -DTEMPO_STRIDE1 is set, the horizontal block iterators its/ite/jts/jte
+! (i.e. bi/bj) are hardcoded to a compile-time extent of 1 so the compiler can
+! drop the horizontal dimension, remove 3D address arithmetic and specialize the
+! vertical (k) loops. The driver forces block_stride=1 in this build, so every
+! invocation runs the per-column form regardless of the requested -s stride.
+! Without the macro the tokens fall back to the original runtime bounds, so the
+! default build is byte-for-byte the original hybrid code.
+! ------------------------------------------------------------------
+#ifdef TEMPO_STRIDE1
+#define TEMPO_ITS 1
+#define TEMPO_ITE 1
+#define TEMPO_JTS 1
+#define TEMPO_JTE 1
+#else
+#define TEMPO_ITS its
+#define TEMPO_ITE ite
+#define TEMPO_JTS jts
+#define TEMPO_JTE jte
+#endif
 module module_mp_tempo_diags
   !! diagnostic output
-  use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi
+  !! All module_mp_tempo_params imports at module level (required for !$acc routine seq: no USE inside routines).
+  use module_mp_tempo_params, only : wp, sp, dp, create_bins, r1, pi, &
+    mu_i, t0, &
+    org2, cre, crg, am_s, am_g, cge, cgg, ogg2, &
+    bm_g, obmg, ocmg, mu_g, gbins_radar, dgbins_radar, radar_bins, &
+    bm_s, lam0, lam1, obms, ocms, kap0, kap1, mu_s, sbins_radar, dsbins_radar, &
+    hbins, dhbins, rho_g, nhbins
   use module_mp_tempo_utils, only : get_nuc, snow_moments
   
   implicit none
@@ -10,131 +37,163 @@ module module_mp_tempo_diags
 
   contains 
 
-  subroutine effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
-    re_qc, re_qi, re_qs)
-    !! effective radius values for cloud water, cloud ice and snow
+  subroutine effective_radius(kts, kte, its, ite, jts, jte, temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
+      re_qc, re_qi, re_qs, column_mp_active)
+    !! effective radius values for cloud water, cloud ice and snow (horizontal tile)
     !!
     !! \(r_{e} = 0.5\frac{\int_0^\infty D^{3}n(D)dD}{\int_0^\infty D^2n(D)dD}\)
-    use module_mp_tempo_params, only : mu_i, t0
+    !! OpenACC: parallel over columns; k loop sequential (snow_moments / get_nuc are acc routine).
 
-    real(wp), dimension(:), intent(in) :: temp, nc, rs
-    real(dp), dimension(:), intent(in) :: ilamc, ilami
-    logical, dimension(:), intent(in) :: l_qc, l_qi, l_qs
-    real(wp), dimension(:), intent(out) :: re_qc, re_qi, re_qs
-    real(wp), dimension(15), parameter :: g_ratio = &
-      [24._wp,60._wp,120._wp,210._wp,336._wp,504._wp,720._wp,990._wp, &
-      1320._wp,1716._wp,2184._wp,2730._wp,3360._wp,4080._wp,4896._wp]
+    integer, intent(in) :: kts, kte, its, ite, jts, jte
+    real(wp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: temp, nc, rs
+    real(dp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: ilamc, ilami
+    logical, dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: l_qc, l_qi, l_qs
+    real(wp), dimension(:,:,:), intent(out) :: re_qc, re_qi, re_qs !! assumed-shape so a full-tile diag can be filled per sub-tile block (absolute i,j)
+    logical, dimension(TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in), optional :: column_mp_active
     real(dp) :: smob, smoc
     real(wp) :: tc0
-    integer :: k, nz, nu_c
+    integer :: i, j, k, nu_c
+    logical :: use_cmp, compute_col
 
-    nz = size(l_qc)
-    do k = 1, nz
-       re_qc(k) = 0._wp
-       re_qi(k) = 0._wp
-       re_qs(k) = 0._wp
+    use_cmp = present(column_mp_active)
 
-      !> @note
-      !> limiting values of \(2.51-50 \mu m\) for cloud water, \(2.51-125 \mu m\) for
-      !> cloud ice, and \(5.01-999 \mu m\) for snow are consistent with RRTMG radiation
-      !> @endnote
-      if (l_qc(k)) then
-        nu_c = get_nuc(nc(k))
-        re_qc(k) = max(2.51e-6_wp, &
-          min(real(0.5_dp*(3._dp+real(nu_c, kind=dp))*ilamc(k), kind=wp), 50.e-6_wp))
-      endif
-      if (l_qi(k)) then
-        re_qi(k) = max(2.51e-6_wp, &
-          min(real(0.5_dp*(3._dp+real(mu_i, kind=dp))*ilami(k), kind=wp), 125.e-6_wp))
-      endif
-      if (l_qs(k)) then
-        tc0 = min(-0.1, temp(k)-t0)
-        call snow_moments(rs=rs(k), tc=tc0, smob=smob, smoc=smoc)
-        re_qs(k) = max(5.01e-6_wp, min(real(0.5_wp*(smoc/smob), kind=wp), 999.e-6_wp))
-      endif 
-    enddo 
+    !$acc parallel
+    !$acc loop gang vector collapse(2) private(smob, smoc, tc0, nu_c, compute_col)
+    do j = TEMPO_JTS, TEMPO_JTE
+      do i = TEMPO_ITS, TEMPO_ITE
+        compute_col = .true.
+        if (use_cmp) then
+          if (.not. column_mp_active(i, j)) compute_col = .false.
+        endif
+        if (compute_col) then
+          !$acc loop seq
+          do k = kts, kte
+            re_qc(k, i, j) = 0._wp
+            re_qi(k, i, j) = 0._wp
+            re_qs(k, i, j) = 0._wp
+
+            !> @note
+            !> limiting values of \(2.51-50 \mu m\) for cloud water, \(2.51-125 \mu m\) for
+            !> cloud ice, and \(5.01-999 \mu m\) for snow are consistent with RRTMG radiation
+            !> @endnote
+            if (l_qc(k, i, j)) then
+              nu_c = get_nuc(nc(k, i, j))
+              re_qc(k, i, j) = max(2.51e-6_wp, &
+                min(real(0.5_dp*(3._dp+real(nu_c, kind=dp))*ilamc(k, i, j), kind=wp), 50.e-6_wp))
+            endif
+            if (l_qi(k, i, j)) then
+              re_qi(k, i, j) = max(2.51e-6_wp, &
+                min(real(0.5_dp*(3._dp+real(mu_i, kind=dp))*ilami(k, i, j), kind=wp), 125.e-6_wp))
+            endif
+            if (l_qs(k, i, j)) then
+              tc0 = min(-0.1, temp(k, i, j)-t0)
+              call snow_moments(rs=rs(k, i, j), tc=tc0, smob=smob, smoc=smoc)
+              re_qs(k, i, j) = max(5.01e-6_wp, min(0.5_wp*(smoc/smob), 999.e-6_wp))
+            endif
+          enddo
+        endif
+      enddo
+    enddo
+    !$acc end parallel
   end subroutine effective_radius
 
 
-  subroutine reflectivity_10cm(refl10cm_from_melting_flag, &
-    temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
-    l_qg, rg, ng, idx, ilamg, dbz)
-    !! 10-cm radar reflectivity
-    !! 
+  subroutine reflectivity_10cm(kts, kte, its, ite, jts, jte, refl10cm_from_melting_flag, &
+      temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
+      l_qg, rg, ng, idx, ilamg, dbz, column_mp_active)
+    !! 10-cm radar reflectivity over a horizontal tile
+    !!
     !! contributions from melting snow and graupel are optionally included
     !!
     !! \(Z_{e} = \int_0^\infty D^{6}n(D)dD\) and \(dbz = 10*log10(Z_{e}*1\times 10^{18})\)
-    use module_mp_tempo_params, only : pi, org2, cre, crg, am_s, am_g, cge, cgg, ogg2
+    !! OpenACC: parallel over columns; k loop sequential (melting helpers are acc routine seq).
 
+    integer, intent(in) :: kts, kte, its, ite, jts, jte
     logical, intent(in) :: refl10cm_from_melting_flag
-    logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
-    real(wp), dimension(:), intent(in) :: temp, rg, ng, rr, nr, rs
-    real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg
-    integer, dimension(:), intent(in) :: idx
-    real(wp), dimension(:), intent(out) :: dbz
-    real(wp) :: ze_rain(size(temp)), ze_snow(size(temp)), ze_graupel(size(temp))
+    logical, dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: l_qr, l_qs, l_qg
+    real(wp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: temp, rg, ng, rr, nr, rs
+    real(dp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: ilamr, smoc, smob, smoz, ilamg
+    integer, dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: idx
+    real(wp), dimension(:,:,:), intent(out) :: dbz !! assumed-shape so a full-tile diag can be filled per sub-tile block (absolute i,j)
+    logical, dimension(TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in), optional :: column_mp_active
+    integer :: i, j, k, k_melt
+    real(wp) :: ze_rain(kts:kte), ze_snow(kts:kte), ze_graupel(kts:kte)
     real(dp) :: n0_r, lamr, n0_g
-    integer :: k, nz, k_melt
+    logical :: use_cmp, compute_col
 
-    nz = size(temp)
-    ze_rain = 1.e-22_wp
-    ze_snow = 1.e-22_wp
-    ze_graupel = 1.e-22_wp
+    use_cmp = present(column_mp_active)
 
-    if (refl10cm_from_melting_flag) then
-      k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
-    endif
+    !$acc parallel
+    !$acc loop gang vector collapse(2) private(ze_rain, ze_snow, ze_graupel, k_melt, n0_r, lamr, n0_g, compute_col)
+    do j = TEMPO_JTS, TEMPO_JTE
+      do i = TEMPO_ITS, TEMPO_ITE
+        compute_col = .true.
+        if (use_cmp) then
+          if (.not. column_mp_active(i, j)) compute_col = .false.
+        endif
+        if (compute_col) then
 
-    do k = nz, 1, -1
-      dbz(k) = -35._wp
-       
-      if (l_qr(k)) then
-        lamr = 1._dp/ilamr(k)
-        n0_r = nr(k)*org2*lamr**cre(2)
-        ze_rain(k) = n0_r*crg(4)*ilamr(k)**cre(4)
-      endif
-      if (l_qs(k)) then
-        ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
-          (am_s/900._wp)*(am_s/900._wp)*smoz(k)
-        ! include melting
+        ze_rain(kts:kte) = 1.e-22_wp
+        ze_snow(kts:kte) = 1.e-22_wp
+        ze_graupel(kts:kte) = 1.e-22_wp
+
         if (refl10cm_from_melting_flag) then
-          if (k_melt > 2 .and. k < k_melt-1) then
-            ze_snow(k) = reflectivity_from_melting_snow(rs(k), &
-              smob(k), smoc(k), rr(k))
+          k_melt = find_melting_level(kts, kte, temp(kts:kte, i, j), l_qr(kts:kte, i, j), l_qs(kts:kte, i, j), l_qg(kts:kte, i, j))
+        endif
+
+        !$acc loop seq
+        do k = kte, kts, -1
+          dbz(k, i, j) = -35._wp
+
+          if (l_qr(k, i, j)) then
+            lamr = 1._dp/ilamr(k, i, j)
+            n0_r = nr(k, i, j)*org2*lamr**cre(2)
+            ze_rain(k) = n0_r*crg(4)*ilamr(k, i, j)**cre(4)
           endif
-        endif 
-      endif
-      if (l_qg(k)) then
-        n0_g = ng(k)*ogg2*(1._dp/ilamg(k))**cge(2,1)
-        ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
-          (am_g(idx(k))/900._wp)*(am_g(idx(k))/900._wp) * n0_g*cgg(4,1)*ilamg(k)**cge(4,1)
-        ! include melting
-        if (refl10cm_from_melting_flag) then
-          if (k_melt > 2 .and. k < k_melt-1) then
-            ze_graupel(k) = reflectivity_from_melting_graupel(rg(k), ng(k), &
-              ilamg(k), idx(k), rr(k))
+          if (l_qs(k, i, j)) then
+            ze_snow(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
+              (am_s/900._wp)*(am_s/900._wp)*smoz(k, i, j)
+            if (refl10cm_from_melting_flag) then
+              if (k_melt > 2 .and. k < k_melt + kts - 2) then
+                ze_snow(k) = reflectivity_from_melting_snow(rs(k, i, j), &
+                  smob(k, i, j), smoc(k, i, j), rr(k, i, j))
+              endif
+            endif
           endif
-        endif 
-      endif
-      dbz(k) = max(-35._wp, 10._wp*real(log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp), kind=wp))
+          if (l_qg(k, i, j)) then
+            n0_g = ng(k, i, j)*ogg2*(1._dp/ilamg(k, i, j))**cge(2, 1)
+            ze_graupel(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
+              (am_g(idx(k, i, j))/900._wp)*(am_g(idx(k, i, j))/900._wp) * n0_g*cgg(4, 1)*ilamg(k, i, j)**cge(4, 1)
+            if (refl10cm_from_melting_flag) then
+              if (k_melt > 2 .and. k < k_melt + kts - 2) then
+                ze_graupel(k) = reflectivity_from_melting_graupel(rg(k, i, j), ng(k, i, j), &
+                  ilamg(k, i, j), idx(k, i, j), rr(k, i, j))
+              endif
+            endif
+          endif
+          dbz(k, i, j) = max(-35._wp, 10._wp*log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp))
+        enddo
+        endif
+      enddo
     enddo
+    !$acc end parallel
   end subroutine reflectivity_10cm
 
 
-  function find_melting_level(temp, l_qr, l_qs, l_qg) result(k_melt)
-    !! finds the melting level
-    use module_mp_tempo_params, only : t0
+  function find_melting_level(kts, kte, temp, l_qr, l_qs, l_qg) result(k_melt)
+  !$acc routine seq
+    !! finds the melting level (explicit vertical bounds kts:kte; matches column slice from reflectivity_10cm)
 
-    real(wp), dimension(:), intent(in) :: temp
-    logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
-    integer :: k, nz
+    integer, intent(in) :: kts, kte
+    real(wp), intent(in) :: temp(kts:kte)
+    logical, intent(in) :: l_qr(kts:kte), l_qs(kts:kte), l_qg(kts:kte)
+    integer :: k
     integer :: k_melt
 
-    nz = size(l_qr)
-    k_melt = 1
-    kloop: do k = nz-1, 1, -1
+    k_melt = kts
+    kloop: do k = kte - 1, kts, -1
       if ((temp(k) > t0) .and. l_qr(k) .and. (l_qs(k+1) .or. l_qg(k+1))) then
-        k_melt = max(k+1, k_melt)
+        k_melt = max(k + 1, k_melt)
         exit kloop
       endif
     enddo kloop
@@ -142,7 +201,7 @@ module module_mp_tempo_diags
 
   
   function complex_water_ray(lambda, t) result(refractive_index)
-    use module_mp_tempo_params, only : pi
+  !$acc routine seq
     !! complex refractive index of water
     !! from [Ray (1972)](https://doi.org/10.1364/AO.11.001836)
     !! calculated as function of temperature t [Celsius] (valid from -10 to 30)
@@ -173,6 +232,7 @@ module module_mp_tempo_diags
 
 
   function complex_ice_maetzler(lambda, t) result(refractive_index)
+  !$acc routine seq
     !! complex refractive index of ice from
     !! [Maetzler (1998)](https://doi.org/10.1007/978-94-011-5252-5_10)
     !! calculated as function of temperature t [Celsius] (valid from -250 to 0)
@@ -202,11 +262,10 @@ module module_mp_tempo_diags
 
 
   function reflectivity_from_melting_graupel(rg, ng, ilamg, idx, rr) result(ze_graupel)
+  !$acc routine seq
     !! calculates radar reflectivity from melting graupel using binned approach
     !!
     !! original credit: Ulrich Blahak and G. Thompson
-    use module_mp_tempo_params, only : am_g, bm_g, obmg, ocmg, mu_g, ogg2, cge, &
-      gbins_radar, dgbins_radar, radar_bins
 
     real(wp), intent(in) :: rg, ng, rr 
     real(dp), intent(in) :: ilamg
@@ -253,11 +312,10 @@ module module_mp_tempo_diags
 
 
   function reflectivity_from_melting_snow(rs, smob, smoc, rr) result(ze_snow)
+  !$acc routine seq
     !! calculates radar reflectivity from melting snow using binned approach
     !!
     !! original credit: Ulrich Blahak and G. Thompson
-    use module_mp_tempo_params, only : am_s, bm_s, lam0, lam1, obms, ocms, kap0, kap1, mu_s, &
-      sbins_radar, dsbins_radar, radar_bins
 
     real(wp), intent(in) :: rs, rr 
     real(dp), intent(in) :: smob, smoc
@@ -308,6 +366,7 @@ module module_mp_tempo_diags
 
   subroutine rayleigh_soak_wetgraupel(x_g, a_geo, b_geo, fmelt, lambda_radar, &
     meltratio_outside, m_w, m_i, backscatter)
+  !$acc routine seq
     !! calculates backscatter cross section of wet snow or graupel
     !! using Maxwell-Garnett mixing formula and Rayleigh approximation
     !!
@@ -395,64 +454,104 @@ module module_mp_tempo_diags
   end subroutine rayleigh_soak_wetgraupel
 
 
-  subroutine max_hail_diam(rho, rg, ng, ilamg, idx, max_hail_diameter)
-    !! estimates maximmum hail diameter [mm] using a binned approach
-    !! 
+  subroutine max_hail_diam(kts, kte, its, ite, jts, jte, rho, rg, ng, ilamg, idx, max_hail_diameter, column_mp_active)
+    !! estimates maximum hail diameter [mm] using a binned approach (horizontal tile)
+    !!
     !! see [Jensen et al. (2023)](https://doi.org/10.1175/MWR-D-21-0319.1)
-    use module_mp_tempo_params, only : hbins, dhbins, rho_g, ogg2, cge, nhbins, mu_g
+    !! OpenACC: parallel over columns; k and ibin loops sequential (size distribution scan with exit).
 
-    real(wp), dimension(:), intent(in) :: rho, rg, ng
-    real(dp), dimension(:), intent(in) :: ilamg
-    integer, dimension(:), intent(in) :: idx
-    real(wp), dimension(:), intent(out) :: max_hail_diameter
+    integer, intent(in) :: kts, kte, its, ite, jts, jte
+    real(wp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: rho, rg, ng
+    real(dp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: ilamg
+    integer, dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: idx
+    real(wp), dimension(:,:,:), intent(out) :: max_hail_diameter !! assumed-shape so a full-tile diag can be filled per sub-tile block (absolute i,j)
+    logical, dimension(TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in), optional :: column_mp_active
+    integer :: i, j, k, ibin
     real(dp) :: lamg, n0_g, sum_nh, sum_t, f_d, hail_max
-    integer :: k, nz, n
     real(dp), parameter :: threshold_conc = 0.0005
+    logical :: use_cmp, compute_col
 
-    nz = size(rho)
-    do k = 1, nz
-      max_hail_diameter(k) = 0._wp
-      if(rg(k)/rho(k) >= 1.e-6_wp) then
-        if (rho_g(idx(k)) < 350._wp) cycle ! density too low to be hail/ice pellets
-        lamg = 1._dp / ilamg(k)
-        n0_g = ng(k)*ogg2*lamg**cge(2,1)
+    use_cmp = present(column_mp_active)
 
-        sum_nh = 0._dp
-        sum_t = 0._dp
-        do n = nhbins, 1, -1
-          f_d = n0_g*hbins(n)**mu_g * exp(-lamg*hbins(n)) * dhbins(n)
-          sum_nh = sum_nh + f_d
-          if (sum_nh > threshold_conc) exit
-          sum_t = sum_nh
-        enddo
-        if (n >= nhbins) then
-          hail_max = hbins(nhbins)
-        elseif (hbins(n+1) > 1.e-3_wp) then
-          hail_max = hbins(n) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(n)-hbins(n+1))
-        else
-          hail_max = 1.e-4_wp
+    !$acc parallel
+    !$acc loop gang vector collapse(2) private(lamg, n0_g, sum_nh, sum_t, f_d, hail_max, ibin, compute_col)
+    do j = TEMPO_JTS, TEMPO_JTE
+      do i = TEMPO_ITS, TEMPO_ITE
+        compute_col = .true.
+        if (use_cmp) then
+          if (.not. column_mp_active(i, j)) compute_col = .false.
         endif
-        max_hail_diameter(k) = 1000._wp * hail_max ! convert to mm
-      endif
+        if (compute_col) then
+          !$acc loop seq
+          do k = kts, kte
+            max_hail_diameter(k, i, j) = 0._wp
+            if (rg(k, i, j)/rho(k, i, j) >= 1.e-6_wp) then
+              if (rho_g(idx(k, i, j)) >= 350._wp) then
+                lamg = 1._dp / ilamg(k, i, j)
+                n0_g = ng(k, i, j)*ogg2*lamg**cge(2, 1)
+
+                sum_nh = 0._dp
+                sum_t = 0._dp
+                do ibin = nhbins, 1, -1
+                  f_d = n0_g*hbins(ibin)**mu_g * exp(-lamg*hbins(ibin)) * dhbins(ibin)
+                  sum_nh = sum_nh + f_d
+                  if (sum_nh > threshold_conc) exit
+                  sum_t = sum_nh
+                enddo
+                if (ibin >= nhbins) then
+                  hail_max = hbins(nhbins)
+                elseif (hbins(ibin+1) > 1.e-3_wp) then
+                  hail_max = hbins(ibin) - (sum_nh-threshold_conc)/(sum_nh-sum_t) * (hbins(ibin)-hbins(ibin+1))
+                else
+                  hail_max = 1.e-4_wp
+                endif
+                max_hail_diameter(k, i, j) = 1000._wp * hail_max ! convert to mm
+              endif
+            endif
+          enddo
+        endif
+      enddo
     enddo
+    !$acc end parallel
   end subroutine max_hail_diam
 
 
-  subroutine freezing_rain(temp, rain_precip, cloud_precip, frz_rain)
-    !! estimates freezing rain/drizzle accumulation
-    use module_mp_tempo_params, only : t0
+  subroutine freezing_rain(kts, kte, its, ite, jts, jte, temp, rain_precip, cloud_precip, frz_rain, column_mp_active)
+    !! estimates freezing rain/drizzle accumulation over a horizontal tile
+    !! OpenACC: parallel over columns (no k loop; surface temperature at kts).
 
-    real(wp), intent(in) :: temp, rain_precip
-    real(wp), intent(in), optional :: cloud_precip
-    real(wp), intent(out) :: frz_rain
+    integer, intent(in) :: kts, kte, its, ite, jts, jte
+    real(wp), dimension(kts:kte, TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in) :: temp
+    real(wp), dimension(:,:), intent(in) :: rain_precip !! assumed-shape so a full-tile diag can be read/filled per sub-tile block (absolute i,j)
+    real(wp), dimension(:,:), intent(in), optional :: cloud_precip
+    real(wp), dimension(:,:), intent(out) :: frz_rain
+    logical, dimension(TEMPO_ITS:TEMPO_ITE, TEMPO_JTS:TEMPO_JTE), intent(in), optional :: column_mp_active
+    integer :: i, j
+    logical :: use_cmp, use_cloud, compute_col
 
-    frz_rain = 0._wp
-    if ((temp-t0) < -0.5_wp) then
-      frz_rain = rain_precip
-      if (present(cloud_precip)) then
-        frz_rain = frz_rain + cloud_precip
-      endif 
-    endif   
+    use_cmp = present(column_mp_active)
+    use_cloud = present(cloud_precip)
+
+    !$acc parallel
+    !$acc loop gang vector collapse(2) private(compute_col)
+    do j = TEMPO_JTS, TEMPO_JTE
+      do i = TEMPO_ITS, TEMPO_ITE
+        frz_rain(i, j) = 0._wp
+        compute_col = .true.
+        if (use_cmp) then
+          if (.not. column_mp_active(i, j)) compute_col = .false.
+        endif
+        if (compute_col) then
+          if ((temp(kts, i, j)-t0) < -0.5_wp) then
+            frz_rain(i, j) = rain_precip(i, j)
+            if (use_cloud) then
+              frz_rain(i, j) = frz_rain(i, j) + cloud_precip(i, j)
+            endif
+          endif
+        endif
+      enddo
+    enddo
+    !$acc end parallel
   end subroutine freezing_rain
 
 end module module_mp_tempo_diags
