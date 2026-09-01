@@ -9,18 +9,21 @@ module module_mp_tempo_utils
 
   contains
 
-  subroutine get_constant_cloud_number(land, nc)
+  subroutine get_constant_cloud_number(nz, land, nc)
+  !$acc routine seq
     !! returns land-specific value of cloud droplet number concentration
     !! when aerosol-aware = false if land = 1, else returns ocean-specific value
+    !! Explicit-shape nc avoids per-call section-descriptor upload from acc routine seq.
     use module_mp_tempo_params, only : nt_c_l, nt_c_o
-    
+
+    integer, intent(in) :: nz
     integer, intent(in), optional :: land
-    real(wp), dimension(:), intent(out) :: nc
+    real(wp), intent(out) :: nc(nz)
 
     nc = nt_c_l
     if (present(land)) then
       if (land /= 1) nc = nt_c_o
-    endif 
+    endif
   end subroutine get_constant_cloud_number
 
 
@@ -34,15 +37,8 @@ module module_mp_tempo_utils
     real(wp), intent(in) :: a, x
     real(wp) :: gamma_p
 
-    if ((x < 0.0_wp) .or. (a <= 0.0_wp)) then
-      write(*,*) "Invalid arguments for function gamma_p"
-      return
-    endif
-
-    ! tests show that the continued fraction solution will blow up
-    ! if a = x + 1, and so while faster, series expansion is used
-    ! for a > x - 1
-    if (x < (a + 1.0_wp)) then
+    if ((x < 0.0_wp) .or. (a <= 0.0_wp)) stop "Invalid arguments for function gamma_p"
+    if (x < (a+1.0_wp)) then
       gamma_p = calc_gamma_series(a, x)
     else
       ! gammma_cf computes the upper series
@@ -59,74 +55,54 @@ module module_mp_tempo_utils
     !! see [Equation 8.7.1](https://dlmf.nist.gov/8.7)
     !! \(\gamma(a,x) = exp(-x) * \sum_{k=0}^{\infty} \frac{x^{k}}{\Gamma(a+k+1)}\)
     !!
-    !! see also [Equation 8.2.6](https://dlmf.nist.gov/8.2#E6)
-    !! see also Numerical Recipes in Fortran
-    !!
     !! input: a = gamma function argument, x = upper limit of integration
     !!
     !! output: normalized lower gamma function \(\gamma(a, x) / \Gamma(a)\)
-
-    ! Iterations:
-    ! k_term = k-1_term * x * (Gamma(a+k)/Gamma(a+k+1)) = k-1_term * x * (1 / (a + k))
-
     real(wp), intent(in) :: a, x
     integer :: k
     integer, parameter :: it_max = 100
     real(wp), parameter :: smallvalue = 1.e-7_wp
-    real(wp) :: aj, sum_term, sum
+    real(wp) :: ap1, sum_term, gamma_sum
     real(wp) :: gamma_series
 
-    ! if (x <= 0.0_wp) stop "Invalid arguments for function gamma_series"
+    if (x <= 0.0_wp) stop "Invalid arguments for function gamma_series"
     ! k = 0 summation term is 1 / Gamma(a+1)
-    aj = a
-    sum_term = 1.0_wp / gamma(aj+1.0_wp)
-    sum = sum_term
+    ap1 = a
+    sum_term = 1.0_wp / gamma(ap1+1.0_wp)
+    gamma_sum = sum_term
     do k = 1, it_max
-      aj = aj + 1.0_wp
-      sum_term = sum_term * x / aj
-      sum = sum + sum_term
-      if (abs(sum_term) < (abs(sum) * smallvalue)) exit
+      ap1 = ap1 + 1.0_wp
+      sum_term = sum_term * x / ap1
+      gamma_sum = gamma_sum + sum_term
+      if (abs(sum_term) < (abs(gamma_sum) * smallvalue)) exit
     enddo
-    ! if (k == it_max) stop "gamma_series solution did not converge"
-    gamma_series = sum * x**a * exp(-x)
+    if (k == it_max) stop "gamma_series solution did not converge"
+    gamma_series = gamma_sum * x**a * exp(-x)
   end function calc_gamma_series
     
 
   function calc_gamma_cf(a, x) result(gamma_cf)
-    !! solves the normalized upper gamma function \(\gamma(a,x) / \Gamma(a)\)
-    !! using a continued fractions method
-    !! [(modified Lentz Algorithm)](http://functions.wolfram.com/06.06.10.0003.01)
-    !! see also Numerical Recipes in Fortran
-    !!
-    !!input: a = gamma function argument, x = lower limit of integration
-    !!
-    !!output: normalized upper gamma function: \(\gamma(a, x) / \Gamma(a)\)
-
-    ! Iteration:
-    ! set f0 = b0, where b0 = 0
-    ! set c0 = f0
-    ! set d0 = 0
-    ! dj = bj + aj * dj-1 (set dj to TINY if dj = 0)
-    ! cj = bj + aj / cj-1 (set cj to TINY if cj = 0)
-    ! dj = 1 / dj
-    ! deltaj = cj * dj
-    ! fj = fj-1 * deltaj
-
+  !! solves the normalized upper gamma function \(\gamma(a,x) / \Gamma(a)\)
+  !! using a continued fractions method
+  !! [(modified Lentz Algorithm)](http://functions.wolfram.com/06.06.10.0003.01)
+  !!
+  !!input: a = gamma function argument, x = lower limit of integration
+  !!
+  !!output: normalized upper gamma function: \(\gamma(a, x) / \Gamma(a)\)
     real(wp), intent(in) :: a, x
     integer :: k
     integer, parameter :: it_max = 100
     real(wp), parameter :: smallvalue = 1.e-7_wp
     real(wp), parameter :: offset = 1.e-30_wp
-    real(wp) :: b, d, f0, c, delta, f, aj
+    real(wp) :: b, d, h0, c, delta, h, aj
     real(wp) :: gamma_cf
-
-    f0 = offset
-    ! iteration 1
+  
     b = 1.0_wp - a + x
     d = 1.0_wp / b
-    c = b + (1.0_wp / f0)
+    h0 = offset
+    c = b + (1.0_wp/offset)
     delta = c * d
-    f = f0 * delta
+    h = h0 * delta
 
     do k = 1, it_max
       aj = k * (a-k)
@@ -137,15 +113,16 @@ module module_mp_tempo_utils
       if(abs(c) < offset) c = offset
       d = 1.0_wp / d
       delta = c * d
-      f = f * delta
+      h = h * delta
       if (abs(delta-1.0_wp) < smallvalue) exit
     enddo
-    ! if (k == it_max) stop "gamma_cf solution did not converge"
-    gamma_cf = exp(-x+a*log(x)) * f / gamma(a)
+    if (k == it_max) stop "gamma_cf solution did not converge"
+    gamma_cf = exp(-x+a*log(x)) * h / gamma(a)
   end function calc_gamma_cf   
 
 
   subroutine snow_moments(rs, tc, smob, smoc, ns, smo0, smo1, smo2, smoe, smof, smog, smoz)
+  !$acc routine seq
     !! computes snow moments from
     !! [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
     ! smo0 = 0th moment
@@ -283,6 +260,7 @@ module module_mp_tempo_utils
 
 
   function calc_rslf(p, t) result(rslf)
+  !$acc routine seq
     !! calculates liquid saturation vapor mixing ratio
     real(wp), intent(in) :: p, t
     real(wp) :: esl, x
@@ -310,6 +288,7 @@ module module_mp_tempo_utils
 
 
   function calc_rsif(p, t) result(rsif)
+  !$acc routine seq
     !! calculates liquid saturation vapor mixing ratio
     real(wp), intent(in) :: p, t
     real(wp) :: esi, x
@@ -332,6 +311,7 @@ module module_mp_tempo_utils
 
 
   function get_nuc(nc) result(nu_c)
+  !$acc routine seq
     !! returns nu_c for cloud water (values from 2-15)
     use module_mp_tempo_params, only : nu_c_scale
 
@@ -389,7 +369,7 @@ module module_mp_tempo_utils
           g = -0.1007_dp - 0.358_dp*f + 0.0261_dp*f*f
           k0 = exp(g)
           z = log(stokes / (k0+1.e-15_dp))
-          h = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
+          H = 0.1465_dp + 1.302_dp*z - 0.607_dp*z*z + 0.293_dp*z*z*z
           yc0 = 2.0_dp / pi * atan(h)
           ef_rw = (yc0+p)*(yc0+p) / ((1.+p)*(1.+p))
         endif
@@ -397,6 +377,7 @@ module module_mp_tempo_utils
         t_efrw(i,j) = max(0.0_dp, min(ef_rw, 0.95_dp))
       enddo
     enddo
+    !$acc update device(t_efrw)
   end subroutine compute_efrw
 
 
@@ -437,6 +418,7 @@ module module_mp_tempo_utils
         endif
       enddo
     enddo
+    !$acc update device(t_efsw)
   end subroutine compute_efsw
 
 
@@ -487,6 +469,7 @@ module module_mp_tempo_utils
         tni_iaus(i,j) = t2
       enddo
     enddo
+    !$acc update device(tpi_ide, tps_iaus, tni_iaus)
   end subroutine qi_aut_qs
 
 
@@ -524,6 +507,7 @@ module module_mp_tempo_utils
         enddo
       enddo
     enddo
+    !$acc update device(tpc_wev, tnc_wev)
   end subroutine compute_drop_evap
 
 end module module_mp_tempo_utils

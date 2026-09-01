@@ -80,15 +80,17 @@ module module_mp_tempo_ml
   real(wp), dimension(nc_ml_output), parameter :: &
     nc_ml_b01 = [1.572826_wp]
 
+  !! Module parameters referenced from !$acc routine (tempo_ml_predict_cloud_number); read-only device copies.
+  !$acc declare copyin(nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01)
+
   contains
 
   subroutine save_or_read_ml_data(ml_data_in, ml_data_out)
-    !! initializes and saves or returns neural network information
-
+    !! initializes and saves or returns neural network information (host only; not an OpenACC routine)
     logical, save :: not_initialized = .true.
-    type(ty_tempo_ml_data), dimension(1), intent(in), optional :: ml_data_in
-    type(ty_tempo_ml_data), dimension(1), intent(out), optional :: ml_data_out
-    type(ty_tempo_ml_data), dimension(1), save :: tempo_ml_data_save
+    type(ty_tempo_ml_data), intent(in), optional :: ml_data_in
+    type(ty_tempo_ml_data), intent(out), optional :: ml_data_out
+    type(ty_tempo_ml_data), save :: tempo_ml_data_save
 
     if (not_initialized) then
       if (present(ml_data_in)) tempo_ml_data_save = ml_data_in
@@ -101,35 +103,32 @@ module module_mp_tempo_ml
   end subroutine save_or_read_ml_data
 
 
-  subroutine tempo_ml_predict_cloud_number(qc, qr, qi, qs, pres, temp, w, &
+  subroutine tempo_ml_predict_cloud_number(nz, qc, qr, qi, qs, pres, temp, w, &
     predicted_number)
+    !$acc routine seq
     !! predicts number concentration
+    !! Explicit-shape dummies avoid the per-call section-descriptor upload that NVHPC
+    !! emits for assumed-shape (dimension(:)) args inside acc routine seq.
 
-    real(wp), dimension(:), intent(in) :: qc, qr, qi, qs, pres, temp, w
-    real(wp), dimension(:), intent(inout) :: predicted_number
+    integer, intent(in) :: nz
+    real(wp), intent(in) :: qc(nz), qr(nz), qi(nz), qs(nz), pres(nz), temp(nz), w(nz)
+    real(wp), intent(inout) :: predicted_number(nz)
 
-    type(ty_tempo_ml_data), dimension(1) :: get_ml_data
-    type(ty_tempo_ml_data) :: ml_data
-    integer, parameter :: input_rows = 1
-
-    real(wp) :: input(nc_ml_input, size(qc))
-    real(wp) :: input_transformed(nc_ml_input, size(qc))
-    real(wp) :: output00(nc_ml_nodes, size(qc))
-    real(wp) :: output00_activ(nc_ml_nodes, size(qc))
-    real(wp) :: reshaped_bias00(nc_ml_nodes, size(qc))
-    real(wp) :: output01(nc_ml_output, size(qc))
-    real(wp) :: output01_activ(nc_ml_output, size(qc))
-    real(wp) :: reshaped_bias01(nc_ml_output, size(qc))
+    real(wp) :: input(nc_ml_input, nz)
+    real(wp) :: input_transformed(nc_ml_input, nz)
+    real(wp) :: output00(nc_ml_nodes, nz)
+    real(wp) :: output00_activ(nc_ml_nodes, nz)
+    real(wp) :: reshaped_bias00(nc_ml_nodes, nz)
+    real(wp) :: output01(nc_ml_output, nz)
+    real(wp) :: output01_activ(nc_ml_output, nz)
+    real(wp) :: reshaped_bias01(nc_ml_output, nz)
 
     real(wp), parameter :: logMin = -6.0_wp       ! r2
     real(wp), parameter :: logMax = 9.3010299957_wp ! 2000 cm^-3
     real(wp) :: predicted_exp, bias_corr
-    integer :: k, nz
+    integer :: k
 
-    ! get neural network data
-    call save_or_read_ml_data(ml_data_out=get_ml_data)
-    ml_data = get_ml_data(1)
-    nz = size(qc)
+    !! Network weights match init_ml_data / save_or_read_ml_data; use module parameters for OpenACC device.
 
     ! collect input data
     input(1,:) = qc
@@ -141,21 +140,21 @@ module module_mp_tempo_ml
     input(7,:) = w
 
     ! transform input data
-    call standard_scaler_transform(mean=ml_data%transform_mean, var=ml_data%transform_var, &
+    call standard_scaler_transform(mean=nc_ml_trans_mean, var=nc_ml_trans_var, &
          raw_data=input, transformed_data=input_transformed)
 
     do k = 1, nz
-      reshaped_bias00(:,k) = ml_data%bias00
-      reshaped_bias01(1,k) = ml_data%bias01(1)
+      reshaped_bias00(:,k) = nc_ml_b00
+      reshaped_bias01(1,k) = nc_ml_b01(1)
     enddo
 
     ! reconstruct neural network
     ! first layer
-    output00 = matmul(ml_data%weights00, input_transformed) + reshaped_bias00
+    output00 = matmul(reshape(nc_ml_w00, (/nc_ml_nodes, nc_ml_input/)), input_transformed) + reshaped_bias00
     call relu_activation(input=output00, output=output00_activ)
 
     ! second layer
-    output01 = matmul(ml_data%weights01, output00_activ) + reshaped_bias01
+    output01 = matmul(reshape(nc_ml_w01, (/nc_ml_output, nc_ml_nodes/)), output00_activ) + reshaped_bias01
     call relu_activation(input=output01, output=output01_activ)
 
     ! prediction
@@ -175,6 +174,7 @@ module module_mp_tempo_ml
 
 
   subroutine standard_scaler_transform(mean, var, raw_data, transformed_data)
+  !$acc routine seq
     !! standard scaler transformer
   
     real(wp), dimension(:,:), intent(in) :: raw_data
@@ -189,6 +189,7 @@ module module_mp_tempo_ml
 
 
   subroutine relu_activation(input, output)
+  !$acc routine seq
    !! relu activation function
 
     real(wp), dimension(:,:), intent(in) :: input

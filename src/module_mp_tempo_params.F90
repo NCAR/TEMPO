@@ -112,8 +112,7 @@ module module_mp_tempo_params
   real(wp) :: rho_s = 100.0_wp !! density of snow \([kg\, m^{-3}]\)
 
   real(wp), parameter :: demott_nuc_ssati = 0.25_wp !! ice supersaturation threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
-  real(wp), parameter :: demott_nuc_tempc = -20._wp !! temperature threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
-  real(wp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
+  real(dp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
   real(wp), parameter :: icenuc_max = 1000.e3_wp !! maximum ice nucleation number \([m^{-3}]\)
   real(wp), parameter :: rime_threshold = 2.0_wp !! snow to graupel rime threshold parameter
   real(wp), parameter :: rime_conversion = 0.95_wp !! snow to graupel rime conversion parameter
@@ -140,26 +139,26 @@ module module_mp_tempo_params
   real(dp), parameter :: gonv_min = 1.e2_dp !! minimum graupel y-intercept \([m^{-4}]\)
   real(dp), parameter :: gonv_max = 1.e6_dp !! maximum graupel y-intercept \([m^{-4}]\)
 
+  real(wp), parameter :: t0 = 273.15_wp !! melting point of ice \([K]\)
+  real(wp), parameter :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
+
   real(wp), dimension(nrhg), parameter :: rho_g = [50._wp, 100._wp, 200._wp, 300._wp, 400._wp, &
     500._wp, 600._wp, 700._wp, 800._wp] !! !! densities of graupel when hail_aware = true \([kg\, m^{-3}]\)
 
   real(wp), parameter :: sc = 0.632_wp !! [schmidt number](https://glossary.ametsoc.org/wiki/Schmidt_number)
-  real(wp), parameter :: earth_gravity = 9.8_wp !! gravity of Earth \([m\, s^{-2}]\)
 
   ! these can be overwritten by a host model and don't have a parameter attribute
   real(wp) :: pi = 3.1415926536_wp !! pi is approximately 355/113
-  real(wp) :: t0 = 273.15_wp !! melting point of ice \([K]\)
-  real(wp) :: rho_w = 1000._wp !! density of liquid water \([kg\, m^{-3}]\)
   real(wp) :: lsub = 2.834e6_wp !! enthalpy of sublimation \([J\, kg^{-1}]\)
   real(wp) :: lvap0 = 2.5e6_wp !! enthalpy of vaporization \([J\, kg^{-1}]\)
   real(wp) :: rv = 461.5_wp !! gas constant for water vapor \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: rdry = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: roverrv = 0.622_wp !! dry gas constant divided by water vapor gas constant
-  real(wp) :: cp = 1004.0_wp !! heat capacity of air at constant pressure \([J\, K^{-1}\, kg^{-1}]\)
-  real(wp) :: r_uni = 8.314_wp  !! gas constant \([J\, K^{-1}\, mol^{-1}]\)
-  real(wp) :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
+  real(wp) :: r = 287.04_wp !! gas constant for dry air \([J\, K^{-1}\, kg^{-1}]\)
   real(wp) :: rho_not !! density constant \([kg\, m^{-3}]\)
   real(wp) :: rho_not0 !! density constant \([kg\, m^{-3}]\)
+  real(wp) :: cp = 1004.0_wp !! heat capacity of air at constant pressure \([J\, K^{-1}\, kg^{-1}]\)
+  real(wp) :: r_uni = 8.314  !! gas constant \([J\, K^{-1}\, mol^{-1}]\)
 
   real(wp), parameter :: kap0 = 490.6_wp !! snow parameter from [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
   real(wp), parameter :: kap1 = 17.46_wp !! snow parameter from [Field et al. (2005)](https://doi.org/10.1256/qj.04.134)
@@ -305,6 +304,7 @@ module module_mp_tempo_params
   real(wp), protected :: am_i !! ice mass-diameter power-law coefficient
   real(wp), protected :: am_r !! rain mass-diameter power-law coefficient
   real(wp), protected, dimension (nrhg) :: am_g !! graupel mass-diameter power-law coefficient
+  real(wp), protected :: lfus !! enthalpy of fusion \([J\, kg^{-1}]\)
   real(wp), protected :: olfus !! 1 / lfus \([kg\, J^{-1}]\)
   real(wp), protected :: orv !! 1 / rv \([K\, kg\, J^{-1}]\)
   real(wp), protected :: ar_volume !! volume for Koop nucleation
@@ -375,17 +375,43 @@ module module_mp_tempo_params
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qcfz, tni_qcfz !! cloud droplet freezing data arrays
   real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz !! rain freezing data arrays
   real(dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data array
-    
+
+  !! OpenACC: module variables read by !$acc routine procedures (utils graupel_init/snow_moments; main;
+  !! koop/demott + get_*_table_index + rain sedimentation helpers; diags). Sync host with acc update in
+  !! initialize_parameters / initialize_bins_for_tables; t_efrw/t_efsw after compute_efrw/compute_efsw (utils).
+  !! ocms/ocmg/obms/obmg: melting reflectivity + rayleigh_soak_wetgraupel (module_mp_tempo_diags).
+  !$acc declare create(oams, ocms, ocmg, cse, csg, am_g, cgg, oge1, ogg1, ogg2, ogg3, ar_volume, r_uni, rho_not0, &
+  !$acc                am_r, am_i, cre, crg, org1, org2, org3, ore1, cge, cce, ccg, ocg1, ocg2, dr, ds, nic1, t_nc, nic2, nii2, nii3, &
+  !$acc                nir2, nir3, nis2, nig2, nig3, niin2, lsub, lfus, olfus, orv, pi, cig, oig1, av_g, bv_g, rho_s, sc3, &
+  !$acc                obms, obmg, obmi, obmr, t1_qr_qc, t1_qr_qi, t2_qr_qi, t1_qs_qc, t1_qs_qi, &
+  !$acc                t1_qr_ev, t2_qr_ev, t1_qs_sd, t2_qs_sd, t1_qs_me, t2_qs_me, t1_qg_sd, t1_qg_me, &
+  !$acc                tnccn_act, t_efrw, t_efsw, &
+  !$acc                sbins_radar, dsbins_radar, gbins_radar, dgbins_radar)
+
+  !! Lookup tables filled by reading binary files (read_table_freezewater / read_table_qr_acr_qs /
+  !! read_table_qr_acr_qg in module_mp_tempo_driver). Declared create here so host allocate() also
+  !! provisions the device-side image; an !$acc update device is issued after the host read in the
+  !! driver to push table contents to GPU memory before tempo_main kernels index them.
+  !$acc declare create(tpi_qcfz, tni_qcfz, tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz)
+  !$acc declare create(tcs_racs1, tmr_racs1, tcs_racs2, tmr_racs2, tcr_sacr1, tms_sacr1, tcr_sacr2, tms_sacr2, &
+  !$acc                tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2)
+  !$acc declare create(tcg_racg, tmr_racg, tcr_gacr, tnr_racg, tnr_gacr)
+
+  !! Lookup tables filled by host-side compute in module_mp_tempo_utils (compute_drop_evap, qi_aut_qs).
+  !! update device calls already live in those routines; declare here so the host allocate() pairs
+  !! with a device-side allocation when managed memory is disabled.
+  !$acc declare create(tpc_wev, tnc_wev)
+  !$acc declare create(tps_iaus, tni_iaus, tpi_ide)
+
   ! -------------------------------------------------------------------------------------------------------
   ! -------------------------------------------------------------------------------------------------------
   contains
 
-  subroutine get_version(version, verbose_flag)
+  subroutine get_version(version)
     !! returns the tempo version string from the README.md file
     !! or returns empty string if not found
   
     character(len=*), intent(inout) :: version
-    logical, intent(in) :: verbose_flag
     character(len=100) :: first_line, filename
     integer :: io_unit
     logical :: fileexists
@@ -404,7 +430,7 @@ module module_mp_tempo_params
 
     ! format is tempo-vX.X.X
     version = trim(first_line(8:))
-    if (verbose_flag) write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
+    write(*,'(A)') 'TEMPO Microphysics Version: '//trim(version)
   end subroutine get_version
 
 
@@ -423,6 +449,7 @@ module module_mp_tempo_params
       bv_g(idx_bg1) = bv_g_old
       dim_nrhg = nrhg1
     endif
+    !$acc update device(av_g, bv_g)
   end subroutine initialize_graupel_vars
 
 
@@ -448,7 +475,6 @@ module module_mp_tempo_params
 
     lfus = lsub - lvap0
     olfus = 1.0_wp / lfus
-    roverrv = rdry / rv
     orv = 1.0_wp / rv
     rho_not = 101325.0_wp / (rdry*298.0_wp)
     rho_not0 = 101325.0_wp / (rdry*t0)
@@ -607,6 +633,12 @@ module module_mp_tempo_params
 
     ! melting of graupel
     t1_qg_me = pi * 4._wp * c_cube * olfus * 0.86_wp * cgg(10,1)
+
+    !$acc update device(oams, ocms, ocmg, obms, obmg, obmi, obmr, cse, csg, am_g, cgg, ogg3, oge1, ogg1, ogg2, ar_volume, r_uni, rho_not0, &
+    !$acc               am_r, am_i, cre, crg, org1, org2, org3, ore1, cge, cce, ccg, ocg1, ocg2, lsub, lfus, olfus, orv, pi, cig, oig1, av_g, bv_g, rho_s, sc3, &
+    !$acc               t1_qr_qc, t1_qr_qi, t2_qr_qi, t1_qs_qc, t1_qs_qi, &
+    !$acc               t1_qr_ev, t2_qr_ev, t1_qs_sd, t2_qs_sd, t1_qs_me, t2_qs_me, t1_qg_sd, t1_qg_me)
+
   end subroutine initialize_parameters
     
 
@@ -655,6 +687,8 @@ module module_mp_tempo_params
       highbin=3000.0_dp, bins=t_nc)
     t_nc = t_nc * 1.0e6_dp
     nic1 = real(log(t_nc(nbc)/t_nc(1)), kind=dp)
+
+    !$acc update device(nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3, niin2, dr, ds, t_nc, nic1)
   end subroutine initialize_bins_for_tables
 
 
@@ -689,6 +723,9 @@ module module_mp_tempo_params
       ! bins of graupel (from 100 microns up to 5 cm)
     call create_bins(numbins=radar_bins, lowbin=lowbin, &
       highbin=g_highbin, bins=gbins_radar, deltabins=dgbins_radar)
+
+    !! OpenACC: melting reflectivity routines index these on device (module_mp_tempo_diags).
+    !$acc update device(sbins_radar, dsbins_radar, gbins_radar, dgbins_radar)
   end subroutine initialize_bins_for_radar
 
 
