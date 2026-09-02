@@ -2165,14 +2165,14 @@ module module_mp_tempo_main
   end subroutine freeze_cloud_melt_ice
 
 
-  function koop_nucleation(temp, satw, naero, dt) result(nuc)
+  function koop_nucleation(temp, ssatw, naero, dt) result(nuc)
     !! aqueous solution freezing of water from 
     !! [Koop et al. (2000)](https://doi.org/10.1038/35020537)
     !! newer research suggests that the freezing rate should be lower 
     !! than original paper, so J_rate is reduced by two orders of magnitude
     use module_mp_tempo_params, only : r_uni, ar_volume
 
-    real(wp), intent(in) :: temp, satw, naero, dt
+    real(wp), intent(in) :: temp, ssatw, naero, dt
     real(wp) :: xni, mu_diff, a_w_i, delta_aw, log_j_rate, j_rate, prob_h
     real(wp) :: nuc
 
@@ -2181,7 +2181,7 @@ module module_mp_tempo_main
     mu_diff = 210368._wp + (131.438_wp*temp) - &
       (3.32373e6_wp/temp) - (41729.1_wp*log(temp))
     a_w_i = exp(mu_diff/(r_uni*temp))
-    delta_aw = satw - a_w_i
+    delta_aw = ssatw + 1._wp - a_w_i
 
     log_j_rate = -906.7_wp + (8502._wp*delta_aw) - &
       (26924._wp*delta_aw*delta_aw) + (29180._wp*delta_aw*delta_aw*delta_aw)
@@ -2981,7 +2981,7 @@ module module_mp_tempo_main
               ((lamr+fv_r)**(-cre(8)))
             tend%prr_rci(k) = min(real(rr(k)*odt, kind=dp), tend%prr_rci(k))
             tend%prg_rci(k) = tend%pri_rci(k) + tend%prr_rci(k)
-            tend%pbg_rci(k) = tend%prg_rci(k)/rho_i
+            tend%pbg_rci(k) = meters3_to_liters * tend%prg_rci(k)/rho_i
           endif
         endif
 
