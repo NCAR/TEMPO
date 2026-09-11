@@ -15,6 +15,7 @@ module module_mp_tempo_cfgs
     logical :: aerosolaware_flag = .true. !! flag to run aerosol-aware microphysics
     logical :: diagnostic_aerosols_flag = .false. !! flag to use diagnostic aerosols (no update) in the microphysics
     logical :: hailaware_flag = .true. !! flag to run hail-aware microphysics
+    logical :: hailhyperaware_flag = .true. !! flag to run hail-hyperaware microphysics (splits graupel/hail and performs simple hail physics)
     logical :: ml_for_bl_nc_flag = .false. !! flag to run machine-learning prediction for subgrid cloud number concentration
     logical :: ml_for_nc_flag = .false. !! flag to run machine-learning prediction for tempo cloud number concentration
     logical :: semi_sedi_flag = .false. !! flag for semi-lagrangian sedimentation

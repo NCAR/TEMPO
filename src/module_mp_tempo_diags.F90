@@ -58,28 +58,29 @@ module module_mp_tempo_diags
 
   subroutine reflectivity_10cm(refl10cm_from_melting_flag, &
     temp, l_qr, rr, nr, ilamr, l_qs, rs, smoc, smob, smoz, &
-    l_qg, rg, ng, idx, ilamg, dbz)
+    l_qg, rg, ng, idx, ilamg, l_qh, nh, ilamh, dbz)
     !! 10-cm radar reflectivity
     !! 
     !! contributions from melting snow and graupel are optionally included
     !!
     !! \(Z_{e} = \int_0^\infty D^{6}n(D)dD\) and \(dbz = 10*log10(Z_{e}*1\times 10^{18})\)
-    use module_mp_tempo_params, only : pi, org2, cre, crg, am_s, am_g, cge, cgg, ogg2
+    use module_mp_tempo_params, only : pi, org2, cre, crg, am_s, am_g, cge, cgg, ogg2, nrhg
 
     logical, intent(in) :: refl10cm_from_melting_flag
-    logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg
-    real(wp), dimension(:), intent(in) :: temp, rg, ng, rr, nr, rs
-    real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg
+    logical, dimension(:), intent(in) :: l_qr, l_qs, l_qg, l_qh
+    real(wp), dimension(:), intent(in) :: temp, rg, ng, rr, nr, rs, nh
+    real(dp), dimension(:), intent(in) :: ilamr, smoc, smob, smoz, ilamg, ilamh
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(out) :: dbz
-    real(wp) :: ze_rain(size(temp)), ze_snow(size(temp)), ze_graupel(size(temp))
-    real(dp) :: n0_r, lamr, n0_g
+    real(wp) :: ze_rain(size(temp)), ze_snow(size(temp)), ze_graupel(size(temp)), ze_hail(size(temp))
+    real(dp) :: n0_r, lamr, n0_g, n0_h
     integer :: k, nz, k_melt
 
     nz = size(temp)
-    ze_rain = 1.e-22_wp
-    ze_snow = 1.e-22_wp
-    ze_graupel = 1.e-22_wp
+    ze_rain = 0.75e-22_wp
+    ze_snow = 0.75e-22_wp
+    ze_graupel = 0.75e-22_wp
+    ze_hail = 0.75e-22_wp
 
     if (refl10cm_from_melting_flag) then
       k_melt = find_melting_level(temp, l_qr, l_qs, l_qg)
@@ -116,7 +117,12 @@ module module_mp_tempo_diags
           endif
         endif 
       endif
-      dbz(k) = max(-35._wp, 10._wp*real(log10((ze_rain(k)+ze_snow(k)+ze_graupel(k))*1.e18_dp), kind=wp))
+      if (l_qh(k)) then
+        n0_h = nh(k)/ilamh(k)
+        ze_hail(k) = (0.176_wp/0.93_wp) * (6._wp/pi)*(6._wp/pi) * &
+          (am_g(nrhg)/900._wp)*(am_g(nrhg)/900._wp) * n0_h*cgg(4,1)*ilamh(k)**cge(4,1)
+      endif
+      dbz(k) = max(-35._wp, 10._wp*real(log10((ze_rain(k)+ze_snow(k)+ze_graupel(k)+ze_hail(k))*1.e18_dp), kind=wp))
     enddo
   end subroutine reflectivity_10cm
 
@@ -403,7 +409,7 @@ module module_mp_tempo_diags
 
     real(wp), dimension(:), intent(in) :: rho, rg, ng
     real(dp), dimension(:), intent(in) :: ilamg
-    integer, dimension(:), intent(in) :: idx
+    integer, dimension(:), intent(in), optional :: idx
     real(wp), dimension(:), intent(out) :: max_hail_diameter
     real(dp) :: lamg, n0_g, sum_nh, sum_t, f_d, hail_max
     integer :: k, nz, n
@@ -413,7 +419,9 @@ module module_mp_tempo_diags
     do k = 1, nz
       max_hail_diameter(k) = 0._wp
       if(rg(k)/rho(k) >= 1.e-6_wp) then
-        if (rho_g(idx(k)) < 350._wp) cycle ! density too low to be hail/ice pellets
+        if (present(idx)) then
+          if (rho_g(idx(k)) < 350._wp) cycle ! density too low to be hail/ice pellets
+        endif
         lamg = 1._dp / ilamg(k)
         n0_g = ng(k)*ogg2*lamg**cge(2,1)
 
