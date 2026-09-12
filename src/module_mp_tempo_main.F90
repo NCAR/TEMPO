@@ -1015,9 +1015,10 @@ module module_mp_tempo_main
 
             ! melting
             if (rho_g_val >= 749._wp .and. melt_prefactor > eps .and. tempc > 0._wp) then
-              if (mvd_g(k) > 4.e-3_wp) then
+              if (mvd_g(k) > 2.e-3_wp) then
                 hail_fraction(k) = hail_fraction(k) + &
                   (1._wp - max(min((1._wp / (1._wp + exp(temp(k)-t0-5._wp))), 1._wp), 0._wp))
+                hail_fraction(k) = min(hail_fraction(k), 0.8_wp + (mvd_g(k)*1000._wp - 6._wp)*0.1_wp)
                 hail_fraction(k) = max(min(hail_fraction(k), 0.8_wp), 0._wp)
               else
                 hail_fraction(k) = 0._wp
