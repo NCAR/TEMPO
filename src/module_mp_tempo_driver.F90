@@ -82,10 +82,7 @@ module module_mp_tempo_driver
       if (present(cloud_condensation_flag)) tempo_cfgs%cloud_condensation_flag = cloud_condensation_flag
       if (present(refl10cm_from_melting_flag)) tempo_cfgs%refl10cm_from_melting_flag = refl10cm_from_melting_flag
 
-      if (.not. tempo_cfgs%hailaware_flag) then
-        tempo_cfgs%hailhyperaware_flag = .false.
-        if (present(hailhyperaware_flag)) hailhyperaware_flag = .false.
-      endif
+      if (.not. tempo_cfgs%hailaware_flag) tempo_cfgs%hailhyperaware_flag = .false.
 
       if (tempo_cfgs%verbose) then
         write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
