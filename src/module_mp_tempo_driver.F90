@@ -84,7 +84,7 @@ module module_mp_tempo_driver
 
       if (.not. tempo_cfgs%hailaware_flag) then
         tempo_cfgs%hailhyperaware_flag = .false.
-        hailhyperaware_flag = .false.
+        if (present(hailhyperaware_flag)) hailhyperaware_flag = .false.
       endif
 
       if (tempo_cfgs%verbose) then
