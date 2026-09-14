@@ -82,10 +82,13 @@ module module_mp_tempo_driver
       if (present(cloud_condensation_flag)) tempo_cfgs%cloud_condensation_flag = cloud_condensation_flag
       if (present(refl10cm_from_melting_flag)) tempo_cfgs%refl10cm_from_melting_flag = refl10cm_from_melting_flag
 
+      if (.not. tempo_cfgs%hailaware_flag) tempo_cfgs%hailhyperaware_flag = .false.
+
       if (tempo_cfgs%verbose) then
         write(*,'(A)') 'tempo_init() --- TEMPO microphysics configuration options: '
         write(*,'(A,L)') 'tempo_init() --- aerosol aware = ', tempo_cfgs%aerosolaware_flag
         write(*,'(A,L)') 'tempo_init() --- hail aware = ', tempo_cfgs%hailaware_flag
+        write(*,'(A,L)') 'tempo_init() --- hail hyperaware = ', tempo_cfgs%hailhyperaware_flag
         write(*,'(A,L)') 'tempo_init() --- ML for subgrid cloud number = ', tempo_cfgs%ml_for_bl_nc_flag
         write(*,'(A,L)') 'tempo_init() --- ML for cloud number = ', tempo_cfgs%ml_for_nc_flag
         write(*,'(A,L)') 'tempo_init() --- reflectivity from melting snow/graupel = ', tempo_cfgs%refl10cm_from_melting_flag
