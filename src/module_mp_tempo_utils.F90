@@ -278,7 +278,7 @@ module module_mp_tempo_utils
       + sb(5)*tc*tc + sb(6)*cse(3)*cse(3) &
       + sb(7)*tc*tc*cse(3) + sb(8)*tc*cse(3)*cse(3) &
       + sb(9)*tc*tc*tc + sb(10)*cse(3)*cse(3)*cse(3)
-    if (present(smoz)) smoz = a_ * smo2**b_
+    if (present(smoz)) smoz = a_ * smo2_**b_
 
   end subroutine snow_moments
 
