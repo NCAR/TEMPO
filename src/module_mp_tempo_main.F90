@@ -794,11 +794,13 @@ module module_mp_tempo_main
     if (any(l_qi)) then
       call ice_fallspeed(rhof, l_qi, ri, ilami, dz1d, vtri, vtni, &
         substeps_sedi, ktop_sedi, dt=dt)
-      call sedimentation(xr=ri, vt=vtri, dz1d=dz1d, rho=rho, xten=qiten, limit=r1, &
-        steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%ice_liquid_equiv_precip, dt=dt)
-      call sedimentation(xr=ni, vt=vtni, dz1d=dz1d, rho=rho, xten=niten, limit=r2, &
-        steps=substeps_sedi, ktop_sedi=ktop_sedi, dt=dt)
-    endif 
+      do n = 1, substeps_sedi
+        call sedimentation(xr=ri, vt=vtri, dz1d=dz1d, rho=rho, xten=qiten, limit=r1, &
+          steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%ice_liquid_equiv_precip, dt=dt)
+        call sedimentation(xr=ni, vt=vtni, dz1d=dz1d, rho=rho, xten=niten, limit=r2, &
+          steps=substeps_sedi, ktop_sedi=ktop_sedi, dt=dt)
+      enddo
+    endif
 
     ! cloud
     ktop_sedi = 1
