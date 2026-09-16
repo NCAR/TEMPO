@@ -473,7 +473,7 @@ module module_mp_tempo_main
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-        nwfa1d, nifa1d, nwfa, nifa, ni, smo0, rc, nc, rr, nr, ilamr, tend, dt, odt)
+        nwfa1d, nifa1d, nwfa, nifa, ni, ns, rc, nc, rr, nr, ilamr, tend, dt, odt)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
@@ -794,11 +794,13 @@ module module_mp_tempo_main
     if (any(l_qi)) then
       call ice_fallspeed(rhof, l_qi, ri, ilami, dz1d, vtri, vtni, &
         substeps_sedi, ktop_sedi, dt=dt)
-      call sedimentation(xr=ri, vt=vtri, dz1d=dz1d, rho=rho, xten=qiten, limit=r1, &
-        steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%ice_liquid_equiv_precip, dt=dt)
-      call sedimentation(xr=ni, vt=vtni, dz1d=dz1d, rho=rho, xten=niten, limit=r2, &
-        steps=substeps_sedi, ktop_sedi=ktop_sedi, dt=dt)
-    endif 
+      do n = 1, substeps_sedi
+        call sedimentation(xr=ri, vt=vtri, dz1d=dz1d, rho=rho, xten=qiten, limit=r1, &
+          steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%ice_liquid_equiv_precip, dt=dt)
+        call sedimentation(xr=ni, vt=vtni, dz1d=dz1d, rho=rho, xten=niten, limit=r2, &
+          steps=substeps_sedi, ktop_sedi=ktop_sedi, dt=dt)
+      enddo
+    endif
 
     ! cloud
     ktop_sedi = 1
@@ -1734,7 +1736,7 @@ module module_mp_tempo_main
           tend%prs_ide(k) + tend%prs_sde(k) + tend%prg_gde(k) + tend%prh_hde(k) + tend%pri_iha(k)) + &
           lfus2*ocp(k)*(tend%pri_wfz(k) + tend%pri_rfz(k) + tend%prg_rfz(k) + &
           tend%prs_scw(k) + tend%prg_scw(k) + tend%prg_gcw(k) + tend%prh_hcw(k) - tend%prr_rcs(k) + &
-          tend%prs_rcs(k) + tend%prr_rci(k) - tend%prr_rcg(k) - tend%prr_rch(k)))*orho
+          tend%prr_rci(k) - tend%prr_rcg(k) - tend%prr_rch(k)))*orho
       else
         tten(k) = tten(k) + &
           (lfus*ocp(k)*(-tend%prr_sml(k) - tend%prr_gml(k) - tend%prr_hml(k) - &
@@ -3037,7 +3039,7 @@ module module_mp_tempo_main
 
 
   subroutine ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-      nwfa1d, nifa1d, nwfa, nifa, ni, smo0, rc, nc, rr, nr, ilamr, tend, dt, odt)
+      nwfa1d, nifa1d, nwfa, nifa, ni, ns, rc, nc, rr, nr, ilamr, tend, dt, odt)
     !! ice nulceation
     use module_mp_tempo_params, only : r_r, r_c, hgfrz, rho_i, xm0i, &
       tpg_qrfz, tpi_qrfz, tni_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz, &
@@ -3048,7 +3050,7 @@ module module_mp_tempo_main
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: qv, temp, rho, qvsi, rr, nr, rc, nc, w1d, &
       ssati, ssatw, ni, nwfa, nifa
-    real(dp), dimension(:), intent(in) :: ilamr, smo0
+    real(dp), dimension(:), intent(in) :: ilamr, ns
     real(wp), dimension(:), intent(in), optional :: nwfa1d, nifa1d
     real(wp) :: rate_max, tempc, xni, xnc, rime_autoconv_ratio
     integer :: k, nz, idx_in, idx_r, idx_r1, idx_tc, idx_c, idx_n
@@ -3123,7 +3125,7 @@ module module_mp_tempo_main
         endif
         !>
         !> freezing of aqueous aerosols is based on [Koop et al. (2000)](https://doi.org/10.1038/35020537)
-        xni = smo0(k)+ni(k) + (tend%pni_rfz(k)+tend%pni_wfz(k)+tend%pni_inu(k))*dt
+        xni = ns(k)+ni(k) + (tend%pni_rfz(k)+tend%pni_wfz(k)+tend%pni_inu(k))*dt
         if (present(nwfa1d)) then
           if ((xni <= max_ni) .and.(temp(k) < 238._wp) .and. (ssati(k) >= 0.4_wp)) then
             xnc = koop_nucleation(temp(k), ssatw(k), nwfa(k), dt)
@@ -3225,7 +3227,7 @@ module module_mp_tempo_main
     real(dp), dimension(:), intent(in) :: ilami, smoe, smof, smo1, ilamr, ilamg, ilamh
     integer, dimension(:), intent(in) :: idx
     real(wp) :: xdi, xmi, oxmi, c_snow, rate_max, otemp, rvs, t2_qg_sd, rime_autoconv_ratio
-    real(dp) :: lami, lamr, n0_r, n0_g, n0_h
+    real(dp) :: lamr, n0_r, n0_g, n0_h
     integer :: k, nz, idx_i, idx_i1
     real(wp), dimension(:), allocatable :: t1_subl
 
@@ -3241,7 +3243,6 @@ module module_mp_tempo_main
       if (temp(k) < t0) then
         if (l_qi(k)) then
           call get_ice_table_index(ri(k), ni(k), idx_i, idx_i1)
-          lami = 1._dp/ilami(k)
           xdi = max(real(d0i, kind=dp), (bm_i + mu_i + 1.) * ilami(k))
           xmi = am_i*xdi**bm_i
           oxmi = 1._wp/xmi
@@ -3273,7 +3274,6 @@ module module_mp_tempo_main
           endif
 
           ! snow collecting cloud ice assumes di << ds and vti ~ 0
-          lami = (am_i*cig(2)*oig1*ni(k)/ri(k))**obmi
           xdi = max(real(d0i, kind=dp), (bm_i + mu_i + 1.) * ilami(k))
           xmi = am_i*xdi**bm_i
           oxmi = 1./xmi
@@ -3407,7 +3407,7 @@ module module_mp_tempo_main
             tend%prr_sml(k) = 0._dp
             tend%pnr_sml(k) = 0._dp
             if (ssati(k) < 0._wp) then
-              tend%prs_sde(k) = c_cube*t1_subl(k)*diffu(k)*ssati(k)*rvs * &
+              tend%prs_sde(k) = c_sqrd*t1_subl(k)*diffu(k)*ssati(k)*rvs * &
                 (t1_qs_sd*smo1(k) + t2_qs_sd*rhof2(k)*vsc2(k)*smof(k))
               tend%prs_sde(k) = max(real(-rs(k)*odt, kind=dp), tend%prs_sde(k))
             endif
