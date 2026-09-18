@@ -487,7 +487,7 @@ module module_mp_tempo_main
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call melting(rhof2, rho, temp, qvsi, tcond, diffu, vsc2, ssati, delqvs, &
         l_qs, rs, smof, smo0, smo1, l_qg, rg, ng, ilamg, idx_bg, l_qh, rh, nh, ilamh, &
-        hail_fraction, tend, dt, odt)
+        hail_fraction, tempo_cfgs%hailhyperaware_flag, tend, dt, odt)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       if (present(nwfa1d) .or. present(nifa1d)) then
@@ -502,7 +502,8 @@ module module_mp_tempo_main
       l_qh=l_qh, rh=rh, tend=tend, odt=odt)
 
     call sum_tendencies(rho, temp, idx_bg, lvap, ocp, tend, tten, qvten, qcten, &
-      ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
+      ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten, &
+      tempo_cfgs%hailhyperaware_flag)
 
     ! update after tendencies applied ------------------------------------------------------------
     do k = 1, nz
@@ -512,7 +513,7 @@ module module_mp_tempo_main
       rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
       nwfaten(k) = nwfaten(k) - (tend%pna_rca(k) + tend%pna_sca(k) + tend%pna_gca(k) + &
         tend%pni_iha(k)) / rho(k)
-      nifaten(k) = nifaten(k) - (tend%pnd_rcd(k) + tend%pnd_scd(k) + tend%pnd_gcd(k)) / rho(k)
+      nifaten(k) = nifaten(k) - (tend%pnd_rcd(k) + tend%pnd_scd(k) + tend%pnd_gcd(k) + tend%pni_inu(k)) / rho(k)
     enddo 
     
     ! only updates nwfa, nifa
@@ -1009,8 +1010,13 @@ module module_mp_tempo_main
             else
               hail_fraction(k) = hail_fraction(k) + 0.1_wp
             endif
+
+            if (tempc < -30._wp) hail_fraction(k) = hail_fraction(k) + (0.0125_wp*tempc + 0.375_wp)
+            
             if (mvd_g(k) > 2.e-3_wp) hail_fraction(k) = hail_fraction(k) + (mvd_g(k)*1000._wp - 2._wp)*0.1_wp
             if (qr1d(k)+qc1d(k) > 1.e-3_wp .and. rho_g_val > 499._wp) hail_fraction(k) = 0.5_wp
+
+
             
             hail_fraction(k) = max(min(hail_fraction(k), 0.5_wp), 0.2_wp)
             qh1d(k) = hail_fraction(k) * qg1d(k)
@@ -1670,7 +1676,7 @@ module module_mp_tempo_main
 
 
   subroutine sum_tendencies(rho, temp, idx, lvap, ocp, tend, tten, qvten, qcten, &
-    ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
+    ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten, hail_fraction_flag)
     !! sums tendencies for each hydrometeor category and temperature and moisture
     use module_mp_tempo_params, only : lsub, rho_g, t0, lfus, meters3_to_liters
 
@@ -1679,7 +1685,9 @@ module module_mp_tempo_main
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(inout) :: qvten, qcten, ncten, qiten, niten, &
       qsten, qrten, nrten, qgten, ngten, qbten, tten, qhten
-    real(wp) :: orho, lfus2
+    logical, intent(in) :: hail_fraction_flag
+    real(wp) :: orho, lfus2,  massg_sources, volg_sources, dens_weight, final_weight, &
+      frozen_terms, riming_terms
     integer :: k, nz
 
     nz = size(temp)
@@ -1726,6 +1734,27 @@ module module_mp_tempo_main
       qbten(k) = qbten(k) + (tend%pbg_scw(k) + tend%pbg_rfz(k) + tend%pbg_gcw(k) + &
         tend%pbg_rci(k) + tend%pbg_rcs(k) + tend%pbg_rcg(k) + tend%pbg_sml(k) - &
         tend%pbg_gml(k) + meters3_to_liters * (tend%prg_gde(k) - tend%prg_ihm(k)) / rho_g(1)) * orho
+
+      ! use a density weighting for the volume tendency that will
+      ! increase density if a large fraction of frozen drops are being added to graupel
+      frozen_terms = tend%prg_rfz(k) + tend%prg_rcg(k) + tend%prg_rci(k) + tend%prg_rcs(k)
+      riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
+      if (.not. hail_fraction_flag .and. temp(k) < t0) then
+        massg_sources = frozen_terms + riming_terms
+        volg_sources = tend%pbg_scw(k) + tend%pbg_gcw(k) + &
+          tend%pbg_rfz(k) + tend%pbg_rcg(k) + tend%pbg_rci(k) + tend%pbg_rcs(k)
+
+        if (frozen_terms > r1) then
+          dens_weight = rho_g(nrhg)*frozen_terms/massg_sources
+          if (tend%pbg_scw(k) > eps) dens_weight = dens_weight + tend%prg_scw(k)/tend%pbg_scw(k)*(tend%prg_scw(k)/massg_sources)
+          if (tend%pbg_gcw(k) > eps) dens_weight = dens_weight + tend%prg_gcw(k)/tend%pbg_gcw(k)*(tend%prg_gcw(k)/massg_sources)
+
+          if (dens_weight > r1 .and. volg_sources > r1) then
+            final_weight = (1._wp/dens_weight)*(massg_sources/volg_sources)
+          endif
+          if (final_weight <= 1._wp) qbten(k) = qbten(k) * final_weight
+        endif
+      endif
       
       qhten(k) = qhten(k) + &
         (tend%prh_rch(k) + tend%prh_hcw(k) + tend%prh_hde(k) - tend%prr_hml(k)) * orho
@@ -3362,7 +3391,7 @@ module module_mp_tempo_main
 
   subroutine melting(rhof2, rho, temp, qvsi, tcond, diffu, vsc2, ssati, &
     delqvs, l_qs, rs, smof, smo0, smo1, l_qg, rg, ng, ilamg, idx, &
-    l_qh, rh, nh, ilamh, hail_fraction, tend, dt, odt)
+    l_qh, rh, nh, ilamh, hail_fraction, hail_fraction_flag, tend, dt, odt)
     !! melting of snow and graupel  
     use module_mp_tempo_params, only : t0, bm_i, mu_i, pi, c_sqrd, c_cube, d0s, &
       ntb_i, r_s, ef_si, r_r, fv_r, ef_ri, rho_i, t1_qs_sd, t2_qs_sd, eps, &
@@ -3376,6 +3405,7 @@ module module_mp_tempo_main
       temp, qvsi, tcond, diffu, ssati, delqvs, vsc2, rg, ng, rh, nh, hail_fraction
     real(dp), dimension(:), intent(in) :: smof, smo0, smo1, ilamg, ilamh
     integer, dimension(:), intent(in) :: idx
+    logical, intent(in) :: hail_fraction_flag
     real(wp) :: tempc, otemp, rvs, melt_f, t2_qg_me, t2_qg_sd, t2_qh_me, &
       melt_constant_1, melt_constant_2
     real(dp) :: n0_g, n0_melt, lamg, n0_h
@@ -3437,9 +3467,10 @@ module module_mp_tempo_main
             ! expected change in number concentration from melting
             ! this matches the original functional form when hail_fraction = 0
             melt_constant_1 = max(min(5._wp*(hail_fraction(k)/0.25_wp)**.33_wp, 5._wp), 0._wp)
+            if (.not. hail_fraction_flag) melt_constant_1 = 1._wp
             melt_constant_2 = (1._wp + exp(-1.215_wp * melt_constant_1)) / &
               (1._wp + exp(1.215_wp*(temp(k)-t0-melt_constant_1)))
-            tend%pnr_gml(k) = tend%prr_gml(k)*ng(k)/rg(k) * max(min(melt_constant_2, 1._wp), 0._wp)
+             tend%pnr_gml(k) = tend%prr_gml(k)*ng(k)/rg(k) * max(min(melt_constant_2, 1._wp), 0._wp)
           else
             tend%prr_gml(k) = 0._dp
             tend%pnr_gml(k) = 0._dp
