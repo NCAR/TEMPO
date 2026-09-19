@@ -502,8 +502,7 @@ module module_mp_tempo_main
       l_qh=l_qh, rh=rh, tend=tend, odt=odt)
 
     call sum_tendencies(rho, temp, idx_bg, lvap, ocp, tend, tten, qvten, qcten, &
-      ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten, &
-      tempo_cfgs%hailhyperaware_flag)
+      ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
 
     ! update after tendencies applied ------------------------------------------------------------
     do k = 1, nz
@@ -1014,10 +1013,10 @@ module module_mp_tempo_main
             ! increase hail fraction if liquid is present
             if (qr1d(k)+qc1d(k) > 1.e-3_wp) then
 !               if (qg1d(k) > 1.e-3_wp .and. rho_g_val > 499._wp) hail_fraction(k) = hail_fraction(k) + 0.1_wp
-              if (qg1d(k) > 1.e-3 .and. rho_g_val > 599._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
+              if (qg1d(k) > 1.e-3 .and. rho_g_val > 699._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
             else
               ! if not enough liquid present, limit hail fraction for high mass mxing ratios (assume a lot of small graupel/hail)
-               if (rho_g_val < 599._wp .and. qg1d(k) > 5.e-3_wp) then
+               if (rho_g_val < 699._wp .and. qg1d(k) > 5.e-3_wp) then
                  hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
                endif
             endif
@@ -1678,7 +1677,7 @@ module module_mp_tempo_main
 
 
   subroutine sum_tendencies(rho, temp, idx, lvap, ocp, tend, tten, qvten, qcten, &
-    ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten, hail_fraction_flag)
+    ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
     !! sums tendencies for each hydrometeor category and temperature and moisture
     use module_mp_tempo_params, only : lsub, rho_g, t0, lfus, meters3_to_liters
 
@@ -1687,7 +1686,6 @@ module module_mp_tempo_main
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(inout) :: qvten, qcten, ncten, qiten, niten, &
       qsten, qrten, nrten, qgten, ngten, qbten, tten, qhten
-    logical, intent(in) :: hail_fraction_flag
     real(wp) :: orho, lfus2,  massg_sources, volg_sources, dens_weight, final_weight, &
       frozen_terms, riming_terms
     integer :: k, nz
@@ -1739,7 +1737,7 @@ module module_mp_tempo_main
 
       ! use a density weighting for the volume tendency that will
       ! increase density if a large fraction of frozen drops are being added to graupel
-      if (.not. hail_fraction_flag .and. temp(k) < t0) then
+      if (temp(k) < t0) then
         frozen_terms = tend%prg_rfz(k) + tend%prg_rcg(k) + tend%prg_rci(k) + tend%prg_rcs(k)
         riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
 
