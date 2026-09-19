@@ -1739,14 +1739,15 @@ module module_mp_tempo_main
 
       ! use a density weighting for the volume tendency that will
       ! increase density if a large fraction of frozen drops are being added to graupel
-      frozen_terms = tend%prg_rfz(k) + tend%prg_rcg(k) + tend%prg_rci(k) + tend%prg_rcs(k)
-      riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
       if (.not. hail_fraction_flag .and. temp(k) < t0) then
+        frozen_terms = tend%prg_rfz(k) + tend%prg_rcg(k) + tend%prg_rci(k) + tend%prg_rcs(k)
+        riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
+
         massg_sources = frozen_terms + riming_terms
         volg_sources = tend%pbg_scw(k) + tend%pbg_gcw(k) + &
           tend%pbg_rfz(k) + tend%pbg_rcg(k) + tend%pbg_rci(k) + tend%pbg_rcs(k)
 
-        if (frozen_terms > r1) then
+        if (frozen_terms > r1 .and. frozen_terms > riming_terms) then
           dens_weight = rho_g(nrhg)*frozen_terms/massg_sources
           if (tend%pbg_scw(k) > eps) dens_weight = dens_weight + tend%prg_scw(k)/tend%pbg_scw(k)*(tend%prg_scw(k)/massg_sources)
           if (tend%pbg_gcw(k) > eps) dens_weight = dens_weight + tend%prg_gcw(k)/tend%pbg_gcw(k)*(tend%prg_gcw(k)/massg_sources)
@@ -3469,7 +3470,7 @@ module module_mp_tempo_main
             ! expected change in number concentration from melting
             ! this matches the original functional form when hail_fraction = 0
             melt_constant_1 = max(min(5._wp*(hail_fraction(k)/0.25_wp)**.33_wp, 5._wp), 0._wp)
-            if (.not. hail_fraction_flag) melt_constant_1 = 1._wp
+            if (.not. hail_fraction_flag) melt_constant_1 = 0._wp
             melt_constant_2 = (1._wp + exp(-1.215_wp * melt_constant_1)) / &
               (1._wp + exp(1.215_wp*(temp(k)-t0-melt_constant_1)))
              tend%pnr_gml(k) = tend%prr_gml(k)*ng(k)/rg(k) * max(min(melt_constant_2, 1._wp), 0._wp)
