@@ -1012,7 +1012,6 @@ module module_mp_tempo_main
 
             ! increase hail fraction if liquid is present
             if (qr1d(k)+qc1d(k) > 1.e-3_wp) then
-!               if (qg1d(k) > 1.e-3_wp .and. rho_g_val > 499._wp) hail_fraction(k) = hail_fraction(k) + 0.1_wp
               if (qg1d(k) > 1.e-3 .and. rho_g_val > 699._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
             else
               ! if not enough liquid present, limit hail fraction for high mass mxing ratios (assume a lot of small graupel/hail)
@@ -3471,7 +3470,7 @@ module module_mp_tempo_main
             if (.not. hail_fraction_flag) melt_constant_1 = 0._wp
             melt_constant_2 = (1._wp + exp(-1.215_wp * melt_constant_1)) / &
               (1._wp + exp(1.215_wp*(temp(k)-t0-melt_constant_1)))
-             tend%pnr_gml(k) = tend%prr_gml(k)*ng(k)/rg(k) * max(min(melt_constant_2, 1._wp), 0._wp)
+            tend%pnr_gml(k) = tend%prr_gml(k)*ng(k)/rg(k) * max(min(melt_constant_2, 1._wp), 0._wp)
           else
             tend%prr_gml(k) = 0._dp
             tend%pnr_gml(k) = 0._dp
