@@ -512,7 +512,7 @@ module module_mp_tempo_main
       rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
       nwfaten(k) = nwfaten(k) - (tend%pna_rca(k) + tend%pna_sca(k) + tend%pna_gca(k) + &
         tend%pni_iha(k)) / rho(k)
-      nifaten(k) = nifaten(k) - (tend%pnd_rcd(k) + tend%pnd_scd(k) + tend%pnd_gcd(k)) / rho(k)
+      nifaten(k) = nifaten(k) - (tend%pnd_rcd(k) + tend%pnd_scd(k) + tend%pnd_gcd(k) + tend%pni_inu(k)) / rho(k)
     enddo 
     
     ! only updates nwfa, nifa
