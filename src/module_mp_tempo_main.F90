@@ -27,14 +27,14 @@ module module_mp_tempo_main
 #endif
  
   type :: ty_tempo_main_diags
-    real(wp) :: rain_precip
-    real(wp) :: cloud_precip
-    real(wp) :: ice_liquid_equiv_precip
-    real(wp) :: snow_liquid_equiv_precip
-    real(wp) :: graupel_liquid_equiv_precip
-    real(wp) :: hail_liquid_equiv_precip
-    real(wp) :: frozen_fraction
-    real(wp) :: frz_rain_precip
+    real(wp) :: rain_precip = 0._wp
+    real(wp) :: cloud_precip = 0._wp
+    real(wp) :: ice_liquid_equiv_precip = 0._wp
+    real(wp) :: snow_liquid_equiv_precip = 0._wp
+    real(wp) :: graupel_liquid_equiv_precip = 0._wp
+    real(wp) :: hail_liquid_equiv_precip = 0._wp
+    real(wp) :: frozen_fraction = 0._wp
+    real(wp) :: frz_rain_precip = 0._wp
     real(wp), dimension(:), allocatable :: rain_med_vol_diam
     real(wp), dimension(:), allocatable :: graupel_med_vol_diam
     real(wp), dimension(:), allocatable :: refl10cm
