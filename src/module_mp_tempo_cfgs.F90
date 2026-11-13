@@ -1,6 +1,8 @@
 module module_mp_tempo_cfgs
   !! tempo configs
 
+  use module_mp_tempo_params, only: wp
+
   implicit none
   private
 
@@ -49,11 +51,11 @@ module module_mp_tempo_cfgs
 
   contains
 
-  real function resolve_nc_value(this, val_land, val_ocean)
+  real(wp) function resolve_nc_value(this, val_land, val_ocean)
     !! resolve the cloud number concentration value based on the input option
 
     class(ty_tempo_cfgs), intent(in) :: this
-    real, intent(in) :: val_land, val_ocean
+    real(wp), intent(in) :: val_land, val_ocean
     integer :: read_status
 
     select case (trim(adjustl(this%single_moment_nc_opt)))

@@ -30,9 +30,9 @@ module test_tempo_utils_suite
   subroutine CalcGammaP_a8x8(error)
     !! test calc_gamma_p with a=8 and x=8
     type(error_type), allocatable, intent(out) :: error
-    real(wp) :: value_from_wolfram = 0.54703919051300551 
+    real(wp) :: value_from_wolfram = 0.54703919051300551_wp
 
-    call check(error, abs(calc_gamma_p(8.,8.) - value_from_wolfram) < 1.e-6_wp)
+    call check(error, abs(calc_gamma_p(8._wp, 8._wp) - value_from_wolfram) < 1.e-6_wp)
     if (allocated(error)) return
   end subroutine CalcGammaP_a8x8
 
