@@ -1784,29 +1784,6 @@ module module_mp_tempo_main
       endif
       qbten(k) = qbten(k) + (volg_sources * final_weight + tend%pbg_sml(k) - &
         tend%pbg_gml(k) + meters3_to_liters * (tend%prg_gde(k) - tend%prg_ihm(k)) / rho_g(1)) * orho
-
-      ! use a density weighting for the volume tendency that will
-      ! increase density if a large fraction of frozen drops are being added to graupel
-      if (temp(k) < t0) then
-        frozen_terms = tend%prg_rfz(k) + tend%prg_rcg(k) + tend%prg_rci(k) + tend%prg_rcs(k)
-        riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
-
-        massg_sources = frozen_terms + riming_terms
-        volg_sources = tend%pbg_scw(k) + tend%pbg_gcw(k) + &
-          tend%pbg_rfz(k) + tend%pbg_rcg(k) + tend%pbg_rci(k) + tend%pbg_rcs(k)
-        final_weight = 1._wp
-
-        if (frozen_terms > r1 .and. frozen_terms > riming_terms .and. massg_sources > r1) then
-          dens_weight = rho_g(nrhg)*frozen_terms/massg_sources
-          if (tend%pbg_scw(k) > eps) dens_weight = dens_weight + tend%prg_scw(k)/tend%pbg_scw(k)*(tend%prg_scw(k)/massg_sources)
-          if (tend%pbg_gcw(k) > eps) dens_weight = dens_weight + tend%prg_gcw(k)/tend%pbg_gcw(k)*(tend%prg_gcw(k)/massg_sources)
-
-          if (dens_weight > r1 .and. volg_sources > r1) then
-            final_weight = (1._wp/dens_weight)*(massg_sources/volg_sources)
-          endif
-          if (final_weight <= 1._wp) qbten(k) = qbten(k) * final_weight
-        endif
-      endif
       
       qhten(k) = qhten(k) + &
         (tend%prh_rch(k) + tend%prh_hcw(k) + tend%prh_hde(k) - tend%prr_hml(k)) * orho
