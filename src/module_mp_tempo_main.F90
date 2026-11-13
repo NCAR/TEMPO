@@ -1838,7 +1838,7 @@ module module_mp_tempo_main
     real(wp) :: fa1, fa2, con1, decfl, dip, dim, tl, th, tl2, th2, qqd, qqh, qql, zsum, qsum, &
       orho, dql, dqh
     real(wp), dimension(:), allocatable :: zi, wi, za, dza, qa, qmi, qpi, net_flx, precip_flx, rr_save
-    real(wp), intent(out), optional :: precip
+    real(wp), intent(inout), optional :: precip
     integer :: k, nz, kk, kb, kt, m
 
     nz = size(dz1d)
@@ -1908,7 +1908,7 @@ module module_mp_tempo_main
       else
         qpi(k)=qa(k)+0.5_wp*(dip+dim)*dza(k)
         qmi(k)=2._wp*qa(k)-qpi(k)
-        if(qpi(k) > 0._wp .or. qmi(k) < 0._wp) then
+        if(qpi(k) < 0._wp .or. qmi(k) < 0._wp) then
           qpi(k) = qa(k)
           qmi(k) = qa(k)
         endif
