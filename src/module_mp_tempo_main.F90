@@ -1609,6 +1609,11 @@ module module_mp_tempo_main
         endif
       endif
 
+      ! Limit snow sources if rain was limited in the previous step
+      if (temp(k) < t0) then
+        if (tend%prs_rcs(k) > -tend%prr_rcs(k)) tend%prs_rcs(k) = -tend%prr_rcs(k)
+      endif 
+
       ! losses to snow include sublimation; melting; collection by rain; 
       ! rime splintering
       sump = tend%prs_sde(k) - tend%prs_ihm(k) - tend%prr_sml(k) + &
@@ -1660,11 +1665,17 @@ module module_mp_tempo_main
       tend%prg_rcg(k) = -tend%prr_rcg(k)
       tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg) ! scale density change
 
+      tend%prg_rci(k) = tend%pri_rci(k) + tend%prr_rci(k)
+      tend%pbg_rci(k) = meters3_to_liters * tend%prg_rci(k) / rho_g(nrhg)
+
       ! reset total rain-snow collection amount if reduced
       if (temp(k) >= t0) then
         ratio = min(abs(tend%prr_rcs(k)), abs(tend%prs_rcs(k)))
         tend%prr_rcs(k) = ratio * sign(1.0_dp, tend%prr_rcs(k))
         tend%prs_rcs(k) = -tend%prr_rcs(k)
+      else
+        tend%prg_rcs(k) = -(tend%prr_rcs(k) + tend%prs_rcs(k))
+        tend%pbg_rcs(k) = meters3_to_liters * tend%prg_rcs(k) / rho_g(nrhg)
       endif
 
       ! update to rain-hail
