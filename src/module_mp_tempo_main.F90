@@ -128,7 +128,7 @@ module module_mp_tempo_main
     ! thermodynamic variables
     real(wp), dimension(kts:kte) :: temp, pres, qv !! thermodynamic variables
     real(wp), dimension(kts:kte) :: rho, rhof, rhof2 !! thermodynamic variables
-    real(wp), dimension(kts:kte) :: rhon !! density after latent heating, for fall speeds only
+    real(wp), dimension(kts:kte) :: rhon !! density after the tendencies, for thermo_vars only
     real(wp), dimension(kts:kte) :: qvs, qvsi, delqvs !! thermodynamic variables
     real(wp), dimension(kts:kte) :: satw, sati, ssatw, ssati !! thermodynamic variables
     real(wp), dimension(kts:kte) :: diffu, visco, vsc2, tcond, lvap, ocp, lvt2 !! thermodynamic variables
@@ -511,8 +511,7 @@ module module_mp_tempo_main
     call sum_tendencies(rho, temp, idx_bg, lvap, ocp, tend, tten, qvten, qcten, &
       ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
 
-    ! rho stays the entry density so sedimentation conserves the host's column mass; rhon is only for
-    ! fall speeds and ventilation
+    ! rho stays the entry density for sedimentation; rhon is for fall speeds and ventilation
     ! update after tendencies applied ------------------------------------------------------------
     do k = 1, nz
       temp(k) = t1d(k) + tten(k)*dt
