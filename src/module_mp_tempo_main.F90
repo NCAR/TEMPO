@@ -344,6 +344,9 @@ module module_mp_tempo_main
     if (present(nwfa1d)) then
       if (local_first_step) then
         if (sum(nwfa1d) < eps) call init_water_friendly_aerosols(dz1d, nwfa)
+          do k = 1, nz
+            nwfa1d(k) = max(nwfa_default, min(aero_max, nwfa(k) / rho(k)))
+          enddo
       endif
     else
       call init_water_friendly_aerosols(dz1d, nwfa)
@@ -352,6 +355,9 @@ module module_mp_tempo_main
     if (present(nifa1d)) then
       if (local_first_step) then
         if (sum(nifa1d) < eps) call init_ice_friendly_aerosols(dz1d, nifa)
+          do k = 1, nz
+            nifa1d(k) = max(nifa_default, min(aero_max, nifa(k) / rho(k)))
+          enddo
       endif
     else
       call init_ice_friendly_aerosols(dz1d, nifa)    
@@ -952,7 +958,13 @@ module module_mp_tempo_main
       if (present(qc_bl1d) .and. present(qcfrac_bl1d)) then
         xrx = qc1d
         if (.not. allocated(xncx)) allocate(xncx(nz), source=0._wp)
-        xncx = nc1d
+        if (present(nc1d)) then
+          xncx = nc1d
+        elseif (allocated(ncsave)) then
+          xncx = ncsave / rho
+        else
+          xncx = nc / rho
+        endif
         do k = 1, nz
           if ((xrx(k) <= r1) .and. & 
             (qc_bl1d(k) > 1.e-9_wp) .and. (qcfrac_bl1d(k) > 0._wp)) then
@@ -1573,6 +1585,8 @@ module module_mp_tempo_main
           tend%prs_scw(k) = tend%prs_scw(k) * ratio
           tend%prg_scw(k) = tend%prg_scw(k) * ratio
           tend%prg_gcw(k) = tend%prg_gcw(k) * ratio
+          tend%pbg_scw(k) = tend%pbg_scw(k) * ratio
+          tend%pbg_gcw(k) = tend%pbg_gcw(k) * ratio
           tend%prh_hcw(k) = tend%prh_hcw(k) * ratio
         endif
       endif 
@@ -1608,6 +1622,11 @@ module module_mp_tempo_main
           tend%prr_rch(k) = tend%prr_rch(k) * ratio
         endif
       endif
+
+      ! Limit snow sources if rain was limited in the previous step
+      if (temp(k) < t0) then
+        if (tend%prs_rcs(k) > -tend%prr_rcs(k)) tend%prs_rcs(k) = -tend%prr_rcs(k)
+      endif 
 
       ! losses to snow include sublimation; melting; collection by rain; 
       ! rime splintering
@@ -1660,11 +1679,17 @@ module module_mp_tempo_main
       tend%prg_rcg(k) = -tend%prr_rcg(k)
       tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg) ! scale density change
 
+      tend%prg_rci(k) = tend%pri_rci(k) + tend%prr_rci(k)
+      tend%pbg_rci(k) = meters3_to_liters * tend%prg_rci(k) / rho_g(nrhg)
+
       ! reset total rain-snow collection amount if reduced
       if (temp(k) >= t0) then
         ratio = min(abs(tend%prr_rcs(k)), abs(tend%prs_rcs(k)))
         tend%prr_rcs(k) = ratio * sign(1.0_dp, tend%prr_rcs(k))
         tend%prs_rcs(k) = -tend%prr_rcs(k)
+      else
+        tend%prg_rcs(k) = -(tend%prr_rcs(k) + tend%prs_rcs(k))
+        tend%pbg_rcs(k) = meters3_to_liters * tend%prg_rcs(k) / rho_g(nrhg)
       endif
 
       ! update to rain-hail
@@ -1730,31 +1755,35 @@ module module_mp_tempo_main
       ngten(k) = ngten(k) + (tend%png_scw(k) + tend%png_rfz(k) - tend%png_rcg(k) + &
         tend%png_rci(k) + tend%png_rcs(k) + tend%png_gde(k) - tend%pnr_gml(k)) * orho
 
-      qbten(k) = qbten(k) + (tend%pbg_scw(k) + tend%pbg_rfz(k) + tend%pbg_gcw(k) + &
-        tend%pbg_rci(k) + tend%pbg_rcs(k) + tend%pbg_rcg(k) + tend%pbg_sml(k) - &
-        tend%pbg_gml(k) + meters3_to_liters * (tend%prg_gde(k) - tend%prg_ihm(k)) / rho_g(1)) * orho
-
       ! use a density weighting for the volume tendency that will
       ! increase density if a large fraction of frozen drops are being added to graupel
+      volg_sources = tend%pbg_scw(k) + tend%pbg_gcw(k) + &
+        tend%pbg_rfz(k) + tend%pbg_rcg(k) + tend%pbg_rci(k) + tend%pbg_rcs(k)
+      final_weight = 1._wp
+
       if (temp(k) < t0) then
         frozen_terms = tend%prg_rfz(k) + tend%prg_rcg(k) + tend%prg_rci(k) + tend%prg_rcs(k)
         riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
-
         massg_sources = frozen_terms + riming_terms
-        volg_sources = tend%pbg_scw(k) + tend%pbg_gcw(k) + &
-          tend%pbg_rfz(k) + tend%pbg_rcg(k) + tend%pbg_rci(k) + tend%pbg_rcs(k)
 
-        if (frozen_terms > r1 .and. frozen_terms > riming_terms) then
-          dens_weight = rho_g(nrhg)*frozen_terms/massg_sources
-          if (tend%pbg_scw(k) > eps) dens_weight = dens_weight + tend%prg_scw(k)/tend%pbg_scw(k)*(tend%prg_scw(k)/massg_sources)
-          if (tend%pbg_gcw(k) > eps) dens_weight = dens_weight + tend%prg_gcw(k)/tend%pbg_gcw(k)*(tend%prg_gcw(k)/massg_sources)
+        if (frozen_terms > r1 .and. frozen_terms > riming_terms .and. massg_sources > r1) then
+          dens_weight = rho_g(nrhg) * (frozen_terms / massg_sources)
+          if (tend%pbg_scw(k) > eps) then
+            dens_weight = dens_weight + &
+              (meters3_to_liters * tend%prg_scw(k) / tend%pbg_scw(k)) * (tend%prg_scw(k) / massg_sources)
+          endif
+          if (tend%pbg_gcw(k) > eps) then
+            dens_weight = dens_weight + &
+              (meters3_to_liters * tend%prg_gcw(k) / tend%pbg_gcw(k)) * (tend%prg_gcw(k) / massg_sources)
+          endif
 
           if (dens_weight > r1 .and. volg_sources > r1) then
-            final_weight = (1._wp/dens_weight)*(massg_sources/volg_sources)
+            final_weight = min(1._wp, (meters3_to_liters * massg_sources / volg_sources) / dens_weight)
           endif
-          if (final_weight <= 1._wp) qbten(k) = qbten(k) * final_weight
         endif
       endif
+      qbten(k) = qbten(k) + (volg_sources * final_weight + tend%pbg_sml(k) - &
+        tend%pbg_gml(k) + meters3_to_liters * (tend%prg_gde(k) - tend%prg_ihm(k)) / rho_g(1)) * orho
       
       qhten(k) = qhten(k) + &
         (tend%prh_rch(k) + tend%prh_hcw(k) + tend%prh_hde(k) - tend%prr_hml(k)) * orho
@@ -1867,7 +1896,7 @@ module module_mp_tempo_main
       wi(k) = fa1*(vt(k)+vt(k-1))-fa2*(vt(k+1)+vt(k-2))
     enddo
     wi(nz) = 0.5_wp*(vt(nz)+vt(nz-1))
-    wi(nz+1) = vt(nz+1)
+    wi(nz+1) = vt(nz)
 
     do k = 2, nz
       if(vt(k) == 0._wp) wi(k) = vt(k-1)
@@ -2301,6 +2330,7 @@ module module_mp_tempo_main
     nz = size(qv)
     do k = 1, nz
       if (abs(ssatw(k)) < eps) cycle ! RH = 100%
+      if (.not. l_qc(k) .and. ssatw(k) <= 0._wp) cycle ! clear and subsaturated
 
       orho = 1._wp/rho(k)
       clap = (qv(k)-qvs(k))/(1._wp + lvt2(k)*qvs(k))
