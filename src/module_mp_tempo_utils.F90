@@ -170,6 +170,8 @@ module module_mp_tempo_utils
     ! Second moment and smob
     smob = real(rs*oams, kind=dp)
     if (bm_s > 2.0_wp-1.e-3_wp .and. bm_s < 2.0_wp+1.e-3_wp) then
+      smo2_ = smob
+    else
       loga_ = sa(1) + sa(2)*tc + sa(3)*bm_s &
         + sa(4)*tc*bm_s + sa(5)*tc*tc &
         + sa(6)*bm_s*bm_s + sa(7)*tc*tc*bm_s &
@@ -182,8 +184,6 @@ module module_mp_tempo_utils
         + sb(8)*tc*bm_s*bm_s + sb(9)*tc*tc*tc &
         + sb(10)*bm_s*bm_s*bm_s
       smo2_ = (smob/a_)**(1._wp/b_)
-    else
-      smo2_ = smob
     endif
     if (present(smo2)) smo2 = smo2_
 
