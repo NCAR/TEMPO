@@ -128,6 +128,7 @@ module module_mp_tempo_main
     ! thermodynamic variables
     real(wp), dimension(kts:kte) :: temp, pres, qv !! thermodynamic variables
     real(wp), dimension(kts:kte) :: rho, rhof, rhof2 !! thermodynamic variables
+    real(wp), dimension(kts:kte) :: rhon !! density after latent heating, for fall speeds only
     real(wp), dimension(kts:kte) :: qvs, qvsi, delqvs !! thermodynamic variables
     real(wp), dimension(kts:kte) :: satw, sati, ssatw, ssati !! thermodynamic variables
     real(wp), dimension(kts:kte) :: diffu, visco, vsc2, tcond, lvap, ocp, lvt2 !! thermodynamic variables
@@ -510,12 +511,14 @@ module module_mp_tempo_main
     call sum_tendencies(rho, temp, idx_bg, lvap, ocp, tend, tten, qvten, qcten, &
       ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
 
+    ! rho stays the entry density so sedimentation conserves the host's column mass; rhon is only for
+    ! fall speeds and ventilation
     ! update after tendencies applied ------------------------------------------------------------
     do k = 1, nz
       temp(k) = t1d(k) + tten(k)*dt
       tempc = temp(k) - t0
       qv(k) = max(min_qv, qv1d(k) + qvten(k)*dt)
-      rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
+      rhon(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
       nwfaten(k) = nwfaten(k) - (tend%pna_rca(k) + tend%pna_sca(k) + tend%pna_gca(k) + &
         tend%pni_iha(k)) / rho(k)
       nifaten(k) = nifaten(k) - (tend%pnd_rcd(k) + tend%pnd_scd(k) + tend%pnd_gcd(k) + tend%pni_inu(k)) / rho(k)
@@ -578,7 +581,7 @@ module module_mp_tempo_main
     xrx = qh1d
     call hail_check_and_update(rho, l_qh, xrx, rh, nh, qhten, ilamh, dt, odt)
 
-    call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
+    call thermo_vars(qv, temp, pres, rhon, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
       supersaturated)
 
@@ -608,10 +611,10 @@ module module_mp_tempo_main
       do k = 1, nz
         qv(k) = max(min_qv, qv1d(k) + qvten(k)*dt)
         temp(k) = t1d(k) + tten(k)*dt
-        rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
+        rhon(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
       enddo 
       
-      call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
+      call thermo_vars(qv, temp, pres, rhon, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
       supersaturated)
     endif 
@@ -636,10 +639,10 @@ module module_mp_tempo_main
       do k = 1, nz
         qv(k) = max(min_qv, qv1d(k) + qvten(k)*dt)
         temp(k) = t1d(k) + tten(k)*dt
-        rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
+        rhon(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
       enddo 
         
-      call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
+      call thermo_vars(qv, temp, pres, rhon, rhof, rhof2, qvs, delqvs, qvsi, &
         satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
         supersaturated)
     endif 
