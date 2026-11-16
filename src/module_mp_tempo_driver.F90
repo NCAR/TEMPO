@@ -60,11 +60,9 @@ module module_mp_tempo_driver
     character(len=100) :: table_filename
     integer :: table_size
     integer :: table_status_local
-    character(len=256) :: table_errmsg
     logical :: initialize_mp_vars, force_init
 
     table_status_local = 0
-    table_errmsg = ''
     if (present(errflg)) errflg = 0
     if (present(errmsg)) errmsg = ''
 
@@ -142,10 +140,9 @@ module module_mp_tempo_driver
       ! CCN activation table
       table_filename = tempo_table_cfgs%ccn_table_name
       call initialize_arrays_ccn(table_size)
-      call read_table_ccn(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=table_errmsg)
+      call read_table_ccn(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=errmsg)
       if (table_status_local /= 0) then
         if (present(errflg)) errflg = table_status_local
-        if (present(errmsg)) errmsg = trim(table_errmsg)
         return
       endif
       if (tempo_cfgs%verbose) write(*,'(A)') 'tempo_init() --- initialized data for ccn lookup table'
@@ -153,10 +150,9 @@ module module_mp_tempo_driver
       ! freeze water collection lookup table
       table_filename = tempo_table_cfgs%freezewater_table_name
       call initialize_arrays_freezewater(table_size)
-      call read_table_freezewater(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=table_errmsg)
+      call read_table_freezewater(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=errmsg)
       if (table_status_local /= 0) then
         if (present(errflg)) errflg = table_status_local
-        if (present(errmsg)) errmsg = trim(table_errmsg)
         return
       endif
       if (tempo_cfgs%verbose) then
@@ -166,10 +162,9 @@ module module_mp_tempo_driver
       ! rain-snow collection lookup table
       table_filename = tempo_table_cfgs%qrqs_table_name
       call initialize_arrays_qr_acr_qs(table_size)
-      call read_table_qr_acr_qs(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=table_errmsg)
+      call read_table_qr_acr_qs(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=errmsg)
       if (table_status_local /= 0) then
         if (present(errflg)) errflg = table_status_local
-        if (present(errmsg)) errmsg = trim(table_errmsg)
         return
       endif
       if (tempo_cfgs%verbose) then
@@ -179,10 +174,9 @@ module module_mp_tempo_driver
       ! rain-graupel collection lookup table
       table_filename = tempo_table_cfgs%qrqg_table_name
       call initialize_arrays_qr_acr_qg(table_size)
-      call read_table_qr_acr_qg(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=table_errmsg)
+      call read_table_qr_acr_qg(trim(table_filename), table_size, tempo_cfgs, status=table_status_local, errmsg=errmsg)
       if (table_status_local /= 0) then
         if (present(errflg)) errflg = table_status_local
-        if (present(errmsg)) errmsg = trim(table_errmsg)
         return
       endif
       if (tempo_cfgs%verbose) then
@@ -590,9 +584,9 @@ module module_mp_tempo_driver
     integer, intent(out), optional :: status
     character(len=*), intent(out), optional :: errmsg
     integer :: mp_unit, istat
-    character(len=256) :: errstr
 
     if (present(status)) status = 0
+    if (present(errmsg)) errmsg = ''
 
     mp_unit = 11
     if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
@@ -604,8 +598,8 @@ module module_mp_tempo_driver
     )
     if (istat /= 0) then
       if (present(status)) status = istat
-      write(errstr,'(3A,I0,A)') 'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
-      if (present(errmsg)) errmsg = trim(errstr)
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
       return
     endif
 
@@ -632,9 +626,9 @@ module module_mp_tempo_driver
     integer, intent(out), optional :: status
     character(len=*), intent(out), optional :: errmsg
     integer :: mp_unit, istat
-    character(len=256) :: errstr
 
     if (present(status)) status = 0
+    if (present(errmsg)) errmsg = ''
 
     mp_unit = 11
     if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
@@ -646,8 +640,8 @@ module module_mp_tempo_driver
     )
     if (istat /= 0) then
       if (present(status)) status = istat
-      write(errstr,'(3A,I0,A)') 'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
-      if (present(errmsg)) errmsg = trim(errstr)
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
       return
     endif
 
@@ -678,9 +672,9 @@ module module_mp_tempo_driver
     integer, intent(out), optional :: status
     character(len=*), intent(out), optional :: errmsg
     integer :: mp_unit, istat
-    character(len=256) :: errstr
 
     if (present(status)) status = 0
+    if (present(errmsg)) errmsg = ''
 
     mp_unit = 11
     if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
@@ -692,8 +686,8 @@ module module_mp_tempo_driver
     )
     if (istat /= 0) then
       if (present(status)) status = istat
-      write(errstr,'(3A,I0,A)') 'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
-      if (present(errmsg)) errmsg = trim(errstr)
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
       return
     endif
 
@@ -719,9 +713,9 @@ module module_mp_tempo_driver
     integer, intent(out), optional :: status
     character(len=*), intent(out), optional :: errmsg
     integer :: mp_unit, istat
-    character(len=256) :: errstr
 
     if (present(status)) status = 0
+    if (present(errmsg)) errmsg = ''
 
     if (tempo_cfgs%check_tables) call check_before_table_read(filename, table_size)
 
@@ -734,8 +728,8 @@ module module_mp_tempo_driver
     )
     if (istat /= 0) then
       if (present(status)) status = istat
-      write(errstr,'(3A,I0,A)') 'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
-      if (present(errmsg)) errmsg = trim(errstr)
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to open TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'              
       return
     endif
 
