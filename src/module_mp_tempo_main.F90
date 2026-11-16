@@ -343,10 +343,12 @@ module module_mp_tempo_main
 
     if (present(nwfa1d)) then
       if (local_first_step) then
-        if (sum(nwfa1d) < eps) call init_water_friendly_aerosols(dz1d, nwfa)
+        if (sum(nwfa1d) < eps) then
+          call init_water_friendly_aerosols(dz1d, nwfa)
           do k = 1, nz
             nwfa1d(k) = max(nwfa_default, min(aero_max, nwfa(k) / rho(k)))
           enddo
+        endif
       endif
     else
       call init_water_friendly_aerosols(dz1d, nwfa)
@@ -354,10 +356,12 @@ module module_mp_tempo_main
     
     if (present(nifa1d)) then
       if (local_first_step) then
-        if (sum(nifa1d) < eps) call init_ice_friendly_aerosols(dz1d, nifa)
+        if (sum(nifa1d) < eps) then
+          call init_ice_friendly_aerosols(dz1d, nifa)
           do k = 1, nz
             nifa1d(k) = max(nifa_default, min(aero_max, nifa(k) / rho(k)))
           enddo
+        endif
       endif
     else
       call init_ice_friendly_aerosols(dz1d, nifa)    
@@ -1711,7 +1715,8 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(inout) :: qvten, qcten, ncten, qiten, niten, &
       qsten, qrten, nrten, qgten, ngten, qbten, tten, qhten
     real(wp) :: orho, lfus2,  massg_sources, volg_sources, dens_weight, final_weight, &
-      frozen_terms, riming_terms
+      frozen_terms, riming_terms, dens_pm, rho_scw, rho_gcw, rho_src
+    real(wp), parameter :: p_mean = 3._wp   ! power-mean exponent for density weighting
     integer :: k, nz
 
     nz = size(temp)
@@ -1756,7 +1761,9 @@ module module_mp_tempo_main
         tend%png_rci(k) + tend%png_rcs(k) + tend%png_gde(k) - tend%pnr_gml(k)) * orho
 
       ! use a density weighting for the volume tendency that will
-      ! increase density if a large fraction of frozen drops are being added to graupel
+      ! increase density if a large fraction of frozen drops are being added to graupel.
+      ! the target density is a mass-weighted power mean of the source densities;
+      ! p_mean = 1 recovers the arithmetic mean, larger p weights the dense sources more
       volg_sources = tend%pbg_scw(k) + tend%pbg_gcw(k) + &
         tend%pbg_rfz(k) + tend%pbg_rcg(k) + tend%pbg_rci(k) + tend%pbg_rcs(k)
       final_weight = 1._wp
@@ -1766,19 +1773,25 @@ module module_mp_tempo_main
         riming_terms = tend%prg_scw(k) + tend%prg_gcw(k)
         massg_sources = frozen_terms + riming_terms
 
-        if (frozen_terms > r1 .and. frozen_terms > riming_terms .and. massg_sources > r1) then
-          dens_weight = rho_g(nrhg) * (frozen_terms / massg_sources)
+        if (frozen_terms > r1 .and. massg_sources > r1) then
+          ! frozen drops are assumed to have the maximum graupel density
+          dens_pm = (frozen_terms / massg_sources) * rho_g(nrhg)**p_mean
+
           if (tend%pbg_scw(k) > eps) then
-            dens_weight = dens_weight + &
-              (meters3_to_liters * tend%prg_scw(k) / tend%pbg_scw(k)) * (tend%prg_scw(k) / massg_sources)
+            rho_scw = meters3_to_liters * tend%prg_scw(k) / tend%pbg_scw(k)
+            dens_pm = dens_pm + (tend%prg_scw(k) / massg_sources) * rho_scw**p_mean
           endif
           if (tend%pbg_gcw(k) > eps) then
-            dens_weight = dens_weight + &
-              (meters3_to_liters * tend%prg_gcw(k) / tend%pbg_gcw(k)) * (tend%prg_gcw(k) / massg_sources)
+            rho_gcw = meters3_to_liters * tend%prg_gcw(k) / tend%pbg_gcw(k)
+            dens_pm = dens_pm + (tend%prg_gcw(k) / massg_sources) * rho_gcw**p_mean
           endif
 
-          if (dens_weight > r1 .and. volg_sources > r1) then
-            final_weight = min(1._wp, (meters3_to_liters * massg_sources / volg_sources) / dens_weight)
+          if (dens_pm > r1 .and. volg_sources > r1) then
+            dens_weight = dens_pm**(1._wp / p_mean)
+            rho_src = meters3_to_liters * massg_sources / volg_sources
+            ! the target density can't exceed the maximum graupel density
+            dens_weight = min(dens_weight, rho_g(nrhg))
+            final_weight = max(0._wp, min(1._wp, rho_src / dens_weight))
           endif
         endif
       endif
