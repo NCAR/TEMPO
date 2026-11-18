@@ -439,8 +439,10 @@ module module_mp_tempo_main
     do k = 1, nz
       if (l_qh(k)) then
         qg1d(k) = qg1d(k) - qh1d(k)
-        ng1d(k) = ng1d(k) - nh(k)/rho(k)
-        qb1d(k) = qb1d(k) - qh1d(k)*meters3_to_liters/rho_g(nrhg)
+        if (present(ng1d) .and. present(qb1d)) then
+          ng1d(k) = ng1d(k) - nh(k)/rho(k)
+          qb1d(k) = qb1d(k) - qh1d(k)*meters3_to_liters/rho_g(nrhg)
+        endif
         qgten(k) = 0._wp
         ngten(k) = 0._wp
         qbten(k) = 0._wp
@@ -898,7 +900,7 @@ module module_mp_tempo_main
       frz_rain=tempo_main_diags%frz_rain_precip)
 
     if (tempo_cfgs%cloud_number_mixing_ratio_flag) then
-      allocate(tempo_main_diags%cloud_number_mixing_ratio(nz), source=nc*rho)
+      allocate(tempo_main_diags%cloud_number_mixing_ratio(nz), source=nc/rho)
     endif 
 
     ! median volume diameter of rain and graupel
@@ -924,8 +926,10 @@ module module_mp_tempo_main
     do k = 1, nz
       if (l_qh(k)) then
         qg1d(k) = qg1d(k) + qh1d(k)
-        if (ngten(k) >= 0._wp) ng1d(k) = ng1d(k) + nh(k)/rho(k)
-        qb1d(k) = qb1d(k) + qh1d(k)*meters3_to_liters/rho_g(nrhg)
+        if (present(ng1d) .and. present(qb1d)) then
+          if (ngten(k) >= 0._wp) ng1d(k) = ng1d(k) + nh(k)/rho(k)
+          qb1d(k) = qb1d(k) + qh1d(k)*meters3_to_liters/rho_g(nrhg)
+        endif
       endif
     enddo
 
@@ -959,7 +963,7 @@ module module_mp_tempo_main
       ! please output any cloud diagnostics before this calculation
       ! because rc, nc, ilamc, and mvd_c will include contributions from 
       ! resolved and explicit clouds and qcten and ncten are zeroed
-      if (present(qc_bl1d) .and. present(qcfrac_bl1d)) then
+      if (tempo_cfgs%ml_for_bl_nc_flag .and. present(qc_bl1d) .and. present(qcfrac_bl1d)) then
         xrx = qc1d
         if (.not. allocated(xncx)) allocate(xncx(nz), source=0._wp)
         if (present(nc1d)) then
