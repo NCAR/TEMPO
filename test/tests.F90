@@ -677,14 +677,14 @@ module tests
     if (precip_sum > 0._dp) ratio = residual_sum / precip_sum
     if (present(residual_ratio)) residual_ratio = real(ratio, kind=wp)
 
-    write(*,'(A,I5,A,L1,A,ES12.4,A,ES12.4,A,F9.4,A,ES10.2)') &
+    write(*,'(A,I5,A,L1,A,ES12.4,A,ES12.4,A,ES10.2,A,ES10.2)') &
       'test_water_conservation() --- dt = ', int(dt), ' semi_sedi = ', semi_sedi, &
-      ' P = ', precip_sum, ' kg m-2  R = ', residual_sum, ' kg m-2  R/P = ', 100._dp*ratio, &
-      ' %  max |R|/W per step = ', max_rel_step
+      ' P = ', precip_sum, ' kg m-2  R = ', residual_sum, ' kg m-2  R/P = ', ratio, &
+      '  max |R|/W per step = ', max_rel_step
 
     if (abs(ratio) > tolerance) then
-      write(*,'(A,F9.4,A,F9.4,A)') 'test_water_conservation() --- *** FAILED *** |R/P| = ', &
-        100._dp*abs(ratio), ' % exceeds tolerance of ', 100._wp*tolerance, ' %'
+      write(*,'(A,ES10.2,A,ES10.2)') 'test_water_conservation() --- *** FAILED *** |R/P| = ', &
+        abs(ratio), ' exceeds tolerance of ', tolerance
       error stop 'water conservation test failed'
     endif
   end subroutine test_water_conservation

@@ -9,8 +9,9 @@ program run_tempo_tests
 
   real, dimension(7) :: sedi_tests = &
     [1., 10., 20., 60., 120., 300., 600.]
-  ! maximum |water created or destroyed| / precipitation over the column test
-  real, parameter :: water_tolerance = 0.005
+  ! maximum |water created or destroyed| / precipitation over the column test;
+  ! with sedimentation at the entry density |R/P| is round-off (below 1e-8)
+  real, parameter :: water_tolerance = 1.e-6
   integer :: t
 
   ! tempo init
