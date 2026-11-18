@@ -1627,10 +1627,14 @@ module module_mp_tempo_main
         endif
       endif
 
-      ! Limit snow sources if rain was limited in the previous step
+      ! Limit snow and graupel sources if rain was limited in the previous step
       if (temp(k) < t0) then
         if (tend%prs_rcs(k) > -tend%prr_rcs(k)) tend%prs_rcs(k) = -tend%prr_rcs(k)
-      endif 
+        if (tend%prg_rcg(k) > -tend%prr_rcg(k)) then
+          tend%prg_rcg(k) = -tend%prr_rcg(k)
+          tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg)
+        endif
+      endif
 
       ! losses to snow include sublimation; melting; collection by rain; 
       ! rime splintering
