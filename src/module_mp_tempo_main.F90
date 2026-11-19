@@ -509,7 +509,7 @@ module module_mp_tempo_main
     ! check and sum tendencies -------------------------------------------------------------------
     call check_over_depletion(rho=rho, temp=temp, qvsi=qvsi, qv=qv, l_qc=l_qc, rc=rc, &
       l_qi=l_qi, ri=ri, l_qr=l_qr, rr=rr, l_qs=l_qs, rs=rs, l_qg=l_qg, rg=rg, &
-      l_qh=l_qh, rh=rh, tend=tend, odt=odt)
+      l_qh=l_qh, rh=rh, idx=idx_bg, tend=tend, odt=odt)
 
     call sum_tendencies(rho, temp, idx_bg, lvap, ocp, tend, tten, qvten, qcten, &
       ncten, qiten, niten, qsten, qrten, nrten, qgten, ngten, qbten, qhten)
@@ -1544,7 +1544,7 @@ module module_mp_tempo_main
 
 
   subroutine check_over_depletion(rho, temp, qvsi, qv, l_qc, rc, l_qi, ri, &
-    l_qr, rr, l_qs, rs, l_qg, rg, l_qh, rh, tend, odt)
+    l_qr, rr, l_qs, rs, l_qg, rg, l_qh, rh, idx, tend, odt)
     !! check to ensure that loss terms don't over-deplete a category and
     !! adjusts tendencies if needed
     use module_mp_tempo_params, only : eps, rho_i, t0, meters3_to_liters
@@ -1553,6 +1553,7 @@ module module_mp_tempo_main
     type(ty_tend), intent(inout) :: tend
     logical, dimension(:), intent(in) :: l_qc, l_qi, l_qr, l_qs, l_qg, l_qh
     real(wp), dimension(:), intent(in) :: rho, temp, qvsi, qv, rc, ri, rr, rs, rg, rh
+    integer, dimension(:), intent(in) :: idx !! graupel density index
     real(wp) :: sump, rate_max, ratio
     integer :: k, nz
 
@@ -1630,10 +1631,7 @@ module module_mp_tempo_main
       ! Limit snow and graupel sources if rain was limited in the previous step
       if (temp(k) < t0) then
         if (tend%prs_rcs(k) > -tend%prr_rcs(k)) tend%prs_rcs(k) = -tend%prr_rcs(k)
-        if (tend%prg_rcg(k) > -tend%prr_rcg(k)) then
-          tend%prg_rcg(k) = -tend%prr_rcg(k)
-          tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg)
-        endif
+        if (tend%prg_rcg(k) > -tend%prr_rcg(k)) tend%prg_rcg(k) = -tend%prr_rcg(k)
       endif
 
       ! losses to snow include sublimation; melting; collection by rain; 
@@ -1685,7 +1683,13 @@ module module_mp_tempo_main
       ratio = min(abs(tend%prr_rcg(k)), abs(tend%prg_rcg(k)))
       tend%prr_rcg(k) = ratio * sign(1.0_dp, tend%prr_rcg(k))
       tend%prg_rcg(k) = -tend%prr_rcg(k)
-      tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg) ! scale density change
+      ! volume change: below freezing graupel gains frozen drops at the maximum graupel density;
+      ! above freezing graupel loses mass at its own density
+      if (temp(k) < t0) then
+        tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg)
+      else
+        tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(idx(k))
+      endif
 
       tend%prg_rci(k) = tend%pri_rci(k) + tend%prr_rci(k)
       tend%pbg_rci(k) = meters3_to_liters * tend%prg_rci(k) / rho_g(nrhg)
