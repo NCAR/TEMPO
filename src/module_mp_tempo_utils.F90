@@ -332,18 +332,25 @@ module module_mp_tempo_utils
   end function calc_rsif
 
 
-  function get_nuc(nc) result(nu_c)
+  function get_nuc(nc, shape_offset) result(nu_c)
     !! returns nu_c for cloud water (values from 2-15)
+    !!
+    !! shape_offset is an optional stochastic (SPP) perturbation added to nu_c before it is
+    !! limited to 2-15; as in Thompson microphysics it is not applied when nu_c is already
+    !! at its maximum because of a low droplet concentration
     use module_mp_tempo_params, only : nu_c_scale
 
     real(wp), intent(in) :: nc
+    integer, intent(in), optional :: shape_offset
     integer :: nu_c
 
     if ((nu_c_scale/nc) >= 12.5_wp) then
       nu_c = 15
     else
-      nu_c = min(15, nint(nu_c_scale/nc) + 2)
-    endif 
+      nu_c = nint(nu_c_scale/nc) + 2
+      if (present(shape_offset)) nu_c = nu_c + shape_offset
+      nu_c = max(2, min(15, nu_c))
+    endif
   end function get_nuc
 
 

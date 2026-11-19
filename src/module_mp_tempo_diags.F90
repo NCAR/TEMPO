@@ -11,7 +11,7 @@ module module_mp_tempo_diags
   contains 
 
   subroutine effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
-    re_qc, re_qi, re_qs)
+    re_qc, re_qi, re_qs, shape_offset)
     !! effective radius values for cloud water, cloud ice and snow
     !!
     !! \(r_{e} = 0.5\frac{\int_0^\infty D^{3}n(D)dD}{\int_0^\infty D^2n(D)dD}\)
@@ -21,6 +21,7 @@ module module_mp_tempo_diags
     real(dp), dimension(:), intent(in) :: ilamc, ilami
     logical, dimension(:), intent(in) :: l_qc, l_qi, l_qs
     real(wp), dimension(:), intent(out) :: re_qc, re_qi, re_qs
+    integer, intent(in), optional :: shape_offset !! stochastic perturbation to nu_c
     real(wp), dimension(15), parameter :: g_ratio = &
       [24._wp,60._wp,120._wp,210._wp,336._wp,504._wp,720._wp,990._wp, &
       1320._wp,1716._wp,2184._wp,2730._wp,3360._wp,4080._wp,4896._wp]
@@ -39,7 +40,7 @@ module module_mp_tempo_diags
       !> cloud ice, and \(5.01-999 \mu m\) for snow are consistent with RRTMG radiation
       !> @endnote
       if (l_qc(k)) then
-        nu_c = get_nuc(nc(k))
+        nu_c = get_nuc(nc(k), shape_offset)
         re_qc(k) = max(2.51e-6_wp, &
           min(real(0.5_dp*(3._dp+real(nu_c, kind=dp))*ilamc(k), kind=wp), 50.e-6_wp))
       endif
