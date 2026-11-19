@@ -5,7 +5,7 @@ module module_mp_tempo_params
 #if defined(tempo_mpas)
   use mpas_kind_types, only : wp => RKIND, sp => R4KIND, dp => R8KIND
 #elif defined(tempo_ccpp)
-  use machine, only : wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+  use ccpp_kinds, only : wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #elif defined(wrfmodel)
   use ccpp_kind_types, only : wp => kind_phys, sp => kind_phys
 #else
