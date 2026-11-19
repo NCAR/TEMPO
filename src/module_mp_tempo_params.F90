@@ -5,7 +5,7 @@ module module_mp_tempo_params
 #if defined(tempo_mpas)
   use mpas_kind_types, only : wp => RKIND, sp => R4KIND, dp => R8KIND
 #elif defined(tempo_ccpp)
-  use machine, only : wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
+  use ccpp_kinds, only : wp => kind_phys, sp => kind_sngl_prec, dp => kind_dbl_prec
 #elif defined(wrfmodel)
   use ccpp_kind_types, only : wp => kind_phys, sp => kind_phys
 #else
@@ -111,7 +111,8 @@ module module_mp_tempo_params
   real(wp), parameter :: ato = 0.304_wp !! constant in the [Cooper](https://doi.org/10.1007/978-1-935704-17-1_4) curve for ice nucleation
   real(wp) :: rho_s = 100.0_wp !! density of snow \([kg\, m^{-3}]\)
 
-  real(wp), parameter :: demott_nuc_ssati = 0.25_wp !! ice supersaturation threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
+  ! can be overridden by a host model (e.g. from a namelist)
+  real(wp) :: demott_nuc_ssati = 0.25_wp !! ice supersaturation threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
   real(wp), parameter :: demott_nuc_tempc = -20._wp !! temperature threshold for [DeMott](https://doi.org/10.1073/pnas.0910818107) nucleation
   real(wp), parameter :: max_ni = 4999.e3_wp !! maximum ice number concentration \([m^{-3}]\)
   real(wp), parameter :: icenuc_max = 1000.e3_wp !! maximum ice nucleation number \([m^{-3}]\)
