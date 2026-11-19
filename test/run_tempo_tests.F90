@@ -66,4 +66,22 @@ program run_tempo_tests
       aerosol_aware=.true.)
   enddo
 
+  ! forced: water vapor added in ascent so cloud water and ice keep forming
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.false., tolerance=water_tolerance, &
+      forced=.true.)
+  enddo
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.true., tolerance=water_tolerance, &
+      forced=.true.)
+  enddo
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.false., tolerance=water_tolerance, &
+      aerosol_aware=.true., forced=.true.)
+  enddo
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.true., tolerance=water_tolerance, &
+      aerosol_aware=.true., forced=.true.)
+  enddo
+
 end program run_tempo_tests

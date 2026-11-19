@@ -558,7 +558,8 @@ module tests
   end subroutine test_ml_cloud_effective_radius
 
 
-  subroutine test_water_conservation(dt, semi_sedi, tolerance, micro_off, aerosol_aware, residual_ratio)
+  subroutine test_water_conservation(dt, semi_sedi, tolerance, micro_off, aerosol_aware, forced, &
+    residual_ratio)
     !! column water budget with microphysics and precipitation
     !!
     !! each step, total water W = sum(m * (qv+qc+qr+qi+qs+qg)) is computed before and
@@ -576,12 +577,18 @@ module tests
     !!     and a failure points at sedimentation itself
     !!   aerosol_aware = .true. passes water- and ice-friendly aerosols (nwfa, nifa) so
     !!     droplet activation, ice nucleation, and aerosol scavenging are used
+    !!   forced = .true. adds water vapor where w > 0 before each step, a stand-in for
+    !!     the moistening by ascent that a host model's dynamics would provide, at
+    !!     dqv/dt = forcing_gamma * min(w, forcing_w_max) throughout the run, so cloud
+    !!     water and ice keep forming. The forcing is applied outside tempo_run,
+    !!     before W is computed, so the budget for the step is unchanged; the injected
+    !!     water F (kg m^-2) is reported
     use module_mp_tempo_params, only : wp, sp, dp, roverrv, rdry, min_qv
 
     real(wp), intent(in) :: dt
     logical, intent(in) :: semi_sedi
     real(wp), intent(in) :: tolerance
-    logical, intent(in), optional :: micro_off, aerosol_aware
+    logical, intent(in), optional :: micro_off, aerosol_aware, forced
     real(wp), intent(out), optional :: residual_ratio
     integer :: itimestep
     integer, parameter :: nz = 59
@@ -593,9 +600,11 @@ module tests
     real(wp), dimension(nz) :: klevs_in, qv_in, qc_in, qr_in, qi_in, qs_in, &
       qg_in, ni_in, nr_in, nc_in, nwfa_in, nifa_in, theta_in, ng_in, volg_in, &
       pressure_in, w_in, dz_in
-    real(wp), dimension(nz) :: layer_mass
+    real(wp), dimension(nz) :: layer_mass, forcing_step
     real(dp) :: water_before, water_after, precip_step, residual_step, &
-      precip_sum, residual_sum, max_rel_step, ratio
+      precip_sum, residual_sum, max_rel_step, ratio, forcing_sum, cloud_end
+    real(wp), parameter :: forcing_gamma = 1.e-6_wp !! vapor added per meter of ascent \([kg\; kg^{-1}\; m^{-1}]\)
+    real(wp), parameter :: forcing_w_max = 4._wp !! vertical velocity cap for the forcing \([m\; s^{-1}]\)
     character(len=20) :: dt_string
     character(len=20) :: semi_sedi_string
     character(len=40) :: case_string
@@ -603,8 +612,10 @@ module tests
     type(ty_tempo_cfgs) :: tempo_cfgs
     integer :: io1, io2, k, total_timesteps
     integer, parameter :: integration_time = 1200
-    logical :: no_micro, aerosols
+    logical :: no_micro, aerosols, add_forcing
 
+    add_forcing = .false.
+    if (present(forced)) add_forcing = forced
     no_micro = .false.
     if (present(micro_off)) no_micro = micro_off
     aerosols = .false.
@@ -619,6 +630,7 @@ module tests
     case_string = ''
     if (no_micro) case_string = trim(case_string)//'_micro_off'
     if (aerosols) case_string = trim(case_string)//'_aerosol_aware'
+    if (add_forcing) case_string = trim(case_string)//'_forced'
 
     ! read input file
     open(newunit=io1, file='../test/data/mpas_59lev_test.txt', status='old')
@@ -657,18 +669,29 @@ module tests
     precip_sum = 0._dp
     residual_sum = 0._dp
     max_rel_step = 0._dp
+    forcing_sum = 0._dp
+    forcing_step = 0._wp
     open(newunit=io2, file="water_budget_dt_"//trim(adjustl(dt_string))//trim(semi_sedi_string)// &
       trim(case_string)//".txt", &
       status="new", action="write")
-    write(io2, '(A)') 'time water_column precip_sum residual_sum'
+    write(io2, '(A)') 'time water_column precip_sum residual_sum forcing_sum'
 
     do itimestep = 1, total_timesteps
+      ! forcing: add water vapor in ascent, outside tempo_run
+      if (add_forcing) then
+        do k = 1, nz
+          forcing_step(k) = forcing_gamma*min(max(w(1,k,1), 0._wp), forcing_w_max)*dt
+          qv(1,k,1) = qv(1,k,1) + forcing_step(k)
+        enddo
+      endif
+
       ! layer mass from the density TEMPO computes on entry to the step
       do k = 1, nz
         layer_mass(k) = roverrv*p(1,k,1) / (rdry*t(1,k,1)*(max(min_qv, qv(1,k,1))+roverrv)) * dz(1,k,1)
       enddo
       water_before = column_water(layer_mass, qv(1,:,1), qc(1,:,1), qr(1,:,1), &
         qi(1,:,1), qs(1,:,1), qg(1,:,1))
+      forcing_sum = forcing_sum + dot_product(real(layer_mass, kind=dp), real(forcing_step, kind=dp))
 
       if (aerosols) then
         call  tempo_run(tempo_cfgs=tempo_cfgs, itimestep=itimestep, dt=dt, &
@@ -700,19 +723,22 @@ module tests
       precip_sum = precip_sum + precip_step
       residual_sum = residual_sum + residual_step
       max_rel_step = max(max_rel_step, abs(residual_step)/water_before)
-      write(io2, '(I7, 3E16.8)') int(itimestep*dt), water_after, precip_sum, residual_sum
+      write(io2, '(I7, 4E16.8)') int(itimestep*dt), water_after, precip_sum, residual_sum, forcing_sum
     enddo
     close(io2)
+
+    ! cloud water + ice left at the end
+    cloud_end = dot_product(real(layer_mass, kind=dp), real(qc(1,:,1) + qi(1,:,1), kind=dp))
 
     ratio = 0._dp
     if (precip_sum > 0._dp) ratio = residual_sum / precip_sum
     if (present(residual_ratio)) residual_ratio = real(ratio, kind=wp)
 
-    write(*,'(A,I5,A,L1,A,L1,A,L1,A,ES12.4,A,ES12.4,A,ES10.2,A,ES10.2)') &
+    write(*,'(A,I5,A,L1,A,L1,A,L1,A,L1,A,ES11.4,A,ES11.4,A,ES11.4,A,ES11.4,A,ES10.2,A,ES10.2)') &
       'test_water_conservation() --- dt = ', int(dt), ' semi_sedi = ', semi_sedi, &
-      ' micro_off = ', no_micro, ' aerosol_aware = ', aerosols, &
-      ' P = ', precip_sum, ' kg m-2  R = ', residual_sum, ' kg m-2  R/P = ', ratio, &
-      '  max |R|/W per step = ', max_rel_step
+      ' micro_off = ', no_micro, ' aerosol_aware = ', aerosols, ' forced = ', add_forcing, &
+      ' F = ', forcing_sum, ' P = ', precip_sum, ' qc+qi end = ', cloud_end, &
+      ' kg m-2  R = ', residual_sum, ' kg m-2  R/P = ', ratio, '  max |R|/W per step = ', max_rel_step
 
     if (abs(ratio) > tolerance) then
       write(*,'(A,ES10.2,A,ES10.2)') 'test_water_conservation() --- *** FAILED *** |R/P| = ', &
