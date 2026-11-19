@@ -19,6 +19,10 @@ module module_mp_tempo_main
   !! happens between the effective radius calcuation and call to radiation
   public :: cloud_check_and_update, ice_check_and_update, snow_check_and_update
 
+  !! used by the driver to keep graupel number and volume consistent with one-moment
+  !! graupel when hail-aware = false but the host model passes them
+  public :: graupel_init
+
   
 #ifdef unit_testing
   public :: get_cloud_table_index, get_snow_table_index, &

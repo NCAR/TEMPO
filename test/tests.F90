@@ -7,7 +7,7 @@ module tests
 
   public :: test_tempo_init, test_graupel_sedimentation, test_snow_sedimentation, &
     test_cloud_number_aerosolaware, test_cloud_number_non_aerosolaware, &
-    test_cloud_number_ml, test_ml_cloud_effective_radius
+    test_cloud_number_ml, test_ml_cloud_effective_radius, test_hail_aware_off_ignores_graupel_moments
 
   type(ty_tempo_cfgs) :: tempo_cfgs
   contains
@@ -556,5 +556,119 @@ module tests
         tempo_driver_diags%cloud_number_mixing_ratio(1,k,1), tempo_driver_diags%re_cloud(1,k,1)*1.e6_wp
     enddo 
   end subroutine test_ml_cloud_effective_radius
+
+
+  subroutine test_hail_aware_off_ignores_graupel_moments(dt)
+    !! with hail-aware = false, graupel number (ng) and volume (qb) passed by the host must be
+    !! ignored: every other result must be bit-identical to a run that does not pass them, and
+    !! ng and qb are returned reset to the one-moment graupel values implied by qg
+    !!
+    !! re-initializes tempo with hail-aware = false, then restores the configuration from
+    !! test_tempo_init so later tests are unaffected
+    use module_mp_tempo_params, only : wp, sp, dp, r1, rho_g, idx_bg1, meters3_to_liters
+
+    real(wp), intent(in) :: dt
+    integer :: itimestep
+    integer, parameter :: nz = 59
+    integer, parameter :: ids = 1, ide = 1, ims = 1, ime = 1, its = 1, ite = 1
+    integer, parameter :: jds = 1, jde = 1, jms = 1, jme = 1, jts = 1, jte = 1
+    integer, parameter :: kds = 1, kde = nz, kms = 1, kme = nz, kts = 1, kte = nz
+    ! a: ng and qb passed; b: not passed
+    real(wp), dimension(its:ite, kts:kte, jts:jte) :: qv_a, t_a, qc_a, qr_a, qi_a, qs_a, qg_a, &
+      ni_a, nr_a, nc_a, ng_a, qb_a
+    real(wp), dimension(its:ite, kts:kte, jts:jte) :: qv_b, t_b, qc_b, qr_b, qi_b, qs_b, qg_b, &
+      ni_b, nr_b, nc_b
+    real(wp), dimension(its:ite, kts:kte, jts:jte) :: th, pii, p, w, dz
+    real(wp), dimension(nz) :: klevs_in, qv_in, qc_in, qr_in, qi_in, qs_in, &
+      qg_in, ni_in, nr_in, nc_in, nwfa_in, nifa_in, theta_in, ng_in, volg_in, &
+      pressure_in, w_in, dz_in
+    type(ty_tempo_driver_diags) :: diags_a, diags_b
+    type(ty_tempo_cfgs) :: cfg_off
+    integer :: io1, k, total_timesteps, n_mismatch
+    integer, parameter :: integration_time = 1200
+    real(wp) :: qb_expected, max_qb_err
+
+    ! re-initialize with hail-aware = false (only the idx_bg1 rain-graupel table slice is loaded)
+    call tempo_init(hailaware_flag=.false., force_init_flag=.true., tempo_cfgs=cfg_off)
+    cfg_off%turn_off_micro_flag = .false.
+
+    open(newunit=io1, file='../test/data/mpas_59lev_test.txt', status='old')
+    read(io1,*) ! header
+    do k = 1, nz
+      read(io1,*) klevs_in(k), qv_in(k), qc_in(k), qr_in(k), qi_in(k), qs_in(k), &
+          qg_in(k), ni_in(k), nr_in(k), nc_in(k), nwfa_in(k), nifa_in(k), &
+          theta_in(k), ng_in(k), volg_in(k), pressure_in(k), w_in(k), dz_in(k)
+    end do
+    close(io1)
+
+    p(1,:,1) = pressure_in
+    dz(1,:,1) = dz_in
+    w(1,:,1) = w_in
+    qv_a(1,:,1) = qv_in
+    t_a(1,:,1) = theta_in * (pressure_in/100000.)**0.286
+    qc_a(1,:,1) = qc_in
+    nc_a(1,:,1) = nc_in
+    qr_a(1,:,1) = qr_in
+    nr_a(1,:,1) = nr_in
+    qi_a(1,:,1) = qi_in
+    ni_a(1,:,1) = ni_in
+    qs_a(1,:,1) = qs_in
+    qg_a(1,:,1) = qg_in
+    ng_a(1,:,1) = ng_in
+    qb_a(1,:,1) = volg_in * 1000. ! convert meters^3 -> liters
+    qv_b = qv_a; t_b = t_a; qc_b = qc_a; nc_b = nc_a; qr_b = qr_a; nr_b = nr_a
+    qi_b = qi_a; ni_b = ni_a; qs_b = qs_a; qg_b = qg_a
+
+    total_timesteps = int(integration_time/dt)
+    n_mismatch = 0
+    max_qb_err = 0._wp
+    do itimestep = 1, total_timesteps
+      call tempo_run(tempo_cfgs=cfg_off, itimestep=itimestep, dt=dt, &
+                     ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
+                     jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
+                     kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
+                     t=t_a, p=p, w=w, dz=dz, qv=qv_a, th=th, pii=pii, &
+                     qc=qc_a, nc=nc_a, qr=qr_a, qi=qi_a, qs=qs_a, qg=qg_a, ni=ni_a, nr=nr_a, &
+                     ng=ng_a, qb=qb_a, tempo_diags=diags_a)
+      call tempo_run(tempo_cfgs=cfg_off, itimestep=itimestep, dt=dt, &
+                     ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
+                     jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
+                     kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
+                     t=t_b, p=p, w=w, dz=dz, qv=qv_b, th=th, pii=pii, &
+                     qc=qc_b, nc=nc_b, qr=qr_b, qi=qi_b, qs=qs_b, qg=qg_b, ni=ni_b, nr=nr_b, &
+                     tempo_diags=diags_b)
+
+      ! every result must be bit-identical
+      n_mismatch = n_mismatch + count(qv_a /= qv_b) + count(t_a /= t_b) + count(qc_a /= qc_b) + &
+        count(nc_a /= nc_b) + count(qr_a /= qr_b) + count(nr_a /= nr_b) + count(qi_a /= qi_b) + &
+        count(ni_a /= ni_b) + count(qs_a /= qs_b) + count(qg_a /= qg_b) + &
+        count(diags_a%rain_precip /= diags_b%rain_precip) + &
+        count(diags_a%snow_liquid_equiv_precip /= diags_b%snow_liquid_equiv_precip) + &
+        count(diags_a%graupel_liquid_equiv_precip /= diags_b%graupel_liquid_equiv_precip) + &
+        count(diags_a%ice_liquid_equiv_precip /= diags_b%ice_liquid_equiv_precip) + &
+        count(diags_a%refl10cm /= diags_b%refl10cm) + &
+        count(diags_a%max_hail_diameter_column /= diags_b%max_hail_diameter_column)
+
+      ! ng and qb are reset to the one-moment graupel values: qb = qg / rho_g(idx_bg1)
+      do k = 1, nz
+        if (qg_a(1,k,1) > r1) then
+          qb_expected = qg_a(1,k,1) * meters3_to_liters / rho_g(idx_bg1)
+          max_qb_err = max(max_qb_err, abs(qb_a(1,k,1) - qb_expected) / qb_expected)
+        else
+          max_qb_err = max(max_qb_err, abs(qb_a(1,k,1)), abs(ng_a(1,k,1)))
+        endif
+      enddo
+    enddo
+
+    write(*,'(A,I5,A,I0,A,ES10.2)') 'test_hail_aware_off_ignores_graupel_moments() --- dt = ', int(dt), &
+      '  mismatched values = ', n_mismatch, '  max qb error = ', max_qb_err
+
+    ! restore the configuration from test_tempo_init
+    call tempo_init(ml_for_bl_nc_flag=.true., hailaware_flag=.true., force_init_flag=.true., &
+      tempo_cfgs=tempo_cfgs)
+
+    if (n_mismatch /= 0) error stop 'hail-aware = false results depend on whether ng and qb are passed'
+    if (max_qb_err > 1.e-12_wp) error stop 'ng and qb not reset to one-moment graupel values'
+  end subroutine test_hail_aware_off_ignores_graupel_moments
 
 end module tests
