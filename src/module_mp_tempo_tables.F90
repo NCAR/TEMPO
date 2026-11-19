@@ -3,7 +3,7 @@ module module_mp_tempo_tables
   !!
   !! includes a procedure to build and save tempo lookup tables
   use module_mp_tempo_cfgs, only :  ty_tempo_cfgs, ty_tempo_table_cfgs
-  use module_mp_tempo_params, only : wp, sp, dp
+  use module_mp_tempo_params, only : wp, sp, dp, table_dp
   use module_mp_tempo_utils, only : snow_moments, calc_gamma_p, get_nuc
 
 #ifdef build_tables_with_mpi
@@ -119,12 +119,12 @@ module module_mp_tempo_tables
       , convert='big_endian' &
 #endif
     )
-    write(mp_unit) tpi_qrfz
-    write(mp_unit) tni_qrfz
-    write(mp_unit) tpg_qrfz
-    write(mp_unit) tnr_qrfz
-    write(mp_unit) tpi_qcfz
-    write(mp_unit) tni_qcfz
+    write(mp_unit) real(tpi_qrfz, kind=table_dp)
+    write(mp_unit) real(tni_qrfz, kind=table_dp)
+    write(mp_unit) real(tpg_qrfz, kind=table_dp)
+    write(mp_unit) real(tnr_qrfz, kind=table_dp)
+    write(mp_unit) real(tpi_qcfz, kind=table_dp)
+    write(mp_unit) real(tni_qcfz, kind=table_dp)
     close(unit=mp_unit)
   end subroutine write_table_freezewater
 
@@ -295,18 +295,18 @@ module module_mp_tempo_tables
       , convert='big_endian' &
 #endif
     )
-    write(mp_unit) tcs_racs1
-    write(mp_unit) tmr_racs1
-    write(mp_unit) tcs_racs2
-    write(mp_unit) tmr_racs2
-    write(mp_unit) tcr_sacr1
-    write(mp_unit) tms_sacr1
-    write(mp_unit) tcr_sacr2
-    write(mp_unit) tms_sacr2
-    write(mp_unit) tnr_racs1
-    write(mp_unit) tnr_racs2
-    write(mp_unit) tnr_sacr1
-    write(mp_unit) tnr_sacr2
+    write(mp_unit) real(tcs_racs1, kind=table_dp)
+    write(mp_unit) real(tmr_racs1, kind=table_dp)
+    write(mp_unit) real(tcs_racs2, kind=table_dp)
+    write(mp_unit) real(tmr_racs2, kind=table_dp)
+    write(mp_unit) real(tcr_sacr1, kind=table_dp)
+    write(mp_unit) real(tms_sacr1, kind=table_dp)
+    write(mp_unit) real(tcr_sacr2, kind=table_dp)
+    write(mp_unit) real(tms_sacr2, kind=table_dp)
+    write(mp_unit) real(tnr_racs1, kind=table_dp)
+    write(mp_unit) real(tnr_racs2, kind=table_dp)
+    write(mp_unit) real(tnr_sacr1, kind=table_dp)
+    write(mp_unit) real(tnr_sacr2, kind=table_dp)
     close(unit=mp_unit)
   end subroutine write_table_qr_acr_qs
 
@@ -435,11 +435,11 @@ module module_mp_tempo_tables
       , convert='big_endian' &
 #endif
     )
-    write(mp_unit) tcg_racg
-    write(mp_unit) tmr_racg
-    write(mp_unit) tcr_gacr
-    write(mp_unit) tnr_racg
-    write(mp_unit) tnr_gacr
+    write(mp_unit) real(tcg_racg, kind=table_dp)
+    write(mp_unit) real(tmr_racg, kind=table_dp)
+    write(mp_unit) real(tcr_gacr, kind=table_dp)
+    write(mp_unit) real(tnr_racg, kind=table_dp)
+    write(mp_unit) real(tnr_gacr, kind=table_dp)
     close(unit=mp_unit)
   end subroutine write_table_qr_acr_qg
 
