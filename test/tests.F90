@@ -558,8 +558,8 @@ module tests
   end subroutine test_ml_cloud_effective_radius
 
 
-  subroutine test_water_conservation(dt, semi_sedi, tolerance, residual_ratio)
-    !! column water budget with full microphysics and precipitation
+  subroutine test_water_conservation(dt, semi_sedi, tolerance, micro_off, aerosol_aware, residual_ratio)
+    !! column water budget with microphysics and precipitation
     !!
     !! each step, total water W = sum(m * (qv+qc+qr+qi+qs+qg)) is computed before and
     !! after tempo_run using the same layer mass m = rho*dz, where rho is the density
@@ -569,11 +569,19 @@ module tests
     !!
     !! the test reports the accumulated R as a fraction of the accumulated P and stops with
     !! an error if |R/P| exceeds tolerance
+    !!
+    !! options:
+    !!   micro_off = .true. turns off all microphysical processes so only sedimentation
+    !!     acts; with no latent heating the density does not change, so R is round-off
+    !!     and a failure points at sedimentation itself
+    !!   aerosol_aware = .true. passes water- and ice-friendly aerosols (nwfa, nifa) so
+    !!     droplet activation, ice nucleation, and aerosol scavenging are used
     use module_mp_tempo_params, only : wp, sp, dp, roverrv, rdry, min_qv
 
     real(wp), intent(in) :: dt
     logical, intent(in) :: semi_sedi
     real(wp), intent(in) :: tolerance
+    logical, intent(in), optional :: micro_off, aerosol_aware
     real(wp), intent(out), optional :: residual_ratio
     integer :: itimestep
     integer, parameter :: nz = 59
@@ -581,7 +589,7 @@ module tests
     integer, parameter :: jds = 1, jde = 1, jms = 1, jme = 1, jts = 1, jte = 1
     integer, parameter :: kds = 1, kde = nz, kms = 1, kme = nz, kts = 1, kte = nz
     real(wp), dimension(its:ite, kts:kte, jts:jte) :: qv, t, th, pii, p, w, dz, &
-      qc, qr, qi, qs, qg, ni, nr, ng, qb, nc
+      qc, qr, qi, qs, qg, ni, nr, ng, qb, nc, nwfa, nifa
     real(wp), dimension(nz) :: klevs_in, qv_in, qc_in, qr_in, qi_in, qs_in, &
       qg_in, ni_in, nr_in, nc_in, nwfa_in, nifa_in, theta_in, ng_in, volg_in, &
       pressure_in, w_in, dz_in
@@ -590,10 +598,17 @@ module tests
       precip_sum, residual_sum, max_rel_step, ratio
     character(len=20) :: dt_string
     character(len=20) :: semi_sedi_string
+    character(len=40) :: case_string
     type(ty_tempo_driver_diags) :: tempo_driver_diags
     type(ty_tempo_cfgs) :: tempo_cfgs
     integer :: io1, io2, k, total_timesteps
     integer, parameter :: integration_time = 1200
+    logical :: no_micro, aerosols
+
+    no_micro = .false.
+    if (present(micro_off)) no_micro = micro_off
+    aerosols = .false.
+    if (present(aerosol_aware)) aerosols = aerosol_aware
 
     write(dt_string, '(I7)') int(dt)
     if (semi_sedi) then
@@ -601,6 +616,9 @@ module tests
     else
       write(semi_sedi_string, '(A)') ''
     endif
+    case_string = ''
+    if (no_micro) case_string = trim(case_string)//'_micro_off'
+    if (aerosols) case_string = trim(case_string)//'_aerosol_aware'
 
     ! read input file
     open(newunit=io1, file='../test/data/mpas_59lev_test.txt', status='old')
@@ -628,16 +646,19 @@ module tests
     qg(1,:,1) = qg_in
     ng(1,:,1) = ng_in
     qb(1,:,1) = volg_in * 1000. ! convert meters^3 -> liters
+    nwfa(1,:,1) = nwfa_in
+    nifa(1,:,1) = nifa_in
 
     ! set configs
-    tempo_cfgs%turn_off_micro_flag = .false.
+    tempo_cfgs%turn_off_micro_flag = no_micro
     tempo_cfgs%semi_sedi_flag = semi_sedi
 
     total_timesteps = int(integration_time/dt)
     precip_sum = 0._dp
     residual_sum = 0._dp
     max_rel_step = 0._dp
-    open(newunit=io2, file="water_budget_dt_"//trim(adjustl(dt_string))//trim(semi_sedi_string)//".txt", &
+    open(newunit=io2, file="water_budget_dt_"//trim(adjustl(dt_string))//trim(semi_sedi_string)// &
+      trim(case_string)//".txt", &
       status="new", action="write")
     write(io2, '(A)') 'time water_column precip_sum residual_sum'
 
@@ -649,13 +670,23 @@ module tests
       water_before = column_water(layer_mass, qv(1,:,1), qc(1,:,1), qr(1,:,1), &
         qi(1,:,1), qs(1,:,1), qg(1,:,1))
 
-      call  tempo_run(tempo_cfgs=tempo_cfgs, itimestep=itimestep, dt=dt, &
-                      ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
-                      jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
-                      kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
-                      t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
-                      qc=qc, nc=nc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, ng=ng, qb=qb, &
-                      tempo_diags=tempo_driver_diags)
+      if (aerosols) then
+        call  tempo_run(tempo_cfgs=tempo_cfgs, itimestep=itimestep, dt=dt, &
+                        ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
+                        jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
+                        kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
+                        t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
+                        qc=qc, nc=nc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, ng=ng, qb=qb, &
+                        nwfa=nwfa, nifa=nifa, tempo_diags=tempo_driver_diags)
+      else
+        call  tempo_run(tempo_cfgs=tempo_cfgs, itimestep=itimestep, dt=dt, &
+                        ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
+                        jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
+                        kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
+                        t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
+                        qc=qc, nc=nc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, ng=ng, qb=qb, &
+                        tempo_diags=tempo_driver_diags)
+      endif
 
       water_after = column_water(layer_mass, qv(1,:,1), qc(1,:,1), qr(1,:,1), &
         qi(1,:,1), qs(1,:,1), qg(1,:,1))
@@ -677,8 +708,9 @@ module tests
     if (precip_sum > 0._dp) ratio = residual_sum / precip_sum
     if (present(residual_ratio)) residual_ratio = real(ratio, kind=wp)
 
-    write(*,'(A,I5,A,L1,A,ES12.4,A,ES12.4,A,ES10.2,A,ES10.2)') &
+    write(*,'(A,I5,A,L1,A,L1,A,L1,A,ES12.4,A,ES12.4,A,ES10.2,A,ES10.2)') &
       'test_water_conservation() --- dt = ', int(dt), ' semi_sedi = ', semi_sedi, &
+      ' micro_off = ', no_micro, ' aerosol_aware = ', aerosols, &
       ' P = ', precip_sum, ' kg m-2  R = ', residual_sum, ' kg m-2  R/P = ', ratio, &
       '  max |R|/W per step = ', max_rel_step
 

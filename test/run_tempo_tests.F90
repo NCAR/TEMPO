@@ -46,4 +46,24 @@ program run_tempo_tests
     call test_water_conservation(dt=sedi_tests(t), semi_sedi=.true., tolerance=water_tolerance)
   enddo
 
+  ! control: sedimentation only (no latent heating, so the density does not change)
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.false., tolerance=water_tolerance, &
+      micro_off=.true.)
+  enddo
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.true., tolerance=water_tolerance, &
+      micro_off=.true.)
+  enddo
+
+  ! aerosol-aware: droplet activation, ice nucleation, and aerosol scavenging
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.false., tolerance=water_tolerance, &
+      aerosol_aware=.true.)
+  enddo
+  do t = 1, size(sedi_tests)
+    call test_water_conservation(dt=sedi_tests(t), semi_sedi=.true., tolerance=water_tolerance, &
+      aerosol_aware=.true.)
+  enddo
+
 end program run_tempo_tests
