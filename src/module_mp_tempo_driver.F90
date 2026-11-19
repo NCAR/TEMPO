@@ -18,6 +18,7 @@ module module_mp_tempo_driver
 
   type :: ty_tempo_driver_diags
     real(wp), dimension(:,:), allocatable :: rain_precip
+    real(wp), dimension(:,:), allocatable :: cloud_precip
     real(wp), dimension(:,:), allocatable :: ice_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: snow_liquid_equiv_precip
     real(wp), dimension(:,:), allocatable :: graupel_liquid_equiv_precip
@@ -424,6 +425,7 @@ module module_mp_tempo_driver
     ! precipitation
     if (.not. allocated(tempo_diags%rain_precip)) then
       allocate(tempo_diags%rain_precip(its:ite, jts:jte), source=0._wp)
+      allocate(tempo_diags%cloud_precip(its:ite, jts:jte), source=0._wp)
       allocate(tempo_diags%ice_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
       allocate(tempo_diags%snow_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
       allocate(tempo_diags%graupel_liquid_equiv_precip(its:ite, jts:jte), source=0._wp)
@@ -431,6 +433,7 @@ module module_mp_tempo_driver
       allocate(tempo_diags%frz_rain_precip(its:ite, jts:jte), source=0._wp)
     else
       tempo_diags%rain_precip = 0._wp
+      tempo_diags%cloud_precip = 0._wp
       tempo_diags%ice_liquid_equiv_precip = 0._wp
       tempo_diags%snow_liquid_equiv_precip = 0._wp
       tempo_diags%graupel_liquid_equiv_precip = 0._wp
@@ -503,6 +506,7 @@ module module_mp_tempo_driver
           
         ! precipitation
         tempo_diags%rain_precip(i,j) = tempo_main_diags%rain_precip
+        tempo_diags%cloud_precip(i,j) = tempo_main_diags%cloud_precip
         tempo_diags%ice_liquid_equiv_precip(i,j) = tempo_main_diags%ice_liquid_equiv_precip
         tempo_diags%snow_liquid_equiv_precip(i,j) = tempo_main_diags%snow_liquid_equiv_precip
         tempo_diags%graupel_liquid_equiv_precip(i,j) = tempo_main_diags%graupel_liquid_equiv_precip
