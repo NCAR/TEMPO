@@ -19,6 +19,10 @@ module module_mp_tempo_main
   !! happens between the effective radius calcuation and call to radiation
   public :: cloud_check_and_update, ice_check_and_update, snow_check_and_update
 
+  !! used by the driver to keep graupel number and volume consistent with one-moment
+  !! graupel when hail-aware = false but the host model passes them
+  public :: graupel_init
+
   
 #ifdef unit_testing
   public :: get_cloud_table_index, get_snow_table_index, &
@@ -3018,7 +3022,7 @@ module module_mp_tempo_main
     use module_mp_tempo_params, only : t0, r_r, r_s, r_g, rho_i, rho_g, meters3_to_liters, &
       tmr_racs2, tcr_sacr2, tmr_racs1, tcr_sacr1, tms_sacr1, tcs_racs1, &
       tnr_sacr1, tnr_sacr2, tnr_racs1, tnr_racs2, &
-      tcr_gacr, tmr_racg, tcg_racg, tnr_gacr, tnr_racg, nrhg
+      tcr_gacr, tmr_racg, tcg_racg, tnr_gacr, tnr_racg, nrhg, rg_table_idx
 
     real(wp), intent(in) :: odt    
     type(ty_tend), intent(inout) :: tend
@@ -3079,26 +3083,26 @@ module module_mp_tempo_main
           call get_rain_table_index(rr(k), ilamr(k), idx_r, idx_r1)
           call get_graupel_table_index(rg(k), ilamg(k), idx(k), idx_g, idx_g1)
           if (temp(k) < t0) then
-            tend%prg_rcg(k) = tmr_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r) &
-              + tcr_gacr(idx_g1,idx_g,idx(k),idx_r1,idx_r)
+            tend%prg_rcg(k) = tmr_racg(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r) &
+              + tcr_gacr(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r)
             tend%prg_rcg(k) = min(real(rr(k)*odt, kind=dp), tend%prg_rcg(k))
             tend%prr_rcg(k) = -tend%prg_rcg(k)
-            tend%pnr_rcg(k) = tnr_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r) &
-              + tnr_gacr(idx_g1,idx_g,idx(k),idx_r1,idx_r)
+            tend%pnr_rcg(k) = tnr_racg(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r) &
+              + tnr_gacr(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r)
             tend%pnr_rcg(k) = min(real(nr(k)*odt, kind=dp), tend%pnr_rcg(k))
             tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(nrhg)
           else
-            tend%prr_rcg(k) = tcg_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r)
+            tend%prr_rcg(k) = tcg_racg(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r)
             tend%prr_rcg(k) = min(real(rg(k)*odt, kind=dp), tend%prr_rcg(k))
             tend%prg_rcg(k) = -tend%prr_rcg(k)
-            tend%png_rcg(k) = tnr_racg(idx_g1,idx_g,idx(k),idx_r1,idx_r)
+            tend%png_rcg(k) = tnr_racg(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r)
             tend%png_rcg(k) = min(real(ng(k)*odt, kind=dp), tend%png_rcg(k))
             tend%pbg_rcg(k) = meters3_to_liters*tend%prg_rcg(k)/rho_g(idx(k))
             !> @note
             !> adds explicit rain drop break-up due to collisions with graupel
             !> at temperatures above melting
             !> @endnote
-            tend%pnr_rcg(k) = -1.5_wp*tnr_gacr(idx_g1,idx_g,idx(k),idx_r1,idx_r)
+            tend%pnr_rcg(k) = -1.5_wp*tnr_gacr(idx_g1,idx_g,rg_table_idx(idx(k)),idx_r1,idx_r)
           endif
         endif
       endif
@@ -3110,12 +3114,12 @@ module module_mp_tempo_main
             call get_temperature_table_index(temp(k), idx_t)
             call get_rain_table_index(rr(k), ilamr(k), idx_r, idx_r1)
             call get_graupel_table_index(rh(k), ilamh(k), nrhg, idx_h, idx_h1)
-            tend%prh_rch(k) = tmr_racg(idx_h1,idx_h,nrhg,idx_r1,idx_r)  &
-              + tcr_gacr(idx_h1,idx_h,nrhg,idx_r1,idx_r)
+            tend%prh_rch(k) = tmr_racg(idx_h1,idx_h,rg_table_idx(nrhg),idx_r1,idx_r)  &
+              + tcr_gacr(idx_h1,idx_h,rg_table_idx(nrhg),idx_r1,idx_r)
             tend%prh_rch(k) = min(real(rr(k)*odt, kind=dp), tend%prh_rch(k))
             tend%prr_rch(k) = -tend%prh_rch(k)
-            tend%pnr_rch(k) = tnr_racg(idx_h1,idx_h,nrhg,idx_r1,idx_r)  &
-              + tnr_gacr(idx_h1,idx_h,nrhg,idx_r1,idx_r)
+            tend%pnr_rch(k) = tnr_racg(idx_h1,idx_h,rg_table_idx(nrhg),idx_r1,idx_r)  &
+              + tnr_gacr(idx_h1,idx_h,rg_table_idx(nrhg),idx_r1,idx_r)
             tend%pnr_rch(k) = min(real(nr(k)*odt, kind=dp), tend%pnr_rch(k))
           endif
         endif

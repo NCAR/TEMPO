@@ -3,7 +3,7 @@ module module_mp_tempo_driver
   !! also allocates and fills diagnostic arrays
   use module_mp_tempo_cfgs, only : ty_tempo_cfgs, ty_tempo_table_cfgs
   use module_mp_tempo_params, only : wp, sp, dp
-  use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
+  use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags, graupel_init
   use module_mp_tempo_utils, only : compute_efrw, compute_efsw, compute_drop_evap, qi_aut_qs
   use module_mp_tempo_ml, only : ty_tempo_ml_data, nc_ml_nodes, nc_ml_input, nc_ml_output, &
     nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01, save_or_read_ml_data
@@ -14,6 +14,7 @@ module module_mp_tempo_driver
   public :: tempo_init, tempo_run, ty_tempo_driver_diags, tempo_aerosol_surface_emissions
   
   type(ty_tempo_table_cfgs) :: tempo_table_cfgs
+  logical :: warned_graupel_moments = .false. !! warn once if ng and qb are passed with hail-aware = false
 
   type :: ty_tempo_driver_diags
     real(wp), dimension(:,:), allocatable :: rain_precip
@@ -228,6 +229,8 @@ module module_mp_tempo_driver
     ims, ime, jms, jme, kms, kme, &
     its, ite, jts, jte, kts, kte, tempo_diags)
 
+    use module_mp_tempo_params, only : roverrv, rdry, min_qv
+
     type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
     real(wp), intent(in) :: dt !! timestep \([s]]\)
     integer, intent(in) :: itimestep !! integer timestep = integration time / dt
@@ -305,6 +308,9 @@ module module_mp_tempo_driver
 
     integer :: i, j, k
     logical :: use_temperature, is_first_step
+    logical :: use_graupel_moments !! predict graupel number and volume (hail-aware with ng and qb present)
+    logical :: reset_graupel_moments !! ng and qb passed with hail-aware = false: ignore them and reset on return
+    real(wp), dimension(:), allocatable :: rho1d, ng_reset1d, qb_reset1d
 
     type(ty_tempo_main_diags) :: tempo_main_diags
     type(ty_tempo_driver_diags), intent(inout) :: tempo_diags
@@ -313,8 +319,26 @@ module module_mp_tempo_driver
     if (present(nwfa)) allocate(nwfa1d(kts:kte), source=0._wp)
     if (present(nifa)) allocate(nifa1d(kts:kte), source=0._wp)
     if (present(nc)) allocate(nc1d(kts:kte), source=0._wp)
-    if (present(ng)) allocate(ng1d(kts:kte), source=0._wp)
-    if (present(qb)) allocate(qb1d(kts:kte), source=0._wp)
+    ! graupel number and volume are only predicted when hail-aware; with hail-aware = false
+    ! they are ignored (graupel is one-moment at the idx_bg1 density) even if passed
+    use_graupel_moments = present(ng) .and. present(qb) .and. tempo_cfgs%hailaware_flag
+    reset_graupel_moments = present(ng) .and. present(qb) .and. .not. tempo_cfgs%hailaware_flag
+    if (use_graupel_moments) then
+      allocate(ng1d(kts:kte), source=0._wp)
+      allocate(qb1d(kts:kte), source=0._wp)
+    endif
+    if (reset_graupel_moments) then
+      allocate(rho1d(kts:kte), ng_reset1d(kts:kte), qb_reset1d(kts:kte), source=0._wp)
+      if (.not. warned_graupel_moments) then
+        !$omp critical (tempo_warn_graupel_moments)
+        if (.not. warned_graupel_moments) then
+          write(*,'(A)') 'tempo_run() --- WARNING: ng and qb were passed with hail-aware = false; ' // &
+            'they are ignored (one-moment graupel) and reset to values consistent with qg'
+          warned_graupel_moments = .true.
+        endif
+        !$omp end critical (tempo_warn_graupel_moments)
+      endif
+    endif
 
     ! additional optional 1d arrays
     if (present(qcfrac)) allocate(qcfrac1d(kts:kte), source=0._wp)
@@ -455,7 +479,7 @@ module module_mp_tempo_driver
           if (present(nc)) nc1d(k) = nc(i,k,j)
 
           ! ng and qb are optional hail-aware variables
-          if ((present(ng)) .and. (present(qb))) then
+          if (use_graupel_moments) then
             ng1d(k) = ng(i,k,j)
             qb1d(k) = qb(i,k,j)
           endif 
@@ -523,7 +547,7 @@ module module_mp_tempo_driver
             if (present(nwfa)) nwfa(i,k,j) = nwfa1d(k)
             if (present(nifa)) nifa(i,k,j) = nifa1d(k)
           endif
-          if ((present(ng)) .and. (present(qb))) then
+          if (use_graupel_moments) then
             ng(i,k,j) = ng1d(k)
             qb(i,k,j) = qb1d(k)
           endif 
@@ -543,6 +567,21 @@ module module_mp_tempo_driver
             th(i,k,j) = t1d(k) / pii(i,k,j)
           endif 
         enddo
+
+        ! hail-aware = false: ng and qb were not used, so reset them to the one-moment
+        ! graupel values implied by qg (idx_bg1 density) so they do not go stale
+        if (reset_graupel_moments) then
+          do k = kts, kte
+            rho1d(k) = roverrv*p1d(k) / (rdry*t1d(k)*(max(min_qv, qv1d(k)) + roverrv))
+          enddo
+          ng_reset1d = 0._wp
+          qb_reset1d = 0._wp
+          call graupel_init(rho1d, qg1d, ng_reset1d, qb_reset1d)
+          do k = kts, kte
+            ng(i,k,j) = ng_reset1d(k)
+            qb(i,k,j) = qb_reset1d(k)
+          enddo
+        endif
       enddo
     enddo
   end subroutine tempo_run
@@ -607,12 +646,19 @@ module module_mp_tempo_driver
       return
     endif
 
-    read(mp_unit) tpi_qrfz
-    read(mp_unit) tni_qrfz
-    read(mp_unit) tpg_qrfz
-    read(mp_unit) tnr_qrfz
-    read(mp_unit) tpi_qcfz
-    read(mp_unit) tni_qcfz
+    call read_table_4d(mp_unit, tpi_qrfz, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tni_qrfz, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tpg_qrfz, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tnr_qrfz, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tpi_qcfz, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tni_qcfz, istat)
+    if (istat /= 0) then
+      if (present(status)) status = istat
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to read TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
+      close(unit=mp_unit)
+      return
+    endif
 
     close(unit=mp_unit)
   end subroutine read_table_freezewater
@@ -649,18 +695,25 @@ module module_mp_tempo_driver
       return
     endif
 
-    read(mp_unit) tcs_racs1
-    read(mp_unit) tmr_racs1
-    read(mp_unit) tcs_racs2
-    read(mp_unit) tmr_racs2
-    read(mp_unit) tcr_sacr1
-    read(mp_unit) tms_sacr1
-    read(mp_unit) tcr_sacr2
-    read(mp_unit) tms_sacr2
-    read(mp_unit) tnr_racs1
-    read(mp_unit) tnr_racs2
-    read(mp_unit) tnr_sacr1
-    read(mp_unit) tnr_sacr2
+    call read_table_4d(mp_unit, tcs_racs1, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tmr_racs1, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tcs_racs2, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tmr_racs2, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tcr_sacr1, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tms_sacr1, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tcr_sacr2, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tms_sacr2, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tnr_racs1, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tnr_racs2, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tnr_sacr1, istat)
+    if (istat == 0) call read_table_4d(mp_unit, tnr_sacr2, istat)
+    if (istat /= 0) then
+      if (present(status)) status = istat
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to read TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
+      close(unit=mp_unit)
+      return
+    endif
     close(unit=mp_unit)
   end subroutine read_table_qr_acr_qs
 
@@ -695,11 +748,18 @@ module module_mp_tempo_driver
       return
     endif
 
-    read(mp_unit) tcg_racg
-    read(mp_unit) tmr_racg
-    read(mp_unit) tcr_gacr
-    read(mp_unit) tnr_racg
-    read(mp_unit) tnr_gacr
+    call read_table_rain_graupel(mp_unit, tcg_racg, istat)
+    if (istat == 0) call read_table_rain_graupel(mp_unit, tmr_racg, istat)
+    if (istat == 0) call read_table_rain_graupel(mp_unit, tcr_gacr, istat)
+    if (istat == 0) call read_table_rain_graupel(mp_unit, tnr_racg, istat)
+    if (istat == 0) call read_table_rain_graupel(mp_unit, tnr_gacr, istat)
+    if (istat /= 0) then
+      if (present(status)) status = istat
+      if (present(errmsg)) write(errmsg,'(3A,I0,A)') &
+        'tempo_init() --- failed to read TEMPO lookup table "', trim(filename), '" (iostat = ', istat, ')'
+      close(unit=mp_unit)
+      return
+    endif
     close(unit=mp_unit)
   end subroutine read_table_qr_acr_qg
 
@@ -821,5 +881,55 @@ module module_mp_tempo_driver
     ! save neural network
     call save_or_read_ml_data(ml_data_in=tempo_ml_data)
   end subroutine init_ml_data
+
+
+  subroutine read_table_4d(mp_unit, table, istat)
+    !! reads one real64 lookup table record from a stream file into a 4d table
+    !! stored at table_store precision, one slice of the last dimension at a time
+    !! so the whole record never needs a real64 buffer
+    use module_mp_tempo_params, only : table_dp, table_store
+
+    integer, intent(in) :: mp_unit
+    real(table_store), dimension(:,:,:,:), intent(inout) :: table
+    integer, intent(out) :: istat
+    real(table_dp), allocatable, dimension(:,:,:) :: buffer
+    integer :: n
+
+    allocate(buffer(size(table,1), size(table,2), size(table,3)))
+    do n = 1, size(table,4)
+      read(mp_unit, iostat=istat) buffer
+      if (istat /= 0) return
+      table(:,:,:,n) = real(buffer, kind=table_store)
+    enddo
+  end subroutine read_table_4d
+
+
+  subroutine read_table_rain_graupel(mp_unit, table, istat)
+    !! reads one real64 rain-graupel lookup table record from a stream file
+    !!
+    !! the file always holds all nrhg graupel densities (dimension 3); the table in
+    !! memory holds dim_nrhg of them: all nrhg when hail-aware, or only the idx_bg1
+    !! density otherwise
+    use module_mp_tempo_params, only : table_dp, table_store, nrhg, idx_bg1
+
+    integer, intent(in) :: mp_unit
+    real(table_store), dimension(:,:,:,:,:), intent(inout) :: table
+    integer, intent(out) :: istat
+    real(table_dp), allocatable, dimension(:,:,:) :: buffer
+    integer :: i, j
+
+    allocate(buffer(size(table,1), size(table,2), nrhg))
+    do j = 1, size(table,5)
+      do i = 1, size(table,4)
+        read(mp_unit, iostat=istat) buffer
+        if (istat /= 0) return
+        if (size(table,3) == nrhg) then
+          table(:,:,:,i,j) = real(buffer, kind=table_store)
+        else
+          table(:,:,1,i,j) = real(buffer(:,:,idx_bg1), kind=table_store)
+        endif
+      enddo
+    enddo
+  end subroutine read_table_rain_graupel
 
 end module module_mp_tempo_driver

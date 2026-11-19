@@ -3,7 +3,8 @@ program run_tempo_tests
   use tests, only : test_tempo_init, test_graupel_sedimentation, &
     test_snow_sedimentation, test_cloud_number_aerosolaware, &
     test_cloud_number_non_aerosolaware, test_cloud_number_ml, &
-    test_ml_cloud_effective_radius, test_water_conservation
+    test_ml_cloud_effective_radius, test_water_conservation, &
+    test_hail_aware_off_ignores_graupel_moments
   
   implicit none
 
@@ -37,6 +38,9 @@ program run_tempo_tests
   do t = 1, size(sedi_tests)
     call test_snow_sedimentation(dt=sedi_tests(t))
   enddo
+
+  ! hail-aware = false: ng and qb passed by the host are ignored
+  call test_hail_aware_off_ignores_graupel_moments(dt=20.)
 
   ! column water conservation including precipitation
   do t = 1, size(sedi_tests)
