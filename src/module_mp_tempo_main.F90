@@ -494,7 +494,7 @@ module module_mp_tempo_main
         ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, l_qh, rh, nh, ilamh, tend, odt)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
-      call riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
+      call riming(temp, rhof, rhof2, visco, vsc2, tcond, diffu, delqvs, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
         smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx_bg, l_qh, rh, nh, ilamh, tend, odt)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
@@ -2716,26 +2716,27 @@ module module_mp_tempo_main
   end subroutine warm_rain
 
 
-  subroutine riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, &
+  subroutine riming(temp, rhof, rhof2, visco, vsc2, tcond, diffu, delqvs, l_qc, rc, nc, ilamc, mvd_c, &
     l_qs, rs, smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx, l_qh, rh, nh, ilamh, tend, odt)
     !! snow and graupel riming
     use module_mp_tempo_params, only : d0c, d0s, nbs, ds, t_efsw, t1_qs_qc, &
       r_g, bm_g, mu_g, av_g, cgg, ogg3, bv_g, rho_w, t0, d0g, pi, cge, ogg2, &
       rime_threshold, rime_conversion, av_s, bv_s, rho_s, xm0i, eps, fv_s, &
-      meters3_to_liters
+      meters3_to_liters, rho_g, nrhg, t1_qg_me, c_cube, olfus, sc3, lvap0
 
     real(wp), intent(in) :: odt    
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: rhof, visco, temp, rc, nc, rs, rg, ng, rh, nh
+    real(wp), dimension(:), intent(in) :: rhof2, vsc2, tcond, diffu, delqvs
     real(wp), dimension(:), intent(in) :: mvd_c
     real(dp), dimension(:), intent(in) :: smo0, smob, smoc, smoe, ilamg, ilamc, ilamh
     logical, dimension(:), intent(in) :: l_qc, l_qs, l_qg, l_qh
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(out) :: vtboost
 
-    real(dp) :: xds, xdg, n0_g, lamc, xdh, n0_h
+    real(dp) :: xds, xdg, n0_g, lamc, xdh, n0_h, prg_wet
     real(wp) :: ef_sw, vtg, stoke_g, const_ri, tempc, rime_dens, ef_gw, ef_hw
-    real(wp) :: t1_qg_qc, r_frac, g_frac, vts, tf, snow_dens_frac, t1_qh_qc
+    real(wp) :: t1_qg_qc, r_frac, g_frac, vts, tf, snow_dens_frac, t1_qh_qc, t2_qg_me
     integer :: k, nz, idxs, nu_c
 
     nz = size(l_qc)
@@ -2838,6 +2839,22 @@ module module_mp_tempo_main
             tend%pnc_gcw(k) = rhof(k)*t1_qg_qc*ef_gw*nc(k)* &
               n0_g*ilamg(k)**cge(9,idx(k))
             tend%pnc_gcw(k) = min(real(nc(k)*odt, kind=dp), tend%pnc_gcw(k))
+
+            !>
+            !> wet growth: if graupel collects liquid (cloud water plus rain) faster than
+            !> the latent heat of freezing can be removed by conduction and evaporation
+            !> from a surface at 0 C (Schumann-Ludlam limit; e.g. Lin et al. 1983, Musil 1970),
+            !> the surface is wet and the collected water freezes as dense ice, so set the
+            !> rime density to the maximum graupel density (800 \(kg\, m^{-3}\)).
+            !> The heat-removal term is the graupel melting rate with the sign reversed,
+            !> reduced by the heat needed to warm the collected water to 0 C.
+            if (temp(k) < t0 .and. tend%prg_gcw(k) > 0._dp) then
+              t2_qg_me = pi*4._wp*c_cube*olfus * 0.28_wp*sc3*sqrt(av_g(idx(k))) * cgg(11,idx(k))
+              prg_wet = -(tempc*tcond(k) - lvap0*diffu(k)*delqvs(k)) * n0_g * &
+                (t1_qg_me*ilamg(k)**cge(10,1) + t2_qg_me*rhof2(k)*vsc2(k)*ilamg(k)**cge(11,idx(k))) / &
+                max(0.1_wp, 1._wp + 4218._wp*olfus*tempc)
+              if (tend%prg_gcw(k) + max(0._dp, tend%prg_rcg(k)) > prg_wet) rime_dens = rho_g(nrhg)
+            endif
             if (temp(k) < t0) tend%pbg_gcw(k) = meters3_to_liters*tend%prg_gcw(k)/rime_dens
 
             if (temp(k) < t0) then
