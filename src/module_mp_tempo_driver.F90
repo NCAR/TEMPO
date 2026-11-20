@@ -3,7 +3,7 @@ module module_mp_tempo_driver
   !! also allocates and fills diagnostic arrays
   use module_mp_tempo_cfgs, only : ty_tempo_cfgs, ty_tempo_table_cfgs
   use module_mp_tempo_params, only : wp, sp, dp
-  use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
+  use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags, tempo_diagnose_refl_1d
   use module_mp_tempo_utils, only : compute_efrw, compute_efsw, compute_drop_evap, qi_aut_qs
   use module_mp_tempo_ml, only : ty_tempo_ml_data, nc_ml_nodes, nc_ml_input, nc_ml_output, &
     nc_ml_trans_mean, nc_ml_trans_var, nc_ml_w00, nc_ml_w01, nc_ml_b00, nc_ml_b01, save_or_read_ml_data
@@ -11,7 +11,7 @@ module module_mp_tempo_driver
   implicit none
   private
 
-  public :: tempo_init, tempo_run, ty_tempo_driver_diags, tempo_aerosol_surface_emissions
+  public :: tempo_init, tempo_run, ty_tempo_driver_diags, tempo_aerosol_surface_emissions, tempo_diagnose_refl
   
   type(ty_tempo_table_cfgs) :: tempo_table_cfgs
 
@@ -749,5 +749,52 @@ module module_mp_tempo_driver
     ! save neural network
     call save_or_read_ml_data(ml_data_in=tempo_ml_data)
   end subroutine init_ml_data
+
+
+  subroutine tempo_diagnose_refl(tempo_cfgs, th, pii, pres, qv, qc, qr, nr, qs, qg, refl, ng, qb, &
+      is_first_step, its, ite, jts, jte, kts, kte)
+    !! 10-cm reflectivity from the current hydrometeor state.
+    !! Does not update the hydrometeor profiles.
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
+    integer, intent(in) :: its, ite, jts, jte, kts, kte
+    real(wp), dimension(its:ite, kts:kte, jts:jte), intent(in) :: th, pii, pres, qv, qc, qr, nr, qs, qg
+    real(wp), dimension(its:ite, kts:kte, jts:jte), intent(out) :: refl
+    real(wp), dimension(its:ite, kts:kte, jts:jte), intent(in), optional :: ng, qb
+    logical, intent(in), optional :: is_first_step
+
+    real(wp), dimension(kts:kte) :: t1d, p1d, qv1d, qc1d, qr1d, nr1d, qs1d, qg1d, ng1d, qb1d, dbz
+    integer :: i, j, k
+    logical :: hail_aware
+
+    hail_aware = present(ng) .and. present(qb)
+    do j = jts, jte
+      do i = its, ite
+        do k = kts, kte
+          t1d(k) = th(i,k,j) * pii(i,k,j)
+          p1d(k) = pres(i,k,j)
+          qv1d(k) = qv(i,k,j)
+          qc1d(k) = qc(i,k,j)
+          qr1d(k) = qr(i,k,j)
+          nr1d(k) = nr(i,k,j)
+          qs1d(k) = qs(i,k,j)
+          qg1d(k) = qg(i,k,j)
+          if (hail_aware) then
+            ng1d(k) = ng(i,k,j)
+            qb1d(k) = qb(i,k,j)
+          endif
+        enddo
+        if (hail_aware) then
+          call tempo_diagnose_refl_1d(tempo_cfgs, qv1d, qc1d, qr1d, qs1d, qg1d, nr1d, t1d, p1d, dbz, &
+            ng_in=ng1d, qb_in=qb1d, is_first_step=is_first_step)
+        else
+          call tempo_diagnose_refl_1d(tempo_cfgs, qv1d, qc1d, qr1d, qs1d, qg1d, nr1d, t1d, p1d, dbz, &
+            is_first_step=is_first_step)
+        endif
+        do k = kts, kte
+          refl(i,k,j) = dbz(k)
+        enddo
+      enddo
+    enddo
+  end subroutine tempo_diagnose_refl
 
 end module module_mp_tempo_driver
