@@ -13,7 +13,7 @@ module module_mp_tempo_main
   implicit none
   private
 
-  public :: tempo_main, ty_tempo_main_diags
+  public :: tempo_main, ty_tempo_main_diags, tempo_diagnose_refl_1d
 
   !! needed for effective radius calculations when using FV3 since advection
   !! happens between the effective radius calcuation and call to radiation
@@ -3588,5 +3588,139 @@ module module_mp_tempo_main
       endif
     enddo
   end subroutine aerosol_scavenging
+
+
+  subroutine tempo_diagnose_refl_1d(tempo_cfgs, qv_in, qc_in, qr_in, qs_in, qg_in, nr_in, t_in, p_in, dbz, &
+      ng_in, qb_in, is_first_step)
+    !! Column 10-cm reflectivity using the same end-of-step diagnostic as tempo_main.
+    !! Includes the graupel/hail split when hailhyperaware_flag is set.
+    !! Input profiles are not modified and no microphysical tendency is applied.
+    type(ty_tempo_cfgs), intent(in) :: tempo_cfgs
+    real(wp), dimension(:), intent(in) :: qv_in, qc_in, qr_in, qs_in, qg_in, nr_in, t_in, p_in
+    real(wp), dimension(:), intent(out) :: dbz
+    real(wp), dimension(:), intent(in), optional :: ng_in, qb_in
+    logical, intent(in), optional :: is_first_step
+
+    integer :: k, nz
+    real(wp), parameter :: dt = 1._wp, odt = 1._wp
+    real(wp) :: tc0
+    logical :: hail_aware, supersaturated
+    real(wp), dimension(size(qv_in)) :: qv, temp, pres, rho, qc1d, &
+      qr1d, qs1d, qg1d, nr1d, ng1d, qb1d, qh1d, hail_fraction, &
+      qrten, qsten, qgten, nrten, ngten, qbten, qhten, &
+      rr, rs, rg, rb, rh, nr, ng, nh, mvd_r, mvd_g, &
+      rhof, rhof2, qvs, delqvs, qvsi, satw, sati, ssatw, ssati, &
+      diffu, visco, vsc2, ocp, lvap, tcond, lvt2
+    real(dp), dimension(size(qv_in)) :: ilamr, ilamg, ilamh, smob, smoc, smo2, smoz
+    logical, dimension(size(qv_in)) :: l_qr, l_qs, l_qg, l_qh
+    integer, dimension(size(qv_in)) :: idx_bg
+
+    nz = size(qv_in)
+    hail_aware = present(ng_in) .and. present(qb_in)
+
+    qc1d = qc_in
+    qr1d = qr_in
+    qs1d = qs_in
+    qg1d = qg_in
+    nr1d = nr_in
+    ng1d = 0._wp
+    qb1d = 0._wp
+    if (hail_aware) then
+      ng1d = ng_in
+      qb1d = qb_in
+    endif
+    qrten = 0._wp
+    qsten = 0._wp
+    qgten = 0._wp
+    nrten = 0._wp
+    ngten = 0._wp
+    qbten = 0._wp
+    qhten = 0._wp
+    smob = 0._dp
+    smoc = 0._dp
+    smo2 = 0._dp
+    smoz = 0._dp
+    idx_bg = 1
+
+    do k = 1, nz
+      temp(k) = t_in(k)
+      qv(k) = max(min_qv, qv_in(k))
+      pres(k) = p_in(k)
+      rho(k) = roverrv*pres(k)/(rdry*temp(k)*(qv(k)+roverrv))
+    enddo
+
+    call rain_check_and_update(rho, l_qr, qr1d, nr1d, rr, nr, qrten, nrten, ilamr, mvd_r, dt, odt)
+
+    call snow_check_and_update(rho, l_qs, qs1d, rs, qsten, dt, odt)
+    do k = 1, nz
+      if (l_qs(k)) then
+        tc0 = min(-0.1, temp(k)-t0)
+        call snow_moments(rs=rs(k), tc=tc0, &
+          smob=smob(k), smoc=smoc(k), smo2=smo2(k), smoz=smoz(k))
+      endif
+    enddo
+
+    ! same first-step graupel number/volume initialization as tempo_main
+    if (hail_aware .and. present(is_first_step)) then
+      if (is_first_step) then
+        if (sum(qg1d) > r1 .and. sum(ng1d) < eps .and. sum(qb1d) < eps) then
+          call graupel_init(rho, qg1d, ng1d, qb1d)
+        endif
+      endif
+    endif
+
+    if (hail_aware) then
+      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
+        qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+    else
+      call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, &
+        rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+    endif
+
+    ! split hail from graupel as at the start of tempo_main
+    qh1d = 0._wp
+    l_qh = .false.
+    if (tempo_cfgs%hailhyperaware_flag) then
+      call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
+        satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
+        supersaturated)
+      call compute_hail_fraction(l_qg, qg1d, mvd_g, idx_bg, qr1d, qc1d, temp, &
+        tcond, diffu, delqvs, qh1d, hail_fraction)
+    endif
+
+    call hail_check_and_update(rho, l_qh, qh1d, rh, nh, qhten, ilamh, dt, odt)
+
+    if (any(l_qh)) then
+      do k = 1, nz
+        if (l_qh(k)) then
+          qg1d(k) = qg1d(k) - qh1d(k)
+          if (hail_aware) then
+            ng1d(k) = ng1d(k) - nh(k)/rho(k)
+            qb1d(k) = qb1d(k) - qh1d(k)*meters3_to_liters/rho_g(nrhg)
+          endif
+          qgten(k) = 0._wp
+          ngten(k) = 0._wp
+          qbten(k) = 0._wp
+        endif
+      enddo
+      if (hail_aware) then
+        call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
+          qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+          qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+      else
+        call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, &
+          rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
+          qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+      endif
+    endif
+
+    dbz = -35._wp
+    call reflectivity_10cm(tempo_cfgs%refl10cm_from_melting_flag, &
+      temp, l_qr, rr, nr, ilamr, &
+      l_qs, rs, smoc, smob, smoz, l_qg, rg, ng, idx_bg, ilamg, l_qh, nh, ilamh, &
+      dbz)
+  end subroutine tempo_diagnose_refl_1d
 
 end module module_mp_tempo_main
