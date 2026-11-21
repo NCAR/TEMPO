@@ -115,6 +115,7 @@ $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_utils.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_diags.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_aerosols.o
 $(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_tempo_ml.o
+$(src_dir)/module_mp_tempo_main.o : $(src_dir)/module_mp_nvtx.o
 $(test_dir)/tests.o: $(src_dir)/module_mp_tempo_cfgs.o
 $(test_dir)/tests.o: $(src_dir)/module_mp_tempo_params.o
 $(test_dir)/tests.o: $(src_dir)/module_mp_tempo_driver.o
