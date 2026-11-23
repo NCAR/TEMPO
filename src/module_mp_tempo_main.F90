@@ -1557,6 +1557,9 @@ module module_mp_tempo_main
     l_qr, rr, l_qs, rs, l_qg, rg, l_qh, rh, idx, tend, odt)
     !! check to ensure that loss terms don't over-deplete a category and
     !! adjusts tendencies if needed
+    !!
+    !! when a mass rate is scaled, the number (and graupel volume) rates computed from it
+    !! are scaled by the same ratio, so the size of what is transferred is unchanged
     use module_mp_tempo_params, only : eps, rho_i, t0, meters3_to_liters
 
     real(wp), intent(in) :: odt
@@ -1565,6 +1568,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(in) :: rho, temp, qvsi, qv, rc, ri, rr, rs, rg, rh
     integer, dimension(:), intent(in) :: idx !! graupel density index
     real(wp) :: sump, rate_max, ratio
+    real(dp) :: rate_before
     integer :: k, nz
 
     nz = size(qv)
@@ -1572,11 +1576,12 @@ module module_mp_tempo_main
       ! losses to vapor include, deposition nucleation; ice, snow, and graupel
       ! depositional growth; Koop nucleation
       sump = tend%pri_inu(k) + tend%pri_ide(k) + tend%prs_ide(k) + &
-        tend%prs_sde(k) + tend%prg_gde(k) + tend%pri_iha(k)
+        tend%prs_sde(k) + tend%prg_gde(k) + tend%pri_iha(k) + tend%prh_hde(k)
       rate_max = (qv(k)-qvsi(k))*rho(k)*odt*0.999_wp
       if ((sump > eps .and. sump > rate_max) .or. &
         (sump < -eps .and. sump < rate_max)) then
-        ratio = rate_max/sump
+        ! a net exchange in the opposite direction to the available vapor is stopped, not reversed
+        ratio = max(0._wp, rate_max/sump)
         tend%pri_inu(k) = tend%pri_inu(k) * ratio
         tend%pri_ide(k) = tend%pri_ide(k) * ratio
         tend%pni_ide(k) = tend%pni_ide(k) * ratio ! scales with pri_ide
@@ -1584,6 +1589,10 @@ module module_mp_tempo_main
         tend%prs_sde(k) = tend%prs_sde(k) * ratio
         tend%prg_gde(k) = tend%prg_gde(k) * ratio
         tend%pri_iha(k) = tend%pri_iha(k) * ratio
+        tend%prh_hde(k) = tend%prh_hde(k) * ratio
+        tend%pni_inu(k) = tend%pni_inu(k) * ratio ! scales with pri_inu
+        tend%pni_iha(k) = tend%pni_iha(k) * ratio ! scales with pri_iha
+        tend%png_gde(k) = tend%png_gde(k) * ratio ! scales with prg_gde
       endif
 
       ! losses to cloud water include conversion to rain;
@@ -1603,6 +1612,18 @@ module module_mp_tempo_main
           tend%pbg_scw(k) = tend%pbg_scw(k) * ratio
           tend%pbg_gcw(k) = tend%pbg_gcw(k) * ratio
           tend%prh_hcw(k) = tend%prh_hcw(k) * ratio
+          ! number rates scale with their mass rates
+          tend%pnc_wau(k) = tend%pnc_wau(k) * ratio
+          tend%pnr_wau(k) = tend%pnr_wau(k) * ratio
+          tend%pnc_rcw(k) = tend%pnc_rcw(k) * ratio
+          tend%pni_wfz(k) = tend%pni_wfz(k) * ratio
+          tend%pnc_scw(k) = tend%pnc_scw(k) * ratio
+          tend%png_scw(k) = tend%png_scw(k) * ratio
+          tend%pnc_gcw(k) = tend%pnc_gcw(k) * ratio
+          tend%pnc_hcw(k) = tend%pnc_hcw(k) * ratio
+          ! rime splintering is proportional to graupel riming (prg_gcw)
+          tend%prs_ihm(k) = tend%prs_ihm(k) * ratio
+          tend%prg_ihm(k) = tend%prg_ihm(k) * ratio
         endif
       endif 
 
@@ -1617,6 +1638,10 @@ module module_mp_tempo_main
           tend%prs_iau(k) = tend%prs_iau(k) * ratio
           tend%prs_sci(k) = tend%prs_sci(k) * ratio
           tend%pri_rci(k) = tend%pri_rci(k) * ratio
+          tend%pni_ide(k) = tend%pni_ide(k) * ratio ! scales with pri_ide
+          tend%pni_iau(k) = tend%pni_iau(k) * ratio
+          tend%pni_sci(k) = tend%pni_sci(k) * ratio
+          tend%pni_rci(k) = tend%pni_rci(k) * ratio
         endif
       endif 
 
@@ -1635,6 +1660,15 @@ module module_mp_tempo_main
           tend%prr_rcs(k) = tend%prr_rcs(k) * ratio
           tend%prr_rcg(k) = tend%prr_rcg(k) * ratio
           tend%prr_rch(k) = tend%prr_rch(k) * ratio
+          tend%pnr_rfz(k) = tend%pnr_rfz(k) * ratio
+          tend%pni_rfz(k) = tend%pni_rfz(k) * ratio
+          tend%png_rfz(k) = tend%png_rfz(k) * ratio
+          tend%pnr_rci(k) = tend%pnr_rci(k) * ratio
+          tend%png_rci(k) = tend%png_rci(k) * ratio
+          tend%pnr_rcs(k) = tend%pnr_rcs(k) * ratio
+          tend%png_rcs(k) = tend%png_rcs(k) * ratio
+          tend%pnr_rcg(k) = tend%pnr_rcg(k) * ratio
+          tend%pnr_rch(k) = tend%pnr_rch(k) * ratio
         endif
       endif
 
@@ -1656,6 +1690,7 @@ module module_mp_tempo_main
           tend%prs_ihm(k) = tend%prs_ihm(k) * ratio
           tend%prr_sml(k) = tend%prr_sml(k) * ratio
           tend%prs_rcs(k) = tend%prs_rcs(k) * ratio
+          tend%pnr_sml(k) = tend%pnr_sml(k) * ratio ! scales with prr_sml
         endif
       endif
 
@@ -1670,7 +1705,10 @@ module module_mp_tempo_main
           tend%prg_ihm(k) = tend%prg_ihm(k) * ratio
           tend%prr_gml(k) = tend%prr_gml(k) * ratio
           tend%prg_rcg(k) = tend%prg_rcg(k) * ratio
-          tend%pbg_rcg(k) = tend%pbg_rcg(k) * ratio ! scales with prg_rcg
+          tend%pnr_gml(k) = tend%pnr_gml(k) * ratio ! scales with prr_gml (also the graupel number lost)
+          tend%pbg_gml(k) = tend%pbg_gml(k) * ratio ! scales with prr_gml
+          tend%png_gde(k) = tend%png_gde(k) * ratio ! scales with prg_gde
+          tend%png_rcg(k) = tend%png_rcg(k) * ratio ! scales with prg_rcg (graupel loss above freezing)
         endif
       endif
 
@@ -1682,17 +1720,28 @@ module module_mp_tempo_main
           ratio = rate_max/sump
           tend%prr_hml(k) = tend%prr_hml(k) * ratio
           tend%prh_hde(k) = tend%prh_hde(k) * ratio
+          tend%pnr_hml(k) = tend%pnr_hml(k) * ratio ! scales with prr_hml
         endif
       endif
 
       ! updates after adjustments
       ! reset sum of rime splintering
+      rate_before = tend%pri_ihm(k)
       tend%pri_ihm(k) = tend%prs_ihm(k) + tend%prg_ihm(k)
+      ! splinter number follows splinter mass
+      if (rate_before > 0._dp) tend%pni_ihm(k) = tend%pni_ihm(k) * (tend%pri_ihm(k) / rate_before)
 
       ! reset total rain-graupel collection amount if reduced
+      rate_before = tend%prr_rcg(k)
       ratio = min(abs(tend%prr_rcg(k)), abs(tend%prg_rcg(k)))
       tend%prr_rcg(k) = ratio * sign(1.0_dp, tend%prr_rcg(k))
       tend%prg_rcg(k) = -tend%prr_rcg(k)
+      if (abs(rate_before) > 0._dp) then
+        tend%pnr_rcg(k) = tend%pnr_rcg(k) * (tend%prr_rcg(k) / rate_before)
+        ! above freezing, graupel number lost follows graupel mass lost
+        tend%png_rcg(k) = tend%png_rcg(k) * (tend%prr_rcg(k) / rate_before)
+      endif
+      ! graupel volume is recomputed from the final prg_rcg
       ! volume change: below freezing graupel gains frozen drops at the maximum graupel density;
       ! above freezing graupel loses mass at its own density
       if (temp(k) < t0) then
@@ -1714,7 +1763,7 @@ module module_mp_tempo_main
         tend%pbg_rcs(k) = meters3_to_liters * tend%prg_rcs(k) / rho_g(nrhg)
       endif
 
-      ! update to rain-hail
+      ! update to rain-hail (pnr_rch was scaled with prr_rch in the rain block)
       ratio = min(abs(tend%prr_rch(k)), abs(tend%prh_rch(k)))
       tend%prr_rch(k) = ratio * sign(1.0_dp, tend%prr_rch(k))
       tend%prh_rch(k) = ratio * sign(1.0_dp, tend%prh_rch(k))
