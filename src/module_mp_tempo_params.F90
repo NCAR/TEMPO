@@ -118,6 +118,9 @@ module module_mp_tempo_params
   real(wp), parameter :: icenuc_max = 1000.e3_wp !! maximum ice nucleation number \([m^{-3}]\)
   real(wp), parameter :: rime_threshold = 2.0_wp !! snow to graupel rime threshold parameter
   real(wp), parameter :: rime_conversion = 0.95_wp !! snow to graupel rime conversion parameter
+  real(wp), parameter :: rime_ri_quad = 8._wp !! upper limit of the Cober and List (1993) rime density fit in impact parameter Ri
+  real(wp), parameter :: rime_ri_max = 12._wp !! impact parameter Ri at which rime density reaches the maximum graupel density
+  real(wp), parameter :: rime_tc_max = -0.1_wp !! warmest temperature used in the impact parameter Ri \([C]\)
   real(wp), parameter :: ef_si = 0.05_wp !! snow-ice collection efficiency
   real(wp), parameter :: ef_rs = 0.95_wp !! rain-snow collection efficiency
   real(wp), parameter :: ef_rg = 0.75_wp !! rain-graupel collection efficiency
