@@ -55,7 +55,7 @@ $(tables_exe): $(table_objs) $(tempo_lib)
 	$(ld) -o $@ $^ -I./$(src_dir)
 
 %.o %.mod: %.F90
-	$(compiler) $(fcflags) $(mpi_flag) $(ut_flag) $(td_inc) $< -o $@
+	$(compiler) $(fcflags) $(mpi_flag) $(ut_flag) $(table_flag) $(td_inc) $< -o $@
 
 $(tempo_lib): $(tempo_objs)
 	$(ar) $@ $^
@@ -82,6 +82,9 @@ ifneq ("$(wildcard $(testdrive_dir)/$(testdrive_lib))","")
     unit_tests: ut_flag = -Dunit_testing
 endif
 
+# build tables with the lookup tables held at real64 in memory so the computed
+# tables are written at full precision (the model holds them at real32 by default)
+build_tables: table_flag := -DTEMPO_TABLES_DOUBLE
 build_tables: set-configs set-mpi check-compiler $(tables_exe)
 tempo_tests: set-configs check-compiler $(tempotest_exe)
 unit_tests: set-configs check-compiler set-utest $(unittest_exe)

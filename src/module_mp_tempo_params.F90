@@ -118,6 +118,9 @@ module module_mp_tempo_params
   real(wp), parameter :: icenuc_max = 1000.e3_wp !! maximum ice nucleation number \([m^{-3}]\)
   real(wp), parameter :: rime_threshold = 2.0_wp !! snow to graupel rime threshold parameter
   real(wp), parameter :: rime_conversion = 0.95_wp !! snow to graupel rime conversion parameter
+  real(wp), parameter :: rime_ri_quad = 8._wp !! upper limit of the Cober and List (1993) rime density fit in impact parameter Ri
+  real(wp), parameter :: rime_ri_max = 12._wp !! impact parameter Ri at which rime density reaches the maximum graupel density
+  real(wp), parameter :: rime_tc_max = -0.1_wp !! warmest temperature used in the impact parameter Ri \([C]\)
   real(wp), parameter :: ef_si = 0.05_wp !! snow-ice collection efficiency
   real(wp), parameter :: ef_rs = 0.95_wp !! rain-snow collection efficiency
   real(wp), parameter :: ef_rg = 0.75_wp !! rain-graupel collection efficiency
@@ -128,6 +131,11 @@ module module_mp_tempo_params
   ! parameters that should NOT be changed -----------------------------------------------------------------
   integer, parameter :: table_sp = real32 !! precision for lookup tables (machine independent)
   integer, parameter :: table_dp = real64 !! precision for lookup tables (machine independent)
+#ifdef TEMPO_TABLES_DOUBLE
+  integer, parameter :: table_store = real64 !! in-memory precision of the large lookup tables
+#else
+  integer, parameter :: table_store = real32 !! in-memory precision of the large lookup tables (files stay real64)
+#endif
 
   integer, parameter :: nrhg = 9 !! graupel density array size when hail_aware = true
   integer, parameter :: nrhg1 = 1 !! graupel density array size when hail_aware = false
@@ -290,6 +298,7 @@ module module_mp_tempo_params
 
   ! variables ---------------------------------------------------------------------------------------------
   integer, protected :: dim_nrhg !! number of dimensions for graupel density
+  integer, protected, dimension(nrhg) :: rg_table_idx !! graupel density index -> density slice of the rain-graupel lookup tables
 
     !> @note
     !> av_g contains graupel fallspeed power-law coefficients (hail_aware = true)
@@ -368,13 +377,13 @@ module module_mp_tempo_params
   real(dp), allocatable, dimension(:,:) :: t_efrw, t_efsw !! collection efficiency data arrays
   real(dp), allocatable, dimension(:,:,:) :: tpc_wev, tnc_wev !! evaporation data arrays
   real(table_sp), allocatable, dimension(:,:,:,:,:) :: tnccn_act !! cloud condensation nuclei data arrays
-  real(table_dp), allocatable, dimension(:,:,:,:,:) :: tcg_racg, tmr_racg, tcr_gacr, &
+  real(table_store), allocatable, dimension(:,:,:,:,:) :: tcg_racg, tmr_racg, tcr_gacr, &
     tnr_racg, tnr_gacr !! rain-graupel collection data arrays
-  real(table_dp), allocatable, dimension(:,:,:,:) :: tcs_racs1, tmr_racs1, tcs_racs2, &
+  real(table_store), allocatable, dimension(:,:,:,:) :: tcs_racs1, tmr_racs1, tcs_racs2, &
     tmr_racs2, tcr_sacr1, tms_sacr1, tcr_sacr2, tms_sacr2, &
     tnr_racs1, tnr_racs2, tnr_sacr1, tnr_sacr2 !! rain-snow collection data arrays
-  real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qcfz, tni_qcfz !! cloud droplet freezing data arrays
-  real(table_dp), allocatable, dimension(:,:,:,:) :: tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz !! rain freezing data arrays
+  real(table_store), allocatable, dimension(:,:,:,:) :: tpi_qcfz, tni_qcfz !! cloud droplet freezing data arrays
+  real(table_store), allocatable, dimension(:,:,:,:) :: tpi_qrfz, tpg_qrfz, tni_qrfz, tnr_qrfz !! rain freezing data arrays
   real(dp), allocatable, dimension(:,:) :: tps_iaus, tni_iaus, tpi_ide !! cloud ice depositional growth and conversion to snow data array
     
   ! -------------------------------------------------------------------------------------------------------
@@ -413,16 +422,21 @@ module module_mp_tempo_params
     !! initialize graupel variables based on hail-aware configuration flag
 
     logical, intent(in) :: hail_flag
+    integer :: m
 
     if (hail_flag) then
       ! in case these were previously set to av_g_old and bv_g_old reset
       av_g(idx_bg1) = av_g_new
       bv_g(idx_bg1) = bv_g_new
       dim_nrhg = nrhg
+      ! all graupel densities are kept in the rain-graupel lookup tables
+      rg_table_idx = [(m, m = 1, nrhg)]
     else
       av_g(idx_bg1) = av_g_old
       bv_g(idx_bg1) = bv_g_old
       dim_nrhg = nrhg1
+      ! only the idx_bg1 density is kept in the rain-graupel lookup tables
+      rg_table_idx = 1
     endif
   end subroutine initialize_graupel_vars
 
@@ -732,14 +746,14 @@ module module_mp_tempo_params
     integer, intent(out), optional :: table_size
 
     ! cloud water freezing
-    if (.not. allocated(tpi_qcfz)) allocate(tpi_qcfz(ntb_c,nbc,ntb_t1,ntb_in), source=0._table_dp)
-    if (.not. allocated(tni_qcfz)) allocate(tni_qcfz(ntb_c,nbc,ntb_t1,ntb_in), source=0._table_dp)
+    if (.not. allocated(tpi_qcfz)) allocate(tpi_qcfz(ntb_c,nbc,ntb_t1,ntb_in), source=0._table_store)
+    if (.not. allocated(tni_qcfz)) allocate(tni_qcfz(ntb_c,nbc,ntb_t1,ntb_in), source=0._table_store)
 
     ! rain freezing
-    if (.not. allocated(tpi_qrfz)) allocate(tpi_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
-    if (.not. allocated(tpg_qrfz)) allocate(tpg_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
-    if (.not. allocated(tni_qrfz)) allocate(tni_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
-    if (.not. allocated(tnr_qrfz)) allocate(tnr_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_dp)
+    if (.not. allocated(tpi_qrfz)) allocate(tpi_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_store)
+    if (.not. allocated(tpg_qrfz)) allocate(tpg_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_store)
+    if (.not. allocated(tni_qrfz)) allocate(tni_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_store)
+    if (.not. allocated(tnr_qrfz)) allocate(tnr_qrfz(ntb_r,ntb_r1,ntb_t1,ntb_in), source=0._table_store)
 
     ! table size is precision * entries * dimensions
     if (present(table_size)) then
@@ -757,18 +771,18 @@ module module_mp_tempo_params
 
     integer, intent(out), optional :: table_size
 
-    if (.not. allocated(tcs_racs1)) allocate(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tmr_racs1)) allocate(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tcs_racs2)) allocate(tcs_racs2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tmr_racs2)) allocate(tmr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tcr_sacr1)) allocate(tcr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tms_sacr1)) allocate(tms_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tcr_sacr2)) allocate(tcr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tms_sacr2)) allocate(tms_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tnr_racs1)) allocate(tnr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tnr_racs2)) allocate(tnr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tnr_sacr1)) allocate(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tnr_sacr2)) allocate(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_dp)
+    if (.not. allocated(tcs_racs1)) allocate(tcs_racs1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tmr_racs1)) allocate(tmr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tcs_racs2)) allocate(tcs_racs2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tmr_racs2)) allocate(tmr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tcr_sacr1)) allocate(tcr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tms_sacr1)) allocate(tms_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tcr_sacr2)) allocate(tcr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tms_sacr2)) allocate(tms_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tnr_racs1)) allocate(tnr_racs1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tnr_racs2)) allocate(tnr_racs2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tnr_sacr1)) allocate(tnr_sacr1(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tnr_sacr2)) allocate(tnr_sacr2(ntb_s,ntb_t,ntb_r1,ntb_r), source=0._table_store)
 
     ! table size is precision * entries * dimensions
     if (present(table_size)) then
@@ -785,14 +799,18 @@ module module_mp_tempo_params
 
     integer, intent(out), optional :: table_size
 
-     ! rain-graupel
-    if (.not. allocated(tcg_racg)) allocate(tcg_racg(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tmr_racg)) allocate(tmr_racg(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tcr_gacr)) allocate(tcr_gacr(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tnr_racg)) allocate(tnr_racg(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
-    if (.not. allocated(tnr_gacr)) allocate(tnr_gacr(ntb_g1,ntb_g,nrhg,ntb_r1,ntb_r), source=0._table_dp)
+    ! rain-graupel: the density dimension holds dim_nrhg slices (all nrhg densities when
+    ! hail-aware, only idx_bg1 otherwise); the file always holds all nrhg densities
+    if (allocated(tcg_racg)) then
+      if (size(tcg_racg, 3) /= dim_nrhg) deallocate(tcg_racg, tmr_racg, tcr_gacr, tnr_racg, tnr_gacr)
+    endif
+    if (.not. allocated(tcg_racg)) allocate(tcg_racg(ntb_g1,ntb_g,dim_nrhg,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tmr_racg)) allocate(tmr_racg(ntb_g1,ntb_g,dim_nrhg,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tcr_gacr)) allocate(tcr_gacr(ntb_g1,ntb_g,dim_nrhg,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tnr_racg)) allocate(tnr_racg(ntb_g1,ntb_g,dim_nrhg,ntb_r1,ntb_r), source=0._table_store)
+    if (.not. allocated(tnr_gacr)) allocate(tnr_gacr(ntb_g1,ntb_g,dim_nrhg,ntb_r1,ntb_r), source=0._table_store)
 
-    ! table size is precision * entries * dimensions 
+    ! table (file) size is precision * entries * dimensions 
     if (present(table_size)) then
       table_size = table_dp * 5 * (ntb_g1*ntb_g*nrhg*ntb_r1*ntb_r)
     endif 
