@@ -1034,15 +1034,12 @@ module module_mp_tempo_main
 
             ! increase hail fraction if liquid is present
             if (qr1d(k)+qc1d(k) > 1.e-3_wp) then
-!!              if (qg1d(k) > 1.e-3 .and. rho_g_val > 499._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
-              if (rho_g_val > 499._wp) then
-                hail_fraction(k) = hail_fraction(k) + max(min((3.33_wp*log10(qg1d(k))+11._wp),1._wp),0._wp) * 0.2_wp
-              endif
-            ! else
+              if (qg1d(k) > 1.e-3 .and. rho_g_val > 599._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
+            else
               ! if not enough liquid present, limit hail fraction for high mass mxing ratios (assume a lot of small graupel/hail)
-               !if (rho_g_val < 699._wp .and. qg1d(k) > 5.e-3_wp) then
-               !  hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
-               !endif
+               if (rho_g_val < 599._wp .and. qg1d(k) > 5.e-3_wp) then
+                 hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
+               endif
             endif
             qh1d(k) = hail_fraction(k) * qg1d(k)
 
