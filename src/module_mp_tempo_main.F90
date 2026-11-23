@@ -1701,7 +1701,6 @@ module module_mp_tempo_main
           tend%prg_ihm(k) = tend%prg_ihm(k) * ratio
           tend%prr_gml(k) = tend%prr_gml(k) * ratio
           tend%prg_rcg(k) = tend%prg_rcg(k) * ratio
-          tend%pbg_rcg(k) = tend%pbg_rcg(k) * ratio ! scales with prg_rcg
           tend%pnr_gml(k) = tend%pnr_gml(k) * ratio ! scales with prr_gml (also the graupel number lost)
           tend%pbg_gml(k) = tend%pbg_gml(k) * ratio ! scales with prr_gml
           tend%png_gde(k) = tend%png_gde(k) * ratio ! scales with prg_gde
@@ -1733,7 +1732,12 @@ module module_mp_tempo_main
       ratio = min(abs(tend%prr_rcg(k)), abs(tend%prg_rcg(k)))
       tend%prr_rcg(k) = ratio * sign(1.0_dp, tend%prr_rcg(k))
       tend%prg_rcg(k) = -tend%prr_rcg(k)
-      if (abs(rate_before) > 0._dp) tend%pnr_rcg(k) = tend%pnr_rcg(k) * (tend%prr_rcg(k) / rate_before)
+      if (abs(rate_before) > 0._dp) then
+        tend%pnr_rcg(k) = tend%pnr_rcg(k) * (tend%prr_rcg(k) / rate_before)
+        ! above freezing, graupel number lost follows graupel mass lost
+        tend%png_rcg(k) = tend%png_rcg(k) * (tend%prr_rcg(k) / rate_before)
+      endif
+      ! graupel volume is recomputed from the final prg_rcg
       ! volume change: below freezing graupel gains frozen drops at the maximum graupel density;
       ! above freezing graupel loses mass at its own density
       if (temp(k) < t0) then
@@ -1755,12 +1759,10 @@ module module_mp_tempo_main
         tend%pbg_rcs(k) = meters3_to_liters * tend%prg_rcs(k) / rho_g(nrhg)
       endif
 
-      ! update to rain-hail
-      rate_before = tend%prr_rch(k)
+      ! update to rain-hail (pnr_rch was scaled with prr_rch in the rain block)
       ratio = min(abs(tend%prr_rch(k)), abs(tend%prh_rch(k)))
       tend%prr_rch(k) = ratio * sign(1.0_dp, tend%prr_rch(k))
       tend%prh_rch(k) = ratio * sign(1.0_dp, tend%prh_rch(k))
-      if (abs(rate_before) > 0._dp) tend%pnr_rch(k) = tend%pnr_rch(k) * (tend%prr_rch(k) / rate_before)
     enddo
   end subroutine check_over_depletion
 
