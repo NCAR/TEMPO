@@ -1026,25 +1026,28 @@ module module_mp_tempo_main
 
           ! main if loop for qg1d > 0.5 g/kg
           if (qg1d(k) > 5.e-4_wp) then
-            hail_fraction(k) = max(min(exp(12._wp*(rho_g_val/1070._wp) - 9.9_wp) + 0.2_wp, 1._wp), 0.2_wp)
+            hail_fraction(k) = max(min(exp(12._wp*(rho_g_val/1070._wp) - 9.9_wp) + 0.1_wp, 1._wp), 0.1_wp)
 
             ! size boost for hail fraction
             if (mvd_g(k) > 2.e-3_wp) hail_fraction(k) = hail_fraction(k) + (mvd_g(k)*1000._wp - 2._wp)*0.1_wp
-            hail_fraction(k) = max(min(hail_fraction(k), 0.6_wp), 0.2_wp)
+            hail_fraction(k) = max(min(hail_fraction(k), 0.5_wp), 0.2_wp)
 
             ! increase hail fraction if liquid is present
             if (qr1d(k)+qc1d(k) > 1.e-3_wp) then
-              if (qg1d(k) > 1.e-3 .and. rho_g_val > 499._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
-            else
+!!              if (qg1d(k) > 1.e-3 .and. rho_g_val > 499._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
+              if (rho_g_val > 499._wp) then
+                hail_fraction(k) = hail_fraction(k) + max(min((3.33_wp*log10(qg1d(k))+11._wp),1._wp),0._wp) * 0.2_wp
+              endif
+            ! else
               ! if not enough liquid present, limit hail fraction for high mass mxing ratios (assume a lot of small graupel/hail)
-               if (rho_g_val < 499._wp .and. qg1d(k) > 5.e-3_wp) then
-                 hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
-               endif
+               !if (rho_g_val < 699._wp .and. qg1d(k) > 5.e-3_wp) then
+               !  hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
+               !endif
             endif
             qh1d(k) = hail_fraction(k) * qg1d(k)
 
             ! melting
-            if (rho_g_val >= 699._wp .and. melt_prefactor > eps .and. tempc > 0._wp) then
+            if (rho_g_val >= 749._wp .and. melt_prefactor > eps .and. tempc > 0._wp) then
               if (mvd_g(k) > 2.e-3_wp) then
                 hail_fraction(k) = hail_fraction(k) + &
                   (1._wp - max(min((1._wp / (1._wp + exp(temp(k)-t0-5._wp))), 1._wp), 0._wp))
@@ -1521,7 +1524,7 @@ module module_mp_tempo_main
       rhof(k) = sqrt(rho_not/rho(k))
       rhof2(k) = sqrt(rhof(k))
       qvs(k) = calc_rslf(pres(k), temp(k))
-      delqvs(k) = max(0._wp, calc_rslf(pres(k), t0)-qv(k))
+      delqvs(k) = rho(k) * max(0._wp, calc_rslf(pres(k), t0)-qv(k))
       if (tempc <= 0._wp) then
         qvsi(k) = calc_rsif(pres(k), temp(k))
       else
@@ -1779,7 +1782,7 @@ module module_mp_tempo_main
       qsten, qrten, nrten, qgten, ngten, qbten, tten, qhten
     real(wp) :: orho, lfus2,  massg_sources, volg_sources, dens_weight, final_weight, &
       frozen_terms, riming_terms, dens_pm, rho_scw, rho_gcw, rho_src
-    real(wp), parameter :: p_mean = 4._wp   ! power-mean exponent for density weighting
+    real(wp), parameter :: p_mean = 5._wp   ! power-mean exponent for density weighting
     integer :: k, nz
 
     nz = size(temp)
