@@ -1525,7 +1525,9 @@ module module_mp_tempo_main
       rhof(k) = sqrt(rho_not/rho(k))
       rhof2(k) = sqrt(rhof(k))
       qvs(k) = calc_rslf(pres(k), temp(k))
-      delqvs(k) = max(0._wp, calc_rslf(pres(k), t0)-qv(k))
+      ! vapor density deficit relative to water saturation at 0 C \([kg\, m^{-3}]\), used with
+      ! lvap0*diffu in the heat balance of a melting (or wet-growing) surface at 0 C
+      delqvs(k) = rho(k) * max(0._wp, calc_rslf(pres(k), t0)-qv(k))
       if (tempc <= 0._wp) then
         qvsi(k) = calc_rsif(pres(k), temp(k))
       else
