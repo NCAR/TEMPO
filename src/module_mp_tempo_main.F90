@@ -2891,7 +2891,9 @@ module module_mp_tempo_main
     !! \(8 < Ri < 12\), density increases linearly from 611 \(kg\, m^{-3}\) to the maximum
     !! graupel density, rho_g(nrhg) = 800 \(kg\, m^{-3}\), as deposits approach wet growth,
     !! and stays at 800 \(kg\, m^{-3}\) for \(Ri \ge 12\). This follows the treatment in the
-    !! P3 microphysics code (microphy_p3.f90), which instead ramps to 900 \(kg\, m^{-3}\)
+    !! P3 microphysics code
+    !! ([P3-microphysics/P3-microphysics](https://github.com/P3-microphysics/P3-microphysics),
+    !! src/microphy_p3.f90, v5.6.4), which instead ramps to 900 \(kg\, m^{-3}\)
     use module_mp_tempo_params, only : rho_g, nrhg
 
     real(wp), intent(in) :: ri
