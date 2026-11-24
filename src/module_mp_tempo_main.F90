@@ -1034,10 +1034,10 @@ module module_mp_tempo_main
 
             ! increase hail fraction if liquid is present
             if (qr1d(k)+qc1d(k) > 1.e-3_wp) then
-              if (qg1d(k) > 1.e-3 .and. rho_g_val > 699._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
+              if (qg1d(k) > 1.e-3 .and. rho_g_val > 599._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
             else
               ! if not enough liquid present, limit hail fraction for high mass mxing ratios (assume a lot of small graupel/hail)
-               if (rho_g_val < 699._wp .and. qg1d(k) > 5.e-3_wp) then
+               if (rho_g_val < 599._wp .and. qg1d(k) > 5.e-3_wp) then
                  hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
                endif
             endif
@@ -1781,7 +1781,7 @@ module module_mp_tempo_main
       qsten, qrten, nrten, qgten, ngten, qbten, tten, qhten
     real(wp) :: orho, lfus2,  massg_sources, volg_sources, dens_weight, final_weight, &
       frozen_terms, riming_terms, dens_pm, rho_scw, rho_gcw, rho_src
-    real(wp), parameter :: p_mean = 3._wp   ! power-mean exponent for density weighting
+    real(wp), parameter :: p_mean = 5._wp   ! power-mean exponent for density weighting
     integer :: k, nz
 
     nz = size(temp)
