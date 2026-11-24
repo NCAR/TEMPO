@@ -2888,9 +2888,10 @@ module module_mp_tempo_main
     !! for \(Ri \le 8\) the fit of
     !! [Cober and List (1993)](https://doi.org/10.1175/1520-0469(1993)050<1591:MOTHAM>2.0.CO;2)
     !! is used; it peaks near 640 \(kg\, m^{-3}\) and is not valid beyond its data. For
-    !! \(8 < Ri < 12\), density increases linearly to the maximum graupel density as deposits
-    !! approach wet growth, following the treatment in the P3 microphysics code
-    !! (microphy_p3.f90), which ramps to 900 \(kg\, m^{-3}\) at \(Ri = 12\)
+    !! \(8 < Ri < 12\), density increases linearly from 611 \(kg\, m^{-3}\) to the maximum
+    !! graupel density, rho_g(nrhg) = 800 \(kg\, m^{-3}\), as deposits approach wet growth,
+    !! and stays at 800 \(kg\, m^{-3}\) for \(Ri \ge 12\). This follows the treatment in the
+    !! P3 microphysics code (microphy_p3.f90), which instead ramps to 900 \(kg\, m^{-3}\)
     use module_mp_tempo_params, only : rho_g, nrhg
 
     real(wp), intent(in) :: ri
