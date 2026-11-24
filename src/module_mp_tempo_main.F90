@@ -2722,7 +2722,7 @@ module module_mp_tempo_main
     use module_mp_tempo_params, only : d0c, d0s, nbs, ds, t_efsw, t1_qs_qc, &
       r_g, bm_g, mu_g, av_g, cgg, ogg3, bv_g, rho_w, t0, d0g, pi, cge, ogg2, &
       rime_threshold, rime_conversion, av_s, bv_s, rho_s, xm0i, eps, fv_s, &
-      meters3_to_liters, rho_g, nrhg, t1_qg_me, c_cube, olfus, sc3, lvap0, rime_tc_max
+      meters3_to_liters, rho_g, nrhg, t1_qg_me, c_cube, olfus, sc3, lvap0
 
     real(wp), intent(in) :: odt    
     type(ty_tend), intent(inout) :: tend
@@ -2771,7 +2771,7 @@ module module_mp_tempo_main
               tend%prg_scw(k) = g_frac*tend%prs_scw(k)
               tend%png_scw(k) = tend%prg_scw(k)*smo0(k)/rs(k)
               vts = av_s*xds**bv_s * exp(-fv_s*xds)
-              const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vts/min(rime_tc_max, tempc)
+              const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vts/min(-0.1_wp,tempc)
               rime_dens = rime_density(const_ri)
               if(rime_dens < 150._wp) then
                 g_frac = 0._wp
@@ -2815,7 +2815,7 @@ module module_mp_tempo_main
           stoke_g = mvd_c(k)*mvd_c(k)*vtg*rho_w/(9._wp*visco(k)*xdg)
           !>
           !> rime density from the impact parameter Ri (see rime_density)
-          const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vtg/min(rime_tc_max, tempc)
+          const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vtg/min(-0.1_wp, tempc)
           rime_dens = rime_density(const_ri)
           if (xdg > d0g) then
             if (stoke_g >= 0.4_wp .and. stoke_g <= 10._wp) then
@@ -2885,23 +2885,26 @@ module module_mp_tempo_main
     !! rime density \([kg\, m^{-3}]\) from the impact parameter
     !! \(Ri = -r_d V / T\) (\(r_d\) in \(\mu m\), \(V\) in \(m\, s^{-1}\), \(T\) in C)
     !!
-    !! for \(Ri \le\) rime_ri_quad the fit of
+    !! for \(Ri \le 8\) the fit of
     !! [Cober and List (1993)](https://doi.org/10.1175/1520-0469(1993)050<1591:MOTHAM>2.0.CO;2)
-    !! is used; it peaks near 640 \(kg\, m^{-3}\) and is not valid beyond its data. Above that,
-    !! density increases linearly to the maximum graupel density at rime_ri_max, as deposits
-    !! approach wet growth (following the approach of Morrison and Milbrandt 2015, P3)
-    use module_mp_tempo_params, only : rho_g, nrhg, rime_ri_quad, rime_ri_max
+    !! is used; it peaks near 640 \(kg\, m^{-3}\) and is not valid beyond its data. For
+    !! \(8 < Ri < 12\), density increases linearly to the maximum graupel density as deposits
+    !! approach wet growth, following the treatment in the P3 microphysics code
+    !! (microphy_p3.f90), which ramps to 900 \(kg\, m^{-3}\) at \(Ri = 12\)
+    use module_mp_tempo_params, only : rho_g, nrhg
 
     real(wp), intent(in) :: ri
     real(wp) :: rho_rime, x, rho_quad
+    real(wp), parameter :: ri_quad = 8._wp !! upper limit of the Cober and List (1993) fit
+    real(wp), parameter :: ri_max = 12._wp !! Ri at which rime density reaches the maximum graupel density
 
-    x = max(0.1_wp, min(ri, rime_ri_quad))
+    x = max(0.1_wp, min(ri, ri_quad))
     rho_quad = (0.051_wp + 0.114_wp*x - 0.0055_wp*x*x)*1000._wp
-    if (ri <= rime_ri_quad) then
+    if (ri <= ri_quad) then
       rho_rime = rho_quad
     else
-      x = min(ri, rime_ri_max)
-      rho_rime = rho_quad + (rho_g(nrhg) - rho_quad) * (x - rime_ri_quad) / (rime_ri_max - rime_ri_quad)
+      x = min(ri, ri_max)
+      rho_rime = rho_quad + (rho_g(nrhg) - rho_quad) * (x - ri_quad) / (ri_max - ri_quad)
     endif
   end function rime_density
 
