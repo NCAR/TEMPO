@@ -1,6 +1,6 @@
 module module_mp_tempo_main
   !! main tempo microphysics code
-  use module_mp_tempo_cfgs, only : ty_tempo_cfgs
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs, ty_tempo_spp
   use module_mp_tempo_params, only : wp, sp, dp, &
     min_qv, roverrv, rdry, r1, r2, nt_c_max, t0, nrhg, rho_g, &
     meters3_to_liters, eps, aero_max, nwfa_default, nifa_default, nt_c_l, nt_c_o
@@ -78,7 +78,7 @@ module module_mp_tempo_main
     qcfrac1d, qifrac1d, qc_bl1d, qcfrac_bl1d, &
     thten_bl1d, qvten_bl1d, qcten_bl1d, qiten_bl1d, &
     thten_lwrad1d, thten_swrad1d, &
-    kts, kte, dt, ii, jj, tempo_main_diags)
+    kts, kte, dt, ii, jj, tempo_main_diags, spp)
     !! tempo main
 
     type(ty_tend) :: tend
@@ -118,6 +118,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(in), optional :: qiten_bl1d !! cloud ice mixing ratio from boundary layer scheme
     real(wp), dimension(:), intent(in), optional :: thten_lwrad1d !! potential temperature tendency from longwave radiation scheme
     real(wp), dimension(:), intent(in), optional :: thten_swrad1d !! potential temperature tendency from shortwave radiation scheme
+    type(ty_tempo_spp), intent(in), optional :: spp !! stochastic (SPP) perturbations for this column
   
     real(wp), dimension(kts:kte) :: tten, qvten, qcten, qiten, qrten, qsten, &
       qgten, qbten, niten, nrten, ncten, ngten, qhten, nwfaten, nifaten !! tendencies
@@ -156,7 +157,11 @@ module module_mp_tempo_main
     logical :: do_micro, supersaturated, local_first_step
     integer :: k, nz
 
+    type(ty_tempo_spp) :: pert !! stochastic perturbations for this column (zero unless spp is present)
+
     ! --------------------------------------------------------------------------------------------
+    if (present(spp)) pert = spp
+
     local_first_step = .false.
     if (present(is_first_step)) local_first_step = is_first_step
 
@@ -408,7 +413,7 @@ module module_mp_tempo_main
 
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
       ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c, &
-      dt=dt, odt=odt)
+      dt=dt, odt=odt, shape_offset=pert%cloud_shape_offset)
 
     ! init ng and qb
     if (local_first_step) then
@@ -420,7 +425,8 @@ module module_mp_tempo_main
     endif 
     call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
       qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt, &
+      log10_n0_offset=pert%graupel_log10_n0_offset)
 
     call thermo_vars(qv, temp, pres, rho, rhof, rhof2, qvs, delqvs, qvsi, &
       satw, sati, ssatw, ssati, diffu, visco, vsc2, ocp, lvap, tcond, lvt2, &
@@ -454,7 +460,8 @@ module module_mp_tempo_main
     if (any(l_qh)) then
       call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
         qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+        qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt, &
+      log10_n0_offset=pert%graupel_log10_n0_offset)
     endif
 
     ! re-zero tendencies after initial check zero tendencies
@@ -478,7 +485,8 @@ module module_mp_tempo_main
 
     ! main microphysical processes ---------------------------------------------------------------
     if (.not. tempo_cfgs%turn_off_micro_flag) then
-      call warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend, odt)
+      call warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend, odt, &
+        shape_offset=pert%cloud_shape_offset)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call rain_snow_rain_graupel(temp, l_qr, rr, nr, ilamr, l_qs, rs, &
@@ -486,7 +494,8 @@ module module_mp_tempo_main
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-        nwfa1d, nifa1d, nwfa, nifa, ni, ns, rc, nc, rr, nr, ilamr, tend, dt, odt)
+        nwfa1d, nifa1d, nwfa, nifa, ni, ns, rc, nc, rr, nr, ilamr, tend, dt, odt, &
+        nucleation_offset=pert%nucleation_offset)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call ice_processes(rhof, rhof2, rho, w1d, temp, qv, qvsi, tcond, diffu, &
@@ -494,8 +503,9 @@ module module_mp_tempo_main
         ilamr, mvd_r, l_qg, rg, ng, ilamg, idx_bg, l_qh, rh, nh, ilamh, tend, odt)
     endif
     if (.not. tempo_cfgs%turn_off_micro_flag) then
-      call riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
-        smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx_bg, l_qh, rh, nh, ilamh, tend, odt)
+      call riming(temp, rhof, rhof2, visco, vsc2, tcond, diffu, delqvs, l_qc, rc, nc, ilamc, mvd_c, l_qs, rs, &
+        smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx_bg, l_qh, rh, nh, ilamh, tend, odt, &
+        shape_offset=pert%cloud_shape_offset)
     endif 
     if (.not. tempo_cfgs%turn_off_micro_flag) then
       call melting(rhof2, rho, temp, qvsi, tcond, diffu, vsc2, ssati, delqvs, &
@@ -541,7 +551,7 @@ module module_mp_tempo_main
     endif 
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=xrx, nc1d=xncx, &
       ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c, &
-      dt=dt, odt=odt)
+      dt=dt, odt=odt, shape_offset=pert%cloud_shape_offset)
 
     xrx = qr1d
     xnx = nr1d
@@ -581,7 +591,8 @@ module module_mp_tempo_main
     endif 
     call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xngx, &
       qb1d=xqbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt, &
+      log10_n0_offset=pert%graupel_log10_n0_offset)
 
     xrx = qh1d
     call hail_check_and_update(rho, l_qh, xrx, rh, nh, qhten, ilamh, dt, odt)
@@ -594,7 +605,8 @@ module module_mp_tempo_main
     ! cloud condensation
     if (.not. tempo_cfgs%turn_off_micro_flag .and. tempo_cfgs%cloud_condensation_flag) then
       call cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
-        nwfa1d, nwfa, ncsave, qv, qvs, l_qc, rc, nc, tend, dt, odt)
+        nwfa1d, nwfa, ncsave, qv, qvs, l_qc, rc, nc, tend, dt, odt, &
+        nucleation_offset=pert%nucleation_offset)
 
       do k = 1, nz
         qvten(k) = qvten(k) - tend%prw_vcd(k)
@@ -611,7 +623,7 @@ module module_mp_tempo_main
       endif 
       call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=xrx, nc1d=xncx, &
         ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c, &
-        dt=dt, odt=odt)
+        dt=dt, odt=odt, shape_offset=pert%cloud_shape_offset)
 
       do k = 1, nz
         qv(k) = max(min_qv, qv1d(k) + qvten(k)*dt)
@@ -724,7 +736,8 @@ module module_mp_tempo_main
           endif 
           call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=xrx, ng1d=xngx, &
             qb1d=xqbx, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-            qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+            qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt, &
+      log10_n0_offset=pert%graupel_log10_n0_offset)
           call graupel_fallspeed(rhof=rhof, rho=rho, visco=visco, &
             l_qg=l_qg, rg=rg, rb=rb, qb1d=qb1d, idx=idx_bg, ilamg=ilamg, dz1d=dz1d, &
             vt=vtrg, vtn=vtng, dt=dt)
@@ -820,7 +833,8 @@ module module_mp_tempo_main
     ktop_sedi = 1
     substeps_sedi = 1
     if (any(l_qc)) then
-      call cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vtrc, vtnc, ktop_sedi)
+      call cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vtrc, vtnc, ktop_sedi, &
+        shape_offset=pert%cloud_shape_offset)
       call sedimentation(xr=rc, vt=vtrc, dz1d=dz1d, rho=rho, xten=qcten, limit=r1, &
         steps=substeps_sedi, ktop_sedi=ktop_sedi, precip=tempo_main_diags%cloud_precip, dt=dt)
       call sedimentation(xr=nc, vt=vtnc, dz1d=dz1d, rho=rho, xten=ncten, limit=r2, &
@@ -850,7 +864,7 @@ module module_mp_tempo_main
     
     call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=qc1d, nc1d=nc1d, &
       ncsave=ncsave, rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c, &
-      dt=dt, odt=odt)
+      dt=dt, odt=odt, shape_offset=pert%cloud_shape_offset)
 
     call rain_check_and_update(rho, l_qr, qr1d, nr1d, rr, nr, qrten, nrten, ilamr, mvd_r, dt, odt)
     
@@ -879,7 +893,8 @@ module module_mp_tempo_main
   
     call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
       qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt, &
+      log10_n0_offset=pert%graupel_log10_n0_offset)
 
     call hail_check_and_update(rho, l_qh, qh1d, rh, nh, qhten, ilamh, dt, odt)
       
@@ -943,7 +958,8 @@ module module_mp_tempo_main
     qbten = 0._wp
     call graupel_check_and_update(rho=rho, l_qg=l_qg, qg1d=qg1d, ng1d=ng1d, &
       qb1d=qb1d, rg=rg, ng=ng, rb=rb, idx=idx_bg, qgten=qgten, ngten=ngten, &
-      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt)
+      qbten=qbten, ilamg=ilamg, mvd_g=mvd_g, dt=dt, odt=odt, &
+      log10_n0_offset=pert%graupel_log10_n0_offset)
 
     ! max hail diameter
     if (tempo_cfgs%max_hail_diameter_flag) then
@@ -991,10 +1007,11 @@ module module_mp_tempo_main
         ncten = 0._wp
         call cloud_check_and_update(rho=rho, l_qc=l_qc, qc1d=xrx, nc1d=xncx, &
           rc=rc, nc=nc, qcten=qcten, ncten=ncten, ilamc=ilamc, mvd_c=mvd_c, &
-          dt=dt, odt=odt)
+          dt=dt, odt=odt, shape_offset=pert%cloud_shape_offset)
       endif
       call effective_radius(temp, l_qc, nc, ilamc, l_qi, ilami, l_qs, rs, &
-        tempo_main_diags%re_cloud, tempo_main_diags%re_ice, tempo_main_diags%re_snow)
+        tempo_main_diags%re_cloud, tempo_main_diags%re_ice, tempo_main_diags%re_snow, &
+        shape_offset=pert%cloud_shape_offset)
     endif
   end subroutine tempo_main
 
@@ -1034,10 +1051,10 @@ module module_mp_tempo_main
 
             ! increase hail fraction if liquid is present
             if (qr1d(k)+qc1d(k) > 1.e-3_wp) then
-              if (qg1d(k) > 1.e-3 .and. rho_g_val > 699._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
+              if (qg1d(k) > 1.e-3 .and. rho_g_val > 599._wp) hail_fraction(k) = hail_fraction(k) + 0.2_wp
             else
               ! if not enough liquid present, limit hail fraction for high mass mxing ratios (assume a lot of small graupel/hail)
-               if (rho_g_val < 699._wp .and. qg1d(k) > 5.e-3_wp) then
+               if (rho_g_val < 599._wp .and. qg1d(k) > 5.e-3_wp) then
                  hail_fraction(k) = min(hail_fraction(k), min(0.001_wp/qg1d(k),1._wp) * 0.5_wp)
                endif
             endif
@@ -1087,7 +1104,7 @@ module module_mp_tempo_main
 
 
   subroutine cloud_check_and_update(rho, l_qc, qc1d, nc1d, ncsave, rc, nc, &
-    qcten, ncten, ilamc, mvd_c, dt, odt)
+    qcten, ncten, ilamc, mvd_c, dt, odt, shape_offset)
     !! computes cloud water contents, ilamc, and mvd_c and checks bounds
     use module_mp_tempo_params, only : r1, nt_c_max, nt_c_min, nu_c_scale, &
       am_r, bm_r, cce, ccg, d0c, d0r, ocg1, ocg2, obmr, nt_c_l, d0r, nt_c_l
@@ -1098,6 +1115,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(out) :: mvd_c
     real(dp), dimension(:), intent(out) :: ilamc
     real(wp), dimension(:), intent(inout), optional :: nc1d, ncsave
+    integer, intent(in), optional :: shape_offset !! stochastic perturbation to nu_c
     logical, dimension(:), intent(inout) :: l_qc
     integer :: k, nz, nu_c
     real(dp) :: lamc, xdc
@@ -1127,7 +1145,7 @@ module module_mp_tempo_main
           endif 
         
           ! size check
-          nu_c = get_nuc(nc(k))
+          nu_c = get_nuc(nc(k), shape_offset)
           lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
           xdc = (bm_r + nu_c + 1._dp) / lamc
           if (xdc < d0c) then
@@ -1150,7 +1168,7 @@ module module_mp_tempo_main
             nc(k) = nt_c_l
           endif
         endif
-        nu_c = get_nuc(nc(k))
+        nu_c = get_nuc(nc(k), shape_offset)
         lamc = (nc(k)*am_r*ccg(2,nu_c)*ocg1(nu_c)/rc(k))**obmr
         ilamc(k) = 1._dp / lamc
         mvd_c(k) = max(min(real((3.0_wp + nu_c + 0.672_wp) * ilamc(k), kind=wp), d0r), d0c)
@@ -1333,7 +1351,7 @@ module module_mp_tempo_main
 
 
   subroutine graupel_check_and_update(rho, l_qg, qg1d, ng1d, qb1d, rg, ng, rb, &
-      idx, qgten, ngten, qbten, ilamg, mvd_g, dt, odt)
+      idx, qgten, ngten, qbten, ilamg, mvd_g, dt, odt, log10_n0_offset)
     !! computes graupel contents, ilamg, and mvd_g and checks bounds
     use module_mp_tempo_params, only : r1, r2, nrhg, rho_g, mu_g, &
       am_g, bm_g, ogg3, cgg, ogg2, obmg, d0r, idx_bg1, gonv_max, &
@@ -1343,6 +1361,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(in) :: rho
     real(wp), dimension(:), intent(inout) :: qg1d, qgten, rg, ng, rb, ngten, qbten
     real(wp), dimension(:), intent(inout), optional :: ng1d, qb1d
+    real(wp), intent(in), optional :: log10_n0_offset !! stochastic perturbation to log10 of the one-moment graupel intercept
     real(dp), dimension(:), intent(out) :: ilamg
     real(wp), dimension(:), intent(out) :: mvd_g
     logical, dimension(:), intent(inout) :: l_qg
@@ -1400,6 +1419,7 @@ module module_mp_tempo_main
           idx(k) = idx_bg1
           ygra1 = log10(max(1.e-9_dp, real(rg(k), kind=dp)))
           zans1 = 3.4_dp + 2._dp/7._dp*(ygra1+8._dp)
+          if (present(log10_n0_offset)) zans1 = zans1 + log10_n0_offset
           n0_exp = max(gonv_min, min(10._dp**(zans1), gonv_max))
           lam_exp = (n0_exp*am_g(idx(k))*cgg(1,1)/rg(k))**oge1
           lamg = lam_exp * (cgg(3,1)*ogg2*ogg1)**obmg
@@ -1521,7 +1541,9 @@ module module_mp_tempo_main
       rhof(k) = sqrt(rho_not/rho(k))
       rhof2(k) = sqrt(rhof(k))
       qvs(k) = calc_rslf(pres(k), temp(k))
-      delqvs(k) = max(0._wp, calc_rslf(pres(k), t0)-qv(k))
+      ! vapor density deficit relative to water saturation at 0 C \([kg\, m^{-3}]\), used with
+      ! lvap0*diffu in the heat balance of a melting (or wet-growing) surface at 0 C
+      delqvs(k) = rho(k) * max(0._wp, calc_rslf(pres(k), t0)-qv(k))
       if (tempc <= 0._wp) then
         qvsi(k) = calc_rsif(pres(k), temp(k))
       else
@@ -1779,7 +1801,7 @@ module module_mp_tempo_main
       qsten, qrten, nrten, qgten, ngten, qbten, tten, qhten
     real(wp) :: orho, lfus2,  massg_sources, volg_sources, dens_weight, final_weight, &
       frozen_terms, riming_terms, dens_pm, rho_scw, rho_gcw, rho_src
-    real(wp), parameter :: p_mean = 3._wp   ! power-mean exponent for density weighting
+    real(wp), parameter :: p_mean = 5._wp   ! power-mean exponent for density weighting
     integer :: k, nz
 
     nz = size(temp)
@@ -2352,7 +2374,7 @@ module module_mp_tempo_main
 
 
   subroutine cloud_fallspeed(rhof, w1d, l_qc, rc, nc, ilamc, dz1d, vt, vtn, &
-    ktop_sedi)
+    ktop_sedi, shape_offset)
     !! calculates mass and number weighted fall speeds for cloud
     !! and the top k-level of sedimentation
     use module_mp_tempo_params, only : av_c, ccg, ocg1, ocg2, bv_c, r2
@@ -2363,6 +2385,7 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(inout) :: vt, vtn
     integer, intent(out) :: ktop_sedi
     real(wp) :: hgt
+    integer, intent(in), optional :: shape_offset !! stochastic perturbation to nu_c
     integer :: k, nz, nu_c
 
     nz = size(l_qc)
@@ -2378,7 +2401,7 @@ module module_mp_tempo_main
 
     do k = ktop_sedi, 1, -1
       if (rc(k) > r1 .and. w1d(k) < 0.1_wp) then
-        nu_c = get_nuc(nc(k))
+        nu_c = get_nuc(nc(k), shape_offset)
         vt(k) = rhof(k)*av_c*ccg(5,nu_c)*ocg2(nu_c) * ilamc(k)**bv_c
         vtn(k) = rhof(k)*av_c*ccg(4,nu_c)*ocg1(nu_c) * ilamc(k)**bv_c
       endif 
@@ -2387,7 +2410,7 @@ module module_mp_tempo_main
 
 
   subroutine cloud_condensation(rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
-    nwfa1d, nwfa, ncsave, qv, qvs, l_qc, rc, nc, tend, dt, odt)
+    nwfa1d, nwfa, ncsave, qv, qvs, l_qc, rc, nc, tend, dt, odt, nucleation_offset)
     !! cloud condensation and evaporation
     use module_mp_tempo_params, only : eps, r1, t0, orv, pi, rho_w, nbc, &
       tnc_wev, nt_c_min, nt_c_l
@@ -2397,11 +2420,15 @@ module module_mp_tempo_main
     real(wp), dimension(:), intent(in) :: rho, temp, w1d, ssatw, lvap, tcond, diffu, lvt2, &
       nwfa, qv, qvs, rc, nc
     real(wp), dimension(:), intent(in), optional :: nwfa1d, ncsave
+    real(wp), intent(in), optional :: nucleation_offset !! stochastic perturbation added to w for droplet activation [m s-1]
     logical, dimension(:), intent(in) :: l_qc
     real(wp) :: clap, fcd, dfcd, xrc, xnc, orho, tempc, otemp, &
-      rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat, t1_evap
+      rvs, rvs_p, rvs_pp, gamsc, alphsc, xsat, t1_evap, w_offset
     real(dp) :: dc_star
     integer :: k, nz, n, idx_d, idx_n, idx_c
+
+    w_offset = 0._wp
+    if (present(nucleation_offset)) w_offset = nucleation_offset
 
     nz = size(qv)
     do k = 1, nz
@@ -2424,7 +2451,7 @@ module module_mp_tempo_main
 
         if (clap > eps) then ! condensation
           if (present(nwfa1d)) then
-            xnc = max(nt_c_min, activate_cloud_number(temp(k), w1d(k), nwfa(k)))
+            xnc = max(nt_c_min, activate_cloud_number(temp(k), w1d(k) + w_offset, nwfa(k)))
           elseif (present(ncsave)) then
             xnc = ncsave(k)
           else
@@ -2686,7 +2713,7 @@ module module_mp_tempo_main
   end function activate_cloud_number
 
 
-  subroutine warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend, odt)
+  subroutine warm_rain(rhof, l_qc, rc, nc, ilamc, mvd_c, l_qr, rr, nr, mvd_r, tend, odt, shape_offset)
     !! computes warm-rain process rates -- condensation/evaporation happen later
     use module_mp_tempo_params, only : d0r, d0c, r1, nbr, t_efrw, &
       t1_qr_qc, mu_r, am_r, ccg, obmr, ocg2, dr, org2, cre, fv_r, &
@@ -2700,6 +2727,7 @@ module module_mp_tempo_main
 
     real(dp) :: lamr, lamc, n0_r
     real(wp) :: ef_rr, dc_g, dc_b, xdc, zeta1, zeta, taud, tau, ef_rw
+    integer, intent(in), optional :: shape_offset !! stochastic perturbation to nu_c
     integer :: k, nz, nu_c, idx
 
     nz = size(l_qc)
@@ -2722,7 +2750,7 @@ module module_mp_tempo_main
       !> with characteristic diameters correctly computed from gamma distribution of cloud droplets
       if (l_qc(k)) then
         if (rc(k) > 0.01e-3_wp) then
-          nu_c = get_nuc(nc(k))
+          nu_c = get_nuc(nc(k), shape_offset)
           lamc = 1._dp / ilamc(k)       
           xdc = max(d0c*1.e6_wp, ((rc(k)/(am_r*nc(k)))**obmr) * 1.e6_wp)
           dc_g = ((ccg(3,nu_c)*ocg2(nu_c))**obmr / lamc) * 1.e6_wp
@@ -2765,26 +2793,28 @@ module module_mp_tempo_main
   end subroutine warm_rain
 
 
-  subroutine riming(temp, rhof, visco, l_qc, rc, nc, ilamc, mvd_c, &
-    l_qs, rs, smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx, l_qh, rh, nh, ilamh, tend, odt)
+  subroutine riming(temp, rhof, rhof2, visco, vsc2, tcond, diffu, delqvs, l_qc, rc, nc, ilamc, mvd_c, &
+    l_qs, rs, smo0, smob, smoc, smoe, vtboost, l_qg, rg, ng, ilamg, idx, l_qh, rh, nh, ilamh, tend, odt, shape_offset)
     !! snow and graupel riming
     use module_mp_tempo_params, only : d0c, d0s, nbs, ds, t_efsw, t1_qs_qc, &
       r_g, bm_g, mu_g, av_g, cgg, ogg3, bv_g, rho_w, t0, d0g, pi, cge, ogg2, &
       rime_threshold, rime_conversion, av_s, bv_s, rho_s, xm0i, eps, fv_s, &
-      meters3_to_liters
+      meters3_to_liters, rho_g, nrhg, t1_qg_me, c_cube, olfus, sc3, lvap0, rime_tc_max
 
     real(wp), intent(in) :: odt    
     type(ty_tend), intent(inout) :: tend
     real(wp), dimension(:), intent(in) :: rhof, visco, temp, rc, nc, rs, rg, ng, rh, nh
+    real(wp), dimension(:), intent(in) :: rhof2, vsc2, tcond, diffu, delqvs
     real(wp), dimension(:), intent(in) :: mvd_c
     real(dp), dimension(:), intent(in) :: smo0, smob, smoc, smoe, ilamg, ilamc, ilamh
     logical, dimension(:), intent(in) :: l_qc, l_qs, l_qg, l_qh
     integer, dimension(:), intent(in) :: idx
     real(wp), dimension(:), intent(out) :: vtboost
 
-    real(dp) :: xds, xdg, n0_g, lamc, xdh, n0_h
+    real(dp) :: xds, xdg, n0_g, lamc, xdh, n0_h, prg_wet
     real(wp) :: ef_sw, vtg, stoke_g, const_ri, tempc, rime_dens, ef_gw, ef_hw
-    real(wp) :: t1_qg_qc, r_frac, g_frac, vts, tf, snow_dens_frac, t1_qh_qc
+    real(wp) :: t1_qg_qc, r_frac, g_frac, vts, tf, snow_dens_frac, t1_qh_qc, t2_qg_me
+    integer, intent(in), optional :: shape_offset !! stochastic perturbation to nu_c
     integer :: k, nz, idxs, nu_c
 
     nz = size(l_qc)
@@ -2792,7 +2822,7 @@ module module_mp_tempo_main
       tempc = temp(k) - t0
       vtboost(k) = 1._wp
       if (l_qc(k) .and. l_qs(k)) then
-        nu_c = get_nuc(nc(k))
+        nu_c = get_nuc(nc(k), shape_offset)
         lamc = 1._dp / ilamc(k)
         xds = smoc(k) / smob(k)
         if ((mvd_c(k) > d0c) .and. (xds > d0s)) then
@@ -2819,9 +2849,8 @@ module module_mp_tempo_main
               tend%prg_scw(k) = g_frac*tend%prs_scw(k)
               tend%png_scw(k) = tend%prg_scw(k)*smo0(k)/rs(k)
               vts = av_s*xds**bv_s * exp(-fv_s*xds)
-              const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vts/min(-0.1_wp,tempc)
-              const_ri = max(0.1_wp, min(const_ri, 10._wp))
-              rime_dens = (0.051_wp + 0.114_wp*const_ri - 0.0055_wp*const_ri*const_ri)*1000._wp
+              const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vts/min(rime_tc_max, tempc)
+              rime_dens = rime_density(const_ri)
               if(rime_dens < 150._wp) then
                 g_frac = 0._wp
                 tend%prg_scw(k) = 0._dp
@@ -2863,11 +2892,9 @@ module module_mp_tempo_main
           vtg = rhof(k)*av_g(idx(k))*cgg(6,idx(k))*ogg3 * ilamg(k)**bv_g(idx(k))
           stoke_g = mvd_c(k)*mvd_c(k)*vtg*rho_w/(9._wp*visco(k)*xdg)
           !>
-          !> rime density formula is from 
-          !> [Cober and List (1993)](https://doi.org/10.1175/1520-0469(1993)050<1591:MOTHAM>2.0.CO;2)
-          const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vtg/min(-0.1_wp, tempc)
-          const_ri = max(0.1_wp, min(const_ri, 10._wp))
-          rime_dens = (0.051_wp + 0.114_wp*const_ri - 0.0055_wp*const_ri*const_ri)*1000._wp
+          !> rime density from the impact parameter Ri (see rime_density)
+          const_ri = -1._wp*(mvd_c(k)*0.5e6_wp)*vtg/min(rime_tc_max, tempc)
+          rime_dens = rime_density(const_ri)
           if (xdg > d0g) then
             if (stoke_g >= 0.4_wp .and. stoke_g <= 10._wp) then
               ef_gw = 0.55_wp*log10(2.51_wp*stoke_g)
@@ -2887,6 +2914,22 @@ module module_mp_tempo_main
             tend%pnc_gcw(k) = rhof(k)*t1_qg_qc*ef_gw*nc(k)* &
               n0_g*ilamg(k)**cge(9,idx(k))
             tend%pnc_gcw(k) = min(real(nc(k)*odt, kind=dp), tend%pnc_gcw(k))
+
+            !>
+            !> wet growth: if graupel collects liquid (cloud water plus rain) faster than
+            !> the latent heat of freezing can be removed by conduction and evaporation
+            !> from a surface at 0 C (Schumann-Ludlam limit; e.g. Lin et al. 1983, Musil 1970),
+            !> the surface is wet and the collected water freezes as dense ice, so set the
+            !> rime density to the maximum graupel density (800 \(kg\, m^{-3}\)).
+            !> The heat-removal term is the graupel melting rate with the sign reversed,
+            !> reduced by the heat needed to warm the collected water to 0 C.
+            if (temp(k) < t0 .and. tend%prg_gcw(k) > 0._dp) then
+              t2_qg_me = pi*4._wp*c_cube*olfus * 0.28_wp*sc3*sqrt(av_g(idx(k))) * cgg(11,idx(k))
+              prg_wet = -(tempc*tcond(k) - lvap0*diffu(k)*delqvs(k)) * n0_g * &
+                (t1_qg_me*ilamg(k)**cge(10,1) + t2_qg_me*rhof2(k)*vsc2(k)*ilamg(k)**cge(11,idx(k))) / &
+                max(0.1_wp, 1._wp + 4218._wp*olfus*tempc)
+              if (tend%prg_gcw(k) + max(0._dp, tend%prg_rcg(k)) > prg_wet) rime_dens = rho_g(nrhg)
+            endif
             if (temp(k) < t0) tend%pbg_gcw(k) = meters3_to_liters*tend%prg_gcw(k)/rime_dens
 
             if (temp(k) < t0) then
@@ -2914,6 +2957,31 @@ module module_mp_tempo_main
       endif 
     end do 
   end subroutine riming
+
+
+  elemental function rime_density(ri) result(rho_rime)
+    !! rime density \([kg\, m^{-3}]\) from the impact parameter
+    !! \(Ri = -r_d V / T\) (\(r_d\) in \(\mu m\), \(V\) in \(m\, s^{-1}\), \(T\) in C)
+    !!
+    !! for \(Ri \le\) rime_ri_quad the fit of
+    !! [Cober and List (1993)](https://doi.org/10.1175/1520-0469(1993)050<1591:MOTHAM>2.0.CO;2)
+    !! is used; it peaks near 640 \(kg\, m^{-3}\) and is not valid beyond its data. Above that,
+    !! density increases linearly to the maximum graupel density at rime_ri_max, as deposits
+    !! approach wet growth (following the approach of Morrison and Milbrandt 2015, P3)
+    use module_mp_tempo_params, only : rho_g, nrhg, rime_ri_quad, rime_ri_max
+
+    real(wp), intent(in) :: ri
+    real(wp) :: rho_rime, x, rho_quad
+
+    x = max(0.1_wp, min(ri, rime_ri_quad))
+    rho_quad = (0.051_wp + 0.114_wp*x - 0.0055_wp*x*x)*1000._wp
+    if (ri <= rime_ri_quad) then
+      rho_rime = rho_quad
+    else
+      x = min(ri, rime_ri_max)
+      rho_rime = rho_quad + (rho_g(nrhg) - rho_quad) * (x - rime_ri_quad) / (rime_ri_max - rime_ri_quad)
+    endif
+  end function rime_density
 
 
   subroutine get_snow_table_index(rs, idx_s)
@@ -3174,7 +3242,7 @@ module module_mp_tempo_main
 
 
   subroutine ice_nucleation(temp, rho, w1d, qv, qvsi, ssati, ssatw, &
-      nwfa1d, nifa1d, nwfa, nifa, ni, ns, rc, nc, rr, nr, ilamr, tend, dt, odt)
+      nwfa1d, nifa1d, nwfa, nifa, ni, ns, rc, nc, rr, nr, ilamr, tend, dt, odt, nucleation_offset)
     !! ice nulceation
     use module_mp_tempo_params, only : r_r, r_c, hgfrz, rho_i, xm0i, &
       tpg_qrfz, tpi_qrfz, tni_qrfz, tnr_qrfz, tpi_qcfz, tni_qcfz, &
@@ -3187,6 +3255,7 @@ module module_mp_tempo_main
       ssati, ssatw, ni, nwfa, nifa
     real(dp), dimension(:), intent(in) :: ilamr, ns
     real(wp), dimension(:), intent(in), optional :: nwfa1d, nifa1d
+    real(wp), intent(in), optional :: nucleation_offset !! stochastic perturbation; scales dust ice nuclei by (1 + 50 * offset)
     real(wp) :: rate_max, tempc, xni, xnc, rime_autoconv_ratio
     integer :: k, nz, idx_in, idx_r, idx_r1, idx_tc, idx_c, idx_n
 
@@ -3250,6 +3319,7 @@ module module_mp_tempo_main
             .and. tempc < demott_nuc_tempc)) then
           if (present(nifa1d)) then
             xnc = demott_nucleation(tempc, rho(k), nifa(k))
+            if (present(nucleation_offset)) xnc = xnc * (1._wp + 50._wp*nucleation_offset)
           else
             xnc = min(icenuc_max, tno*exp(ato*(t0-temp(k))))
           endif

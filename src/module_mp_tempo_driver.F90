@@ -1,7 +1,7 @@
 module module_mp_tempo_driver
   !! tempo driver that converts 3d model input to 1d arrays used by the main code
   !! also allocates and fills diagnostic arrays
-  use module_mp_tempo_cfgs, only : ty_tempo_cfgs, ty_tempo_table_cfgs
+  use module_mp_tempo_cfgs, only : ty_tempo_cfgs, ty_tempo_table_cfgs, ty_tempo_spp
   use module_mp_tempo_params, only : wp, sp, dp
   use module_mp_tempo_main, only : tempo_main, ty_tempo_main_diags
   use module_mp_tempo_utils, only : compute_efrw, compute_efsw, compute_drop_evap, qi_aut_qs
@@ -223,7 +223,7 @@ module module_mp_tempo_driver
     qcfrac, qifrac, &
     thten_bl, qvten_bl, qcten_bl, qiten_bl, &
     thten_lwrad, thten_swrad, &
-    land_input, &
+    land_input, spp_pattern, &
     ids, ide, jds, jde, kds, kde, &
     ims, ime, jms, jme, kms, kme, &
     its, ite, jts, jte, kts, kte, tempo_diags)
@@ -258,6 +258,7 @@ module module_mp_tempo_driver
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: qb !! 3D graupel volume mixing ratio \([m^{-3}\; kg^{-1}]\) (hail-aware)
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: ng !! 3D graupel number mixing ratio \([kg^{-1}]\) (hail-aware)
     integer, dimension(ims:ime, jms:jme), intent(in), optional :: land_input !! land input value to differentiate land from ocean
+    real(wp), dimension(ims:ime, jms:jme), intent(in), optional :: spp_pattern !! stochastic (SPP) pattern, one value per column; used with the tempo_cfgs spp_* options
   
     ! additional optional arguments
     real(wp), dimension(ims:ime, kms:kme, jms:jme), intent(inout), optional :: qcfrac
@@ -307,6 +308,7 @@ module module_mp_tempo_driver
     logical :: use_temperature, is_first_step
 
     type(ty_tempo_main_diags) :: tempo_main_diags
+    type(ty_tempo_spp) :: spp !! stochastic perturbations for the current column
     type(ty_tempo_driver_diags), intent(inout) :: tempo_diags
 
     ! allocate 1d arrays if 3d arrays are present
@@ -470,6 +472,10 @@ module module_mp_tempo_driver
         ! land input
         if (present(land_input)) land1d = land_input(i,j)
 
+        ! stochastic perturbations for this column (all zero without a pattern or spp options)
+        spp = ty_tempo_spp()
+        if (present(spp_pattern)) spp = tempo_cfgs%spp_perturbations(spp_pattern(i,j))
+
         ! main call to the 1d tempo microphysics
         call tempo_main(tempo_cfgs=tempo_cfgs, is_first_step=is_first_step, &
           qv1d=qv1d, qc1d=qc1d, qi1d=qi1d, qr1d=qr1d, qs1d=qs1d, qg1d=qg1d, qb1d=qb1d, &
@@ -478,7 +484,7 @@ module module_mp_tempo_driver
           qcfrac1d=qcfrac1d, qifrac1d=qifrac1d, qc_bl1d=qc_bl1d, qcfrac_bl1d=qcfrac_bl1d, &
           thten_bl1d=thten_bl1d, qvten_bl1d=qvten_bl1d, qcten_bl1d=qcten_bl1d, qiten_bl1d=qiten_bl1d, &
           thten_lwrad1d=thten_lwrad1d, thten_swrad1d=thten_swrad1d, &
-          kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags)
+          kts=kts, kte=kte, dt=dt, ii=i, jj=j, tempo_main_diags=tempo_main_diags, spp=spp)
           
         ! precipitation
         tempo_diags%rain_precip(i,j) = tempo_main_diags%rain_precip

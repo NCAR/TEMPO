@@ -6,7 +6,7 @@ module module_mp_tempo_cfgs
   implicit none
   private
 
-  public :: ty_tempo_cfgs, ty_tempo_table_cfgs
+  public :: ty_tempo_cfgs, ty_tempo_table_cfgs, ty_tempo_spp
 
 !> \section arg_table_ty_tempo_cfgs Argument Table
 !! \htmlinclude ty_tempo_cfgs.html
@@ -37,8 +37,24 @@ module module_mp_tempo_cfgs
     logical :: graupel_med_vol_diam_flag = .false. !! flag to output median volume diameter for graupel
     logical :: cloud_number_mixing_ratio_flag = .false. !! flag to output cloud number mixing ratio
 
+    ! stochastically perturbed parameters (SPP); each column is perturbed by one value of a
+    ! random pattern supplied by the host model (spp_pattern in tempo_run)
+    logical :: spp_graupel_intercept_flag = .false. !! perturb the one-moment graupel intercept parameter (log10 N0 += pattern)
+    logical :: spp_cloud_shape_flag = .false. !! perturb the cloud droplet gamma shape parameter (nu_c += nint(2 * pattern))
+    logical :: spp_nucleation_flag = .false. !! perturb droplet activation and dust ice nucleation (aerosol-aware only)
+    real(wp) :: spp_pattern_max = 0._wp !! largest magnitude of the SPP pattern (perturbation amplitude * standard deviation cutoff)
+
     contains
     procedure :: get_nc_val => resolve_nc_value
+    procedure :: set_spp_options
+    procedure :: spp_perturbations
+  end type
+
+  ! perturbations applied to one column, computed from the SPP pattern value for that column
+  type :: ty_tempo_spp
+    real(wp) :: graupel_log10_n0_offset = 0._wp !! added to log10 of the one-moment graupel intercept parameter
+    integer :: cloud_shape_offset = 0 !! added to the cloud droplet gamma shape parameter nu_c (kept within 2-15)
+    real(wp) :: nucleation_offset = 0._wp !! >= 0; added to w for droplet activation [m s-1] and scales dust ice nuclei by (1 + 50 * offset)
   end type
 
   ! tempo lookup table filenames
@@ -75,5 +91,47 @@ module module_mp_tempo_cfgs
       end if
     end select
   end function resolve_nc_value
+
+
+  subroutine set_spp_options(this, spp_mp, spp_amplitude, spp_stddev_cutoff)
+    !! sets the SPP options from the bitmask used by host models (as in Thompson microphysics):
+    !! 1 = graupel intercept, 2 = cloud droplet shape parameter, 4 = droplet activation and
+    !! ice nucleation; values add, e.g. 3 = 1 + 2 and 7 = all
+    !!
+    !! spp_amplitude and spp_stddev_cutoff are the host's SPP perturbation magnitude and standard
+    !! deviation cutoff for microphysics; their product bounds the pattern and keeps the
+    !! nucleation perturbation non-negative
+
+    class(ty_tempo_cfgs), intent(inout) :: this
+    integer, intent(in) :: spp_mp
+    real(wp), intent(in), optional :: spp_amplitude, spp_stddev_cutoff
+
+    this%spp_graupel_intercept_flag = btest(spp_mp, 0)
+    this%spp_cloud_shape_flag = btest(spp_mp, 1)
+    this%spp_nucleation_flag = btest(spp_mp, 2)
+
+    this%spp_pattern_max = 0._wp
+    if (present(spp_amplitude) .and. present(spp_stddev_cutoff)) then
+      this%spp_pattern_max = abs(spp_amplitude * spp_stddev_cutoff)
+    endif
+  end subroutine set_spp_options
+
+
+  function spp_perturbations(this, pattern) result(spp)
+    !! perturbations for one column from its SPP pattern value
+    !!
+    !! the graupel intercept offset is the pattern value; the cloud droplet shape offset is
+    !! twice the pattern value rounded to an integer; the nucleation offset is shifted by
+    !! spp_pattern_max so it is non-negative (0 to spp_pattern_max / 2 for a pattern within
+    !! +/- spp_pattern_max)
+
+    class(ty_tempo_cfgs), intent(in) :: this
+    real(wp), intent(in) :: pattern
+    type(ty_tempo_spp) :: spp
+
+    if (this%spp_graupel_intercept_flag) spp%graupel_log10_n0_offset = pattern
+    if (this%spp_cloud_shape_flag) spp%cloud_shape_offset = nint(2._wp * pattern)
+    if (this%spp_nucleation_flag) spp%nucleation_offset = max(0._wp, 0.25_wp * (pattern + this%spp_pattern_max))
+  end function spp_perturbations
 
 end module module_mp_tempo_cfgs

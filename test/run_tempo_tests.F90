@@ -3,7 +3,7 @@ program run_tempo_tests
   use tests, only : test_tempo_init, test_graupel_sedimentation, &
     test_snow_sedimentation, test_cloud_number_aerosolaware, &
     test_cloud_number_non_aerosolaware, test_cloud_number_ml, &
-    test_ml_cloud_effective_radius, test_water_conservation
+    test_ml_cloud_effective_radius, test_water_conservation, test_spp_perturbations
   
   implicit none
 
@@ -83,5 +83,8 @@ program run_tempo_tests
     call test_water_conservation(dt=sedi_tests(t), semi_sedi=.true., tolerance=water_tolerance, &
       aerosol_aware=.true., forced=.true.)
   enddo
+
+  ! stochastically perturbed parameters
+  call test_spp_perturbations(dt=20.)
 
 end program run_tempo_tests

@@ -7,7 +7,7 @@ module tests
 
   public :: test_tempo_init, test_graupel_sedimentation, test_snow_sedimentation, &
     test_cloud_number_aerosolaware, test_cloud_number_non_aerosolaware, &
-    test_cloud_number_ml, test_ml_cloud_effective_radius, test_water_conservation
+    test_cloud_number_ml, test_ml_cloud_effective_radius, test_water_conservation, test_spp_perturbations
 
   type(ty_tempo_cfgs) :: tempo_cfgs
   contains
@@ -762,5 +762,131 @@ module tests
         real(qv(k) + qc(k) + qr(k) + qi(k) + qs(k) + qg(k), kind=dp)
     enddo
   end function column_water
+
+  subroutine test_spp_perturbations(dt)
+    !! stochastically perturbed parameters (SPP)
+    !!
+    !! runs the MPAS column (aerosol-aware, one-moment graupel) with all processes on:
+    !!   - with no pattern, and with a pattern but all spp options off: results must be bit-identical
+    !!   - with each spp option on its own (pattern = 0.5, cutoff magnitude 1.5): results must change
+    use module_mp_tempo_params, only : wp, sp, dp
+
+    real(wp), intent(in) :: dt
+    integer, parameter :: nz = 59, ncase = 5
+    real(wp), parameter :: pattern = 0.5_wp
+    character(len=24), dimension(ncase), parameter :: case_name = [character(len=24) :: &
+      'no pattern', 'pattern, options off', 'graupel intercept (1)', 'cloud shape (2)', 'nucleation (4)']
+    real(wp), dimension(nz, ncase) :: qv, qc, qr, qi, qs, qg, nc, t
+    real(wp), dimension(ncase) :: precip
+    type(ty_tempo_cfgs) :: cfg
+    integer :: n, n_diff
+    logical :: failed
+
+    failed = .false.
+    do n = 1, ncase
+      cfg = ty_tempo_cfgs()
+      cfg%turn_off_micro_flag = .false.
+      ! one-moment graupel (ng and qb not passed), so no hail splitting
+      cfg%hailhyperaware_flag = .false.
+      select case (n)
+      case (3)
+        call cfg%set_spp_options(1, spp_amplitude=0.5_wp, spp_stddev_cutoff=3._wp)
+      case (4)
+        call cfg%set_spp_options(2, spp_amplitude=0.5_wp, spp_stddev_cutoff=3._wp)
+      case (5)
+        call cfg%set_spp_options(4, spp_amplitude=0.5_wp, spp_stddev_cutoff=3._wp)
+      end select
+      call run_spp_column(cfg, dt, n > 1, pattern, qv(:,n), qc(:,n), qr(:,n), qi(:,n), &
+        qs(:,n), qg(:,n), nc(:,n), t(:,n), precip(n))
+    enddo
+
+    do n = 2, ncase
+      n_diff = count(qv(:,n) /= qv(:,1)) + count(qc(:,n) /= qc(:,1)) + count(qr(:,n) /= qr(:,1)) + &
+        count(qi(:,n) /= qi(:,1)) + count(qs(:,n) /= qs(:,1)) + count(qg(:,n) /= qg(:,1)) + &
+        count(nc(:,n) /= nc(:,1)) + count(t(:,n) /= t(:,1))
+      write(*,'(A,A24,A,I5,A,ES11.4,A,ES11.4)') 'test_spp_perturbations() --- ', case_name(n), &
+        '  values changed = ', n_diff, '  precip = ', precip(n), '  (no pattern ', precip(1)
+      if (n == 2 .and. n_diff /= 0) failed = .true.
+      if (n > 2 .and. n_diff == 0) failed = .true.
+    enddo
+    if (failed) error stop 'spp perturbations test failed'
+  end subroutine test_spp_perturbations
+
+  subroutine run_spp_column(cfg, dt, use_pattern, pattern, qv_out, qc_out, qr_out, qi_out, &
+    qs_out, qg_out, nc_out, t_out, precip_sum)
+    !! runs the MPAS test column for 1200 s, optionally passing a uniform spp pattern
+    use module_mp_tempo_params, only : wp, sp, dp
+
+    type(ty_tempo_cfgs), intent(in) :: cfg
+    real(wp), intent(in) :: dt, pattern
+    logical, intent(in) :: use_pattern
+    real(wp), dimension(:), intent(out) :: qv_out, qc_out, qr_out, qi_out, qs_out, qg_out, nc_out, t_out
+    real(wp), intent(out) :: precip_sum
+    integer, parameter :: nz = 59
+    integer, parameter :: ids = 1, ide = 1, ims = 1, ime = 1, its = 1, ite = 1
+    integer, parameter :: jds = 1, jde = 1, jms = 1, jme = 1, jts = 1, jte = 1
+    integer, parameter :: kds = 1, kde = nz, kms = 1, kme = nz, kts = 1, kte = nz
+    real(wp), dimension(its:ite, kts:kte, jts:jte) :: qv, t, th, pii, p, w, dz, &
+      qc, qr, qi, qs, qg, ni, nr, nc, nwfa, nifa
+    real(wp), dimension(ims:ime, jms:jme) :: spp_pattern
+    real(wp), dimension(nz) :: klevs_in, qv_in, qc_in, qr_in, qi_in, qs_in, &
+      qg_in, ni_in, nr_in, nc_in, nwfa_in, nifa_in, theta_in, ng_in, volg_in, &
+      pressure_in, w_in, dz_in
+    type(ty_tempo_driver_diags) :: diags
+    integer :: io1, k, itimestep
+    integer, parameter :: integration_time = 1200
+
+    open(newunit=io1, file='../test/data/mpas_59lev_test.txt', status='old')
+    read(io1,*) ! header
+    do k = 1, nz
+      read(io1,*) klevs_in(k), qv_in(k), qc_in(k), qr_in(k), qi_in(k), qs_in(k), &
+          qg_in(k), ni_in(k), nr_in(k), nc_in(k), nwfa_in(k), nifa_in(k), &
+          theta_in(k), ng_in(k), volg_in(k), pressure_in(k), w_in(k), dz_in(k)
+    end do
+    close(io1)
+
+    qv(1,:,1) = qv_in
+    t(1,:,1) = theta_in * (pressure_in/100000.)**0.286
+    p(1,:,1) = pressure_in
+    dz(1,:,1) = dz_in
+    w(1,:,1) = w_in
+    qc(1,:,1) = qc_in
+    nc(1,:,1) = nc_in
+    qr(1,:,1) = qr_in
+    nr(1,:,1) = nr_in
+    qi(1,:,1) = qi_in
+    ni(1,:,1) = ni_in
+    qs(1,:,1) = qs_in
+    qg(1,:,1) = qg_in
+    nwfa(1,:,1) = nwfa_in
+    nifa(1,:,1) = nifa_in
+    spp_pattern = pattern
+
+    precip_sum = 0._wp
+    do itimestep = 1, int(integration_time/dt)
+      if (use_pattern) then
+        call tempo_run(tempo_cfgs=cfg, itimestep=itimestep, dt=dt, &
+                       ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
+                       jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
+                       kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
+                       t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
+                       qc=qc, nc=nc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, &
+                       nwfa=nwfa, nifa=nifa, spp_pattern=spp_pattern, tempo_diags=diags)
+      else
+        call tempo_run(tempo_cfgs=cfg, itimestep=itimestep, dt=dt, &
+                       ids=ids, ide=ide, ims=ims, ime=ime, its=its, ite=ite, &
+                       jds=jds, jde=jde, jms=jms, jme=jme, jts=jts, jte=jte, &
+                       kds=kds, kde=kde, kms=kms, kme=kme, kts=kts, kte=kte, &
+                       t=t, p=p, w=w, dz=dz, qv=qv, th=th, pii=pii, &
+                       qc=qc, nc=nc, qr=qr, qi=qi, qs=qs, qg=qg, ni=ni, nr=nr, &
+                       nwfa=nwfa, nifa=nifa, tempo_diags=diags)
+      endif
+      precip_sum = precip_sum + diags%rain_precip(1,1) + diags%snow_liquid_equiv_precip(1,1) + &
+        diags%graupel_liquid_equiv_precip(1,1) + diags%ice_liquid_equiv_precip(1,1)
+    enddo
+
+    qv_out = qv(1,:,1); qc_out = qc(1,:,1); qr_out = qr(1,:,1); qi_out = qi(1,:,1)
+    qs_out = qs(1,:,1); qg_out = qg(1,:,1); nc_out = nc(1,:,1); t_out = t(1,:,1)
+  end subroutine run_spp_column
 
 end module tests
